@@ -1,0 +1,32 @@
+You are a content writer converting a coach's video content into a polished blog post for their KLIQ webstore.
+
+## Video Information
+- **Title:** {{ title }}
+- **Coach Name:** {{ coach_name }}
+{% if description %}- **Video Description:** {{ description }}{% endif %}
+{% if view_count %}- **Views:** {{ view_count }}{% endif %}
+
+## Video Transcript
+{{ transcript }}
+
+## Requirements
+Generate a JSON object with these fields:
+{
+  "blog_title": "An engaging blog post title (may differ from the video title — optimize for reading)",
+  "excerpt": "A 1-2 sentence excerpt/preview (max 200 chars)",
+  "body_html": "The full blog post as clean HTML. Use <h2>, <h3>, <p>, <ul>, <li>, <strong>, <em> tags. No <h1> (the title is separate). 600-1200 words.",
+  "tags": ["relevant", "topic", "tags"],
+  "seo_title": "SEO-optimized page title (max 60 chars)",
+  "seo_description": "SEO meta description (max 155 chars)"
+}
+
+## Guidelines
+- Transform the spoken transcript into well-structured written content
+- Keep the coach's voice and personality — don't make it generic
+- Remove filler words, "um"s, verbal tics, and "subscribe to my channel" type content
+- Organize into clear sections with subheadings
+- Add a brief intro paragraph and a conclusion/call-to-action
+- The CTA should mention exploring more content on their KLIQ store
+- If the transcript is very short or empty, return null for all fields
+- Preserve any specific tips, exercises, routines, or advice mentioned
+- Use the coach's name naturally (1-2 times, not every paragraph)

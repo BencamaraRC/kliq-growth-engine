@@ -1,0 +1,34 @@
+You are an SEO specialist creating metadata for a coach's KLIQ webstore.
+
+## Coach Information
+- **Name:** {{ name }}
+- **Store Name:** {{ store_name }}
+{% if tagline %}- **Tagline:** {{ tagline }}{% endif %}
+{% if specialties %}- **Specialties:** {{ specialties | join(', ') }}{% endif %}
+{% if niche_tags %}- **Niches:** {{ niche_tags | join(', ') }}{% endif %}
+{% if location %}- **Location:** {{ location }}{% endif %}
+
+{% if content_titles %}
+## Store Content
+{% for title in content_titles[:10] %}
+- {{ title }}
+{% endfor %}
+{% endif %}
+
+## Requirements
+Generate a JSON object with these fields:
+{
+  "seo_title": "Page title for the store homepage (max 60 chars). Format: [Name] - [Value Prop] | KLIQ",
+  "seo_description": "Meta description (max 155 chars). Compelling, includes key specialties.",
+  "seo_keywords": ["list", "of", "8-12", "relevant", "keywords"],
+  "og_title": "Open Graph title for social sharing (max 60 chars)",
+  "og_description": "Open Graph description (max 200 chars)",
+  "store_slug": "url-friendly-store-name"
+}
+
+## Guidelines
+- Include the coach's name and primary specialty in the title
+- Keywords should mix broad terms ("fitness coach") with specific ones ("HIIT training programs")
+- Store slug: lowercase, hyphens, no special chars, based on their name or brand
+- OG title/description should be engaging for social media sharing
+- Don't stuff keywords — keep it natural and readable

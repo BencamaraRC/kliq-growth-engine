@@ -1,12 +1,17 @@
 """Webhook routes — handles claim actions and email events from Brevo."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import CampaignEvent, EmailStatus, Prospect, ProspectStatus
-from app.db.session import get_db
+from app.db.session import get_db, get_cms_db
+from app.outreach.claim_handler import ClaimError, activate_store, validate_claim_token
+from app.outreach.campaign_manager import send_claim_confirmation
+from app.outreach.tracking import process_brevo_event
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -23,43 +28,45 @@ class ClaimResponse(BaseModel):
 
 
 @router.post("/claim", response_model=ClaimResponse)
-async def claim_store(data: ClaimRequest, db: AsyncSession = Depends(get_db)):
+async def claim_store(
+    data: ClaimRequest,
+    growth_db: AsyncSession = Depends(get_db),
+    cms_db: AsyncSession = Depends(get_cms_db),
+):
     """Handle store claim from coach.
 
     1. Validate claim token
-    2. Update prospect status to CLAIMED
-    3. Activate store in CMS (status 1 → 2)
-    4. Set coach password
+    2. Activate store in CMS (status Draft → Active)
+    3. Set coach password
+    4. Send claim confirmation email
     5. Return redirect URL to CMS dashboard
     """
-    result = await db.execute(
-        select(Prospect).where(Prospect.claim_token == data.token)
-    )
-    prospect = result.scalar_one_or_none()
+    try:
+        prospect = await validate_claim_token(growth_db, data.token)
+    except ClaimError as e:
+        if "already claimed" in str(e):
+            return ClaimResponse(
+                success=True,
+                message="Store already claimed",
+                redirect_url=f"https://admin.joinkliq.io/app/{prospect.kliq_application_id}"
+                if "prospect" in dir()
+                else None,
+            )
+        raise HTTPException(status_code=404, detail=str(e))
 
-    if not prospect:
-        raise HTTPException(status_code=404, detail="Invalid claim token")
+    # Activate store
+    result = await activate_store(cms_db, growth_db, prospect, data.password)
 
-    if prospect.status == ProspectStatus.CLAIMED:
-        return ClaimResponse(
-            success=True,
-            message="Store already claimed",
-            redirect_url=prospect.kliq_store_url,
-        )
-
-    # TODO: Activate store in CMS MySQL (Phase 3)
-    # TODO: Set coach password in CMS (Phase 3)
-
-    prospect.status = ProspectStatus.CLAIMED
-    from datetime import datetime
-
-    prospect.claimed_at = datetime.utcnow()
-    await db.commit()
+    # Send confirmation email (async, don't block)
+    try:
+        await send_claim_confirmation(growth_db, prospect)
+    except Exception as e:
+        logger.warning(f"Failed to send claim confirmation: {e}")
 
     return ClaimResponse(
         success=True,
-        message="Store claimed successfully!",
-        redirect_url=prospect.kliq_store_url,
+        message="Store claimed successfully! Welcome to KLIQ.",
+        redirect_url=result.get("store_url") or f"https://admin.joinkliq.io/app/{result['application_id']}",
     )
 
 
@@ -67,33 +74,5 @@ async def claim_store(data: ClaimRequest, db: AsyncSession = Depends(get_db)):
 async def brevo_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     """Handle email events from Brevo (opens, clicks, bounces, etc.)."""
     payload = await request.json()
-    event_type = payload.get("event")
-    message_id = payload.get("message-id")
-
-    if not message_id:
-        return {"status": "ignored"}
-
-    result = await db.execute(
-        select(CampaignEvent).where(CampaignEvent.brevo_message_id == message_id)
-    )
-    event = result.scalar_one_or_none()
-    if not event:
-        return {"status": "not_found"}
-
-    from datetime import datetime
-
-    now = datetime.utcnow()
-
-    if event_type == "opened":
-        event.email_status = EmailStatus.OPENED
-        event.opened_at = now
-    elif event_type == "click":
-        event.email_status = EmailStatus.CLICKED
-        event.clicked_at = now
-    elif event_type in ("hard_bounce", "soft_bounce"):
-        event.email_status = EmailStatus.BOUNCED
-    elif event_type == "unsubscribed":
-        event.email_status = EmailStatus.UNSUBSCRIBED
-
-    await db.commit()
-    return {"status": "processed"}
+    status = await process_brevo_event(db, payload)
+    return {"status": status}

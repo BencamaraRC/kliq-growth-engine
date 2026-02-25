@@ -196,7 +196,7 @@ class GeneratedContent(Base):
     content_type: Mapped[str] = mapped_column(String(50))  # bio, blog, product, seo, color
     title: Mapped[str | None] = mapped_column(String(500), nullable=True)
     body: Mapped[str | None] = mapped_column(Text, nullable=True)
-    metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    content_metadata: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     source_content_id: Mapped[int | None] = mapped_column(
         ForeignKey("scraped_content.id"), nullable=True
     )

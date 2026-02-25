@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Last Chance to Claim Your Store</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; }
+    .header { background: {{ primary_color | default('#1E81FF') }}; padding: 32px 24px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 24px; }
+    .body { padding: 32px 24px; }
+    .body h2 { color: #1a1a1a; font-size: 20px; margin-top: 0; }
+    .body p { line-height: 1.6; color: #555; font-size: 16px; }
+    .cta-button { display: inline-block; background: {{ primary_color | default('#1E81FF') }}; color: #fff !important; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; margin: 16px 0; }
+    .footer { background: #f8f9fa; padding: 24px; text-align: center; font-size: 13px; color: #999; }
+    .footer a { color: #999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Final Reminder</h1>
+    </div>
+    <div class="body">
+      <h2>Hi {{ first_name }},</h2>
+      <p>
+        This is our last note — your KLIQ store <strong>{{ store_name }}</strong>
+        is still unclaimed and we'd hate for it to go to waste.
+      </p>
+
+      <p>Here's what's already set up and waiting for you:</p>
+      <ul style="color: #555; line-height: 1.8;">
+        <li>A branded webstore with your colors and content</li>
+        <li>Blog posts created from your videos</li>
+        <li>Product tiers ready to go live</li>
+        <li>The ability to convert it into your own branded mobile app</li>
+      </ul>
+
+      <p>
+        It takes less than 30 seconds to claim — just click below and set your password.
+      </p>
+
+      <p style="text-align: center;">
+        <a href="{{ claim_url }}" class="cta-button">Claim Your Store Now</a>
+      </p>
+
+      <p style="font-size: 14px; color: #777;">
+        If this isn't for you, no worries — we won't email again.
+      </p>
+    </div>
+    <div class="footer">
+      <p>
+        KLIQ — Empowering fitness &amp; wellness creators<br>
+        <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

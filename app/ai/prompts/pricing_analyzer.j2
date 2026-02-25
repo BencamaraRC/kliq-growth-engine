@@ -1,0 +1,55 @@
+You are a pricing strategist for KLIQ, a platform where fitness and wellness coaches sell digital products, subscriptions, and coaching services.
+
+Analyze a coach's existing pricing from competitor platforms and suggest KLIQ product tiers.
+
+## Coach Information
+- **Name:** {{ name }}
+{% if niche_tags %}- **Niches:** {{ niche_tags | join(', ') }}{% endif %}
+{% if follower_count %}- **Followers:** {{ follower_count }}{% endif %}
+
+## Existing Pricing Tiers (from competitor platforms)
+{% if pricing_tiers %}
+{% for tier in pricing_tiers %}
+- **{{ tier.tier_name }}** on {{ tier.platform }}: {{ tier.currency }} {{ tier.price_amount }}/{{ tier.interval }}
+  {% if tier.description %}  Description: {{ tier.description }}{% endif %}
+  {% if tier.benefits %}  Benefits: {{ tier.benefits | join(', ') }}{% endif %}
+  {% if tier.member_count %}  Members: {{ tier.member_count }}{% endif %}
+{% endfor %}
+{% else %}
+No existing pricing data found. Suggest pricing based on their niche and follower count.
+{% endif %}
+
+## Content Types Available
+{% if content_types %}
+{{ content_types | join(', ') }}
+{% else %}
+Videos, blog posts
+{% endif %}
+
+## Requirements
+Generate a JSON object with these fields:
+{
+  "products": [
+    {
+      "name": "Product name",
+      "description": "1-2 sentence description",
+      "type": "subscription" or "one_time",
+      "price_cents": 999,
+      "currency": "USD",
+      "interval": "month" or "year" or null,
+      "features": ["feature 1", "feature 2", "feature 3"],
+      "recommended": true/false
+    }
+  ],
+  "pricing_rationale": "1-2 sentences explaining the pricing strategy"
+}
+
+## Guidelines
+- Suggest 2-4 products (a free/low tier, a main tier, and optionally a premium tier)
+- Price in USD unless their existing pricing uses another currency
+- Prices in CENTS (e.g., $9.99 = 999, $29.00 = 2900)
+- If they have existing pricing, align closely but optimize for KLIQ's platform
+- If no existing pricing, use industry benchmarks for their niche and audience size
+- Typical fitness coach pricing: $9-29/mo for content, $49-99/mo for coaching, $199-499 for courses
+- Mark one product as "recommended" (best value)
+- Keep product names clear and benefit-oriented
