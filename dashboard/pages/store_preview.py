@@ -111,7 +111,7 @@ try:
     # --- KLIQ Design Tokens (from actual production webstore) ---
     tangerine = "#FF9F88"         # CTA buttons, accents
     kliq_green = "#1C3838"        # Nav text, dark elements
-    page_bg = "#F8F8F8"           # Actual webstore background
+    page_bg = "#FFFDF9"           # Official KLIQ ivory background
     card_bg = "#FFFFFF"           # Card surfaces
     text_primary = "#101828"      # Headings
     text_secondary = "#1D2939"    # Body text
