@@ -51,6 +51,8 @@ def create_store_task(self, prospect_id: int):
         return result
     except Exception as exc:
         logger.error(f"Store creation failed for prospect {prospect_id}: {exc}")
+        from app.events.slack import notify_pipeline_error
+        notify_pipeline_error("store_creation", prospect_id=prospect_id, error=str(exc))
         raise self.retry(exc=exc, countdown=120)
 
 
@@ -188,6 +190,14 @@ async def _create_store(prospect_id: int) -> dict:
         from datetime import datetime
         prospect.store_created_at = datetime.utcnow()
         await growth_db.commit()
+
+    # Log event
+    from app.events.bigquery import log_event
+    log_event(
+        "store_created",
+        prospect_id=prospect_id,
+        application_id=store.application_id,
+    )
 
     return {
         "prospect_id": prospect_id,

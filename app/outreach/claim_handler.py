@@ -105,6 +105,21 @@ async def activate_store(
 
     logger.info(f"Store {app_id} activated for {prospect.email}")
 
+    # Log events and notify
+    from app.events.bigquery import log_event
+    from app.events.slack import notify_store_claimed
+    log_event(
+        "store_claimed",
+        prospect_id=prospect.id,
+        application_id=app_id,
+    )
+    notify_store_claimed(
+        prospect_name=prospect.name,
+        email=prospect.email or "",
+        platform=prospect.primary_platform.value if prospect.primary_platform else "unknown",
+        application_id=app_id,
+    )
+
     return {
         "application_id": app_id,
         "store_url": prospect.kliq_store_url,

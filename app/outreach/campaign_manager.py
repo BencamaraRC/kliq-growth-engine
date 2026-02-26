@@ -162,6 +162,13 @@ async def _send_step(
 
     if result.success:
         logger.info(f"Sent step {step} to {prospect.email} (message_id={result.message_id})")
+        from app.events.bigquery import log_event
+        log_event(
+            "email_sent",
+            prospect_id=prospect.id,
+            campaign_id=campaign.id,
+            email_step=step,
+        )
     else:
         logger.error(f"Failed step {step} to {prospect.email}: {result.error}")
 

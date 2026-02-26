@@ -51,6 +51,8 @@ def generate_content_task(self, prospect_id: int):
         return result
     except Exception as exc:
         logger.error(f"AI content generation failed for prospect {prospect_id}: {exc}")
+        from app.events.slack import notify_pipeline_error
+        notify_pipeline_error("ai_generation", prospect_id=prospect_id, error=str(exc))
         raise self.retry(exc=exc, countdown=60)
 
 
@@ -204,6 +206,10 @@ async def _generate_all_content(prospect_id: int) -> dict:
         from app.db.models import ProspectStatus
         prospect.status = ProspectStatus.CONTENT_GENERATED
         await session.commit()
+
+        # Log event
+        from app.events.bigquery import log_event
+        log_event("content_generated", prospect_id=prospect_id)
 
         results["token_usage"] = client.usage_summary
         return results

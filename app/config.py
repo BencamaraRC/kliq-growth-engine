@@ -49,6 +49,13 @@ class Settings(BaseSettings):
     claim_base_url: str = "https://admin.joinkliq.io/claim"
     claim_secret_key: str = "change-me-in-production"
 
+    # Slack
+    slack_webhook_url: str = ""
+    slack_channel: str = "#growth-engine"
+
+    # BigQuery
+    bigquery_events_table: str = "growth_engine_events"
+
     # Rate Limits
     youtube_max_daily_units: int = 10000
     scrape_delay_seconds: int = 2

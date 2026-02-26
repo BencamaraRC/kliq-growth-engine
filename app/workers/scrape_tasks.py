@@ -101,6 +101,14 @@ async def _discover_coaches(
 
         await db.commit()
 
+    # Log events
+    from app.events.bigquery import log_event
+    for prospect in prospects[:created_count]:
+        log_event(
+            "prospect_discovered",
+            platform=prospect.primary_profile.platform.value,
+        )
+
     logger.info(f"Discovery complete: {created_count} new prospects stored")
     return {"discovered": len(prospects), "new": created_count}
 
