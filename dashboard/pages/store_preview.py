@@ -5,10 +5,32 @@ as seen on live stores like Lift Your Vibe. Uses st.components.v1.html() for
 reliable HTML rendering.
 """
 
+import base64
 import json
+import urllib.request
 
 import streamlit as st
 import streamlit.components.v1 as components
+
+
+_img_cache: dict[str, str] = {}
+
+
+def _fetch_image_b64(url: str) -> str:
+    """Fetch an image URL and return a base64 data URI."""
+    if url in _img_cache:
+        return _img_cache[url]
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
+            mime = resp.headers.get("Content-Type", "image/jpeg")
+            result = f"data:{mime};base64,{base64.b64encode(data).decode()}"
+            _img_cache[url] = result
+            return result
+    except Exception:
+        _img_cache[url] = ""
+        return ""
 
 st.set_page_config(page_title="Store Preview | KLIQ Growth Engine", layout="wide")
 
@@ -35,7 +57,14 @@ try:
         st.stop()
 
     options = {f"{p[1]} ({p[2]}) — {p[3]}": p[0] for p in prospects}
-    selected = st.selectbox("Select a coach to preview their store", list(options.keys()))
+    option_keys = list(options.keys())
+    # Default to KLIQ prospect if available
+    default_idx = 0
+    for i, key in enumerate(option_keys):
+        if "KLIQ" in key:
+            default_idx = i
+            break
+    selected = st.selectbox("Select a coach to preview their store", option_keys, index=default_idx)
     prospect_id = options[selected]
 
     # --- Load all data ---
@@ -108,8 +137,9 @@ try:
             tabs_html += f'<span style="color:{gray};padding:8px 22px;font-size:14px;font-weight:400;">{tab}</span>'
 
     # Avatar HTML
-    if profile_img:
-        avatar_html = f'<img src="{profile_img}" style="width:90px;height:90px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);object-fit:cover;" />'
+    profile_b64 = _fetch_image_b64(profile_img) if profile_img else ""
+    if profile_b64:
+        avatar_html = f'<img src="{profile_b64}" style="width:90px;height:90px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);object-fit:cover;" />'
     else:
         avatar_html = f'<div style="width:90px;height:90px;border-radius:50%;border:4px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.12);background:linear-gradient(135deg,{primary}40,{primary}15);display:flex;align-items:center;justify-content:center;"><span style="font-size:36px;font-weight:700;color:{primary};">{coach_name[0] if coach_name else "K"}</span></div>'
 
@@ -159,8 +189,11 @@ try:
         display_title = title if len(title) <= 42 else title[:39] + "..."
         display_excerpt = excerpt if len(excerpt) <= 80 else excerpt[:77] + "..."
 
+        thumb_b64 = ""
         if thumbnail:
-            img_html = f'<img src="{thumbnail}" style="width:100%;height:180px;border-radius:12px;object-fit:cover;display:block;" />'
+            thumb_b64 = _fetch_image_b64(thumbnail)
+        if thumb_b64:
+            img_html = f'<img src="{thumb_b64}" style="width:100%;height:180px;border-radius:12px;object-fit:cover;display:block;" />'
         else:
             img_html = f'<div style="width:100%;height:180px;border-radius:12px;background:linear-gradient(135deg,#667eea,#764ba2);"></div>'
 
