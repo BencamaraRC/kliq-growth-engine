@@ -15,7 +15,7 @@ st.title("Campaign Manager")
 st.markdown("Outreach campaign performance and email engagement analytics.")
 
 try:
-    from dashboard.data import (
+    from data import (
         get_campaign_stats,
         get_email_timeline,
         get_kpi_summary,

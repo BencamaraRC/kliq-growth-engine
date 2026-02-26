@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     app_port: int = 8000
 
     # Growth Engine PostgreSQL
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/kliq_growth_engine"
+    database_url: str = "postgresql+asyncpg://bencamara@localhost:5433/kliq_growth_engine"
 
     # RCWL-CMS MySQL (direct writes for store population)
     cms_database_url: str = "mysql+aiomysql://root:password@localhost:3306/rcwlcmsweb2022"

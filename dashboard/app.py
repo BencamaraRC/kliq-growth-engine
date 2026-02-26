@@ -17,10 +17,11 @@ st.set_page_config(
 # --- Sidebar ---
 st.sidebar.title("KLIQ Growth Engine")
 st.sidebar.markdown("---")
-st.sidebar.page_link("dashboard/app.py", label="Home", icon=":material/home:")
-st.sidebar.page_link("dashboard/pages/growth_engine.py", label="Pipeline Monitor", icon=":material/monitoring:")
-st.sidebar.page_link("dashboard/pages/competitor_intel.py", label="Competitor Intel", icon=":material/search:")
-st.sidebar.page_link("dashboard/pages/campaign_manager.py", label="Campaign Manager", icon=":material/mail:")
+st.sidebar.page_link("app.py", label="Home", icon=":material/home:")
+st.sidebar.page_link("pages/growth_engine.py", label="Pipeline Monitor", icon=":material/monitoring:")
+st.sidebar.page_link("pages/competitor_intel.py", label="Competitor Intel", icon=":material/search:")
+st.sidebar.page_link("pages/campaign_manager.py", label="Campaign Manager", icon=":material/mail:")
+st.sidebar.page_link("pages/store_preview.py", label="Store Preview", icon=":material/storefront:")
 st.sidebar.markdown("---")
 st.sidebar.caption("v0.1.0 | Phase 6")
 
@@ -29,7 +30,7 @@ st.title("KLIQ Growth Engine")
 st.markdown("Automated coach discovery, webstore generation, and outreach pipeline.")
 
 try:
-    from dashboard.data import get_kpi_summary, get_daily_activity, get_funnel_data
+    from data import get_kpi_summary, get_daily_activity, get_funnel_data
 
     kpis = get_kpi_summary()
 

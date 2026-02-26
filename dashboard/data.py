@@ -14,7 +14,7 @@ from sqlalchemy import create_engine, func, text
 # Build sync DB URL from the async one
 _async_url = os.getenv(
     "DATABASE_URL",
-    "postgresql+asyncpg://postgres:postgres@localhost:5432/kliq_growth_engine",
+    "postgresql+asyncpg://bencamara@localhost:5433/kliq_growth_engine",
 )
 _sync_url = _async_url.replace("+asyncpg", "")
 engine = create_engine(_sync_url, pool_pre_ping=True)

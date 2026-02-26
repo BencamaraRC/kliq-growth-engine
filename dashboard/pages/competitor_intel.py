@@ -15,7 +15,7 @@ st.title("Competitor Intelligence")
 st.markdown("Browse coaches discovered across YouTube, Skool, Patreon, and websites.")
 
 try:
-    from dashboard.data import (
+    from data import (
         get_niche_distribution,
         get_platform_breakdown,
         get_prospect_detail,

@@ -15,7 +15,7 @@ st.title("Pipeline Monitor")
 st.markdown("Real-time view of the Growth Engine scraping, generation, and outreach pipeline.")
 
 try:
-    from dashboard.data import (
+    from data import (
         get_daily_activity,
         get_funnel_data,
         get_platform_breakdown,
