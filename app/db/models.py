@@ -29,38 +29,40 @@ class Base(DeclarativeBase):
 
 
 class Platform(str, enum.Enum):
-    YOUTUBE = "youtube"
-    SKOOL = "skool"
-    PATREON = "patreon"
-    WEBSITE = "website"
-    TIKTOK = "tiktok"
-    INSTAGRAM = "instagram"
+    YOUTUBE = "YOUTUBE"
+    SKOOL = "SKOOL"
+    PATREON = "PATREON"
+    WEBSITE = "WEBSITE"
+    TIKTOK = "TIKTOK"
+    INSTAGRAM = "INSTAGRAM"
+    ONLYFANS = "ONLYFANS"
+    KAJABI = "KAJABI"
 
 
 class ProspectStatus(str, enum.Enum):
-    DISCOVERED = "discovered"
-    SCRAPED = "scraped"
-    CONTENT_GENERATED = "content_generated"
-    STORE_CREATED = "store_created"
-    EMAIL_SENT = "email_sent"
-    CLAIMED = "claimed"
-    REJECTED = "rejected"
+    DISCOVERED = "DISCOVERED"
+    SCRAPED = "SCRAPED"
+    CONTENT_GENERATED = "CONTENT_GENERATED"
+    STORE_CREATED = "STORE_CREATED"
+    EMAIL_SENT = "EMAIL_SENT"
+    CLAIMED = "CLAIMED"
+    REJECTED = "REJECTED"
 
 
 class CampaignStatus(str, enum.Enum):
-    DRAFT = "draft"
-    ACTIVE = "active"
-    PAUSED = "paused"
-    COMPLETED = "completed"
+    DRAFT = "DRAFT"
+    ACTIVE = "ACTIVE"
+    PAUSED = "PAUSED"
+    COMPLETED = "COMPLETED"
 
 
 class EmailStatus(str, enum.Enum):
-    PENDING = "pending"
-    SENT = "sent"
-    OPENED = "opened"
-    CLICKED = "clicked"
-    BOUNCED = "bounced"
-    UNSUBSCRIBED = "unsubscribed"
+    PENDING = "PENDING"
+    SENT = "SENT"
+    OPENED = "OPENED"
+    CLICKED = "CLICKED"
+    BOUNCED = "BOUNCED"
+    UNSUBSCRIBED = "UNSUBSCRIBED"
 
 
 # --- Models ---

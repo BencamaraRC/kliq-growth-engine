@@ -30,27 +30,27 @@ def get_kpi_summary() -> dict:
 
         status_map = {row[0]: row[1] for row in by_status}
 
-        stores = status_map.get("store_created", 0) + status_map.get("email_sent", 0) + status_map.get("claimed", 0)
-        emails_sent = status_map.get("email_sent", 0) + status_map.get("claimed", 0)
-        claimed = status_map.get("claimed", 0)
+        stores = status_map.get("STORE_CREATED", 0) + status_map.get("EMAIL_SENT", 0) + status_map.get("CLAIMED", 0)
+        emails_sent = status_map.get("EMAIL_SENT", 0) + status_map.get("CLAIMED", 0)
+        claimed = status_map.get("CLAIMED", 0)
 
         total_emails = conn.execute(
-            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'sent'")
+            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'SENT'")
         ).scalar() or 0
 
         total_opened = conn.execute(
-            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'opened'")
+            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'OPENED'")
         ).scalar() or 0
 
     return {
         "total_prospects": total,
-        "discovered": status_map.get("discovered", 0),
-        "scraped": status_map.get("scraped", 0),
-        "content_generated": status_map.get("content_generated", 0),
+        "discovered": status_map.get("DISCOVERED", 0),
+        "scraped": status_map.get("SCRAPED", 0),
+        "content_generated": status_map.get("CONTENT_GENERATED", 0),
         "stores_created": stores,
         "emails_sent": total_emails,
         "claimed": claimed,
-        "rejected": status_map.get("rejected", 0),
+        "rejected": status_map.get("REJECTED", 0),
         "open_rate": round(total_opened / total_emails * 100, 1) if total_emails else 0,
         "claim_rate": round(claimed / stores * 100, 1) if stores else 0,
     }
@@ -65,13 +65,13 @@ def get_funnel_data() -> pd.DataFrame:
                 FROM prospects
                 GROUP BY status
                 ORDER BY CASE status
-                    WHEN 'discovered' THEN 1
-                    WHEN 'scraped' THEN 2
-                    WHEN 'content_generated' THEN 3
-                    WHEN 'store_created' THEN 4
-                    WHEN 'email_sent' THEN 5
-                    WHEN 'claimed' THEN 6
-                    WHEN 'rejected' THEN 7
+                    WHEN 'DISCOVERED' THEN 1
+                    WHEN 'SCRAPED' THEN 2
+                    WHEN 'CONTENT_GENERATED' THEN 3
+                    WHEN 'STORE_CREATED' THEN 4
+                    WHEN 'EMAIL_SENT' THEN 5
+                    WHEN 'CLAIMED' THEN 6
+                    WHEN 'REJECTED' THEN 7
                 END
             """)
         ).fetchall()
@@ -116,7 +116,7 @@ def get_daily_activity(days: int = 30) -> pd.DataFrame:
             text("""
                 SELECT
                     DATE(discovered_at) as date,
-                    COUNT(*) FILTER (WHERE status != 'rejected') as discovered,
+                    COUNT(*) FILTER (WHERE status != 'REJECTED') as discovered,
                     COUNT(*) FILTER (WHERE store_created_at IS NOT NULL) as stores_created,
                     COUNT(*) FILTER (WHERE claimed_at IS NOT NULL) as claimed
                 FROM prospects
@@ -129,17 +129,15 @@ def get_daily_activity(days: int = 30) -> pd.DataFrame:
     return pd.DataFrame(result, columns=["date", "discovered", "stores_created", "claimed"])
 
 
-def get_prospects_table(
+def _build_prospect_filters(
     status: str | None = None,
     platform: str | None = None,
     niche: str | None = None,
-    limit: int = 100,
-    offset: int = 0,
-) -> pd.DataFrame:
-    """Paginated prospects list with filters."""
+    search: str | None = None,
+) -> tuple[str, dict]:
+    """Build WHERE clause and params for prospect queries."""
     conditions = []
-    params: dict = {"limit": limit, "offset": offset}
-
+    params: dict = {}
     if status:
         conditions.append("status = :status")
         params["status"] = status
@@ -149,15 +147,34 @@ def get_prospects_table(
     if niche:
         conditions.append("niche_tags::text ILIKE :niche")
         params["niche"] = f"%{niche}%"
-
+    if search:
+        conditions.append("(name ILIKE :search OR email ILIKE :search)")
+        params["search"] = f"%{search}%"
     where = ("WHERE " + " AND ".join(conditions)) if conditions else ""
+    return where, params
+
+
+def get_prospects_table(
+    status: str | None = None,
+    platform: str | None = None,
+    niche: str | None = None,
+    search: str | None = None,
+    limit: int = 100,
+    offset: int = 0,
+) -> pd.DataFrame:
+    """Paginated prospects list with filters."""
+    where, params = _build_prospect_filters(status, platform, niche, search)
+    params["limit"] = limit
+    params["offset"] = offset
 
     with engine.connect() as conn:
         result = conn.execute(
             text(f"""
                 SELECT id, name, email, status, primary_platform,
-                       follower_count, subscriber_count, niche_tags,
-                       kliq_application_id, kliq_store_url, discovered_at, claimed_at
+                       primary_platform_url, website_url, social_links,
+                       follower_count, subscriber_count,
+                       niche_tags, kliq_application_id, kliq_store_url,
+                       discovered_at, claimed_at
                 FROM prospects
                 {where}
                 ORDER BY discovered_at DESC
@@ -166,14 +183,75 @@ def get_prospects_table(
             params,
         ).fetchall()
 
-    return pd.DataFrame(
+    df = pd.DataFrame(
         result,
         columns=[
             "id", "name", "email", "status", "platform",
+            "platform_url", "website", "social_links_raw",
             "followers", "subscribers", "niches",
             "app_id", "store_url", "discovered", "claimed",
         ],
     )
+
+    # Extract individual social link URLs from JSON
+    import json as _json
+
+    def _parse_social(raw, key):
+        if raw is None:
+            return None
+        if isinstance(raw, str):
+            try:
+                raw = _json.loads(raw)
+            except (ValueError, TypeError):
+                return None
+        if isinstance(raw, dict):
+            return raw.get(key)
+        return None
+
+    df["instagram"] = df["social_links_raw"].apply(lambda r: _parse_social(r, "instagram"))
+    df["youtube"] = df["social_links_raw"].apply(lambda r: _parse_social(r, "youtube"))
+    df["tiktok"] = df["social_links_raw"].apply(lambda r: _parse_social(r, "tiktok"))
+    df["twitter"] = df["social_links_raw"].apply(lambda r: _parse_social(r, "twitter"))
+    df.drop(columns=["social_links_raw"], inplace=True)
+
+    return df
+
+
+def get_prospects_count(
+    status: str | None = None,
+    platform: str | None = None,
+    niche: str | None = None,
+    search: str | None = None,
+) -> int:
+    """Count prospects matching filters (for pagination)."""
+    where, params = _build_prospect_filters(status, platform, niche, search)
+    with engine.connect() as conn:
+        return conn.execute(
+            text(f"SELECT COUNT(*) FROM prospects {where}"), params
+        ).scalar() or 0
+
+
+def get_all_platforms() -> list[str]:
+    """Get all distinct platforms for filter dropdowns."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("SELECT DISTINCT primary_platform FROM prospects ORDER BY primary_platform")
+        ).fetchall()
+    return [row[0] for row in result if row[0]]
+
+
+def get_all_niches() -> list[str]:
+    """Get all distinct niche tags for filter dropdowns."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("""
+                SELECT DISTINCT tag
+                FROM prospects, jsonb_array_elements_text(niche_tags::jsonb) AS tag
+                WHERE niche_tags IS NOT NULL
+                ORDER BY tag
+            """)
+        ).fetchall()
+    return [row[0] for row in result]
 
 
 def get_campaign_stats() -> dict:
@@ -185,11 +263,11 @@ def get_campaign_stats() -> dict:
                 SELECT
                     step,
                     COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE email_status = 'sent') as sent,
-                    COUNT(*) FILTER (WHERE email_status = 'opened') as opened,
-                    COUNT(*) FILTER (WHERE email_status = 'clicked') as clicked,
-                    COUNT(*) FILTER (WHERE email_status = 'bounced') as bounced,
-                    COUNT(*) FILTER (WHERE email_status = 'unsubscribed') as unsubscribed
+                    COUNT(*) FILTER (WHERE email_status = 'SENT') as sent,
+                    COUNT(*) FILTER (WHERE email_status = 'OPENED') as opened,
+                    COUNT(*) FILTER (WHERE email_status = 'CLICKED') as clicked,
+                    COUNT(*) FILTER (WHERE email_status = 'BOUNCED') as bounced,
+                    COUNT(*) FILTER (WHERE email_status = 'UNSUBSCRIBED') as unsubscribed
                 FROM campaign_events
                 GROUP BY step
                 ORDER BY step
@@ -244,7 +322,7 @@ def get_recent_claims(limit: int = 20) -> pd.DataFrame:
                 SELECT id, name, email, primary_platform, kliq_application_id,
                        kliq_store_url, claimed_at
                 FROM prospects
-                WHERE status = 'claimed'
+                WHERE status = 'CLAIMED'
                 ORDER BY claimed_at DESC
                 LIMIT :limit
             """),
@@ -296,5 +374,12 @@ def get_prospect_detail(prospect_id: int) -> dict | None:
             {"id": prospect_id},
         ).fetchall()
         prospect["campaign_events"] = [dict(r._mapping) for r in events]
+
+        # Get scraped pricing
+        pricing = conn.execute(
+            text("SELECT * FROM scraped_pricing WHERE prospect_id = :id ORDER BY price_amount"),
+            {"id": prospect_id},
+        ).fetchall()
+        prospect["scraped_pricing"] = [dict(r._mapping) for r in pricing]
 
     return prospect

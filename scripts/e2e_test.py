@@ -378,21 +378,28 @@ def store_prospect(conn, profile: dict) -> int:
 
         if existing:
             prospect_id = existing[0]
-            cur.execute("""
+            # Only update image URLs if we actually scraped new ones
+            img_clause = ""
+            img_params = []
+            if profile["profile_image_url"]:
+                img_clause += ", profile_image_url = %s"
+                img_params.append(profile["profile_image_url"])
+            if profile["banner_image_url"]:
+                img_clause += ", banner_image_url = %s"
+                img_params.append(profile["banner_image_url"])
+            cur.execute(f"""
                 UPDATE prospects SET
                     status = 'SCRAPED', name = %s, email = %s, bio = %s,
-                    profile_image_url = %s, banner_image_url = %s,
                     website_url = %s, social_links = %s, niche_tags = %s,
                     follower_count = %s, subscriber_count = %s, content_count = %s,
-                    updated_at = NOW()
+                    updated_at = NOW(){img_clause}
                 WHERE id = %s
             """, (
                 profile["name"], profile["email"], profile["bio"],
-                profile["profile_image_url"], profile["banner_image_url"],
                 profile["website_url"], json.dumps(profile["social_links"]),
                 json.dumps(profile["niche_tags"]),
                 profile["follower_count"], profile["subscriber_count"],
-                profile["content_count"], prospect_id,
+                profile["content_count"], *img_params, prospect_id,
             ))
             print(f"  Updated existing prospect ID={prospect_id}")
         else:

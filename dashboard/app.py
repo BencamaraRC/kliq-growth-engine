@@ -1,8 +1,6 @@
-"""KLIQ Growth Engine Dashboard — Main entry point.
+"""KLIQ Growth Engine Dashboard — Home.
 
 Run with: streamlit run dashboard/app.py
-
-Shows high-level KPIs and links to sub-pages for detailed views.
 """
 
 import streamlit as st
@@ -14,56 +12,76 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- Sidebar ---
-st.sidebar.title("KLIQ Growth Engine")
-st.sidebar.markdown("---")
-st.sidebar.page_link("app.py", label="Home", icon=":material/home:")
-st.sidebar.page_link("pages/growth_engine.py", label="Pipeline Monitor", icon=":material/monitoring:")
-st.sidebar.page_link("pages/competitor_intel.py", label="Competitor Intel", icon=":material/search:")
-st.sidebar.page_link("pages/campaign_manager.py", label="Campaign Manager", icon=":material/mail:")
-st.sidebar.page_link("pages/store_preview.py", label="Store Preview", icon=":material/storefront:")
-st.sidebar.markdown("---")
-st.sidebar.caption("v0.1.0 | Phase 6")
+from theme import inject_kliq_theme, sidebar_nav, apply_plotly_theme, CHART_COLORS
+
+inject_kliq_theme()
+sidebar_nav()
 
 # --- Main Content ---
-st.title("KLIQ Growth Engine")
+st.title("Dashboard")
 st.markdown("Automated coach discovery, webstore generation, and outreach pipeline.")
 
 try:
-    from data import get_kpi_summary, get_daily_activity, get_funnel_data
+    from data import (
+        get_daily_activity,
+        get_funnel_data,
+        get_kpi_summary,
+        get_niche_distribution,
+        get_platform_breakdown,
+    )
 
     kpis = get_kpi_summary()
 
     # --- Top-line KPIs ---
     col1, col2, col3, col4, col5 = st.columns(5)
-    col1.metric("Total Prospects", kpis["total_prospects"])
-    col2.metric("Stores Created", kpis["stores_created"])
-    col3.metric("Emails Sent", kpis["emails_sent"])
-    col4.metric("Claims", kpis["claimed"], help="Coaches who activated their store")
-    col5.metric(
-        "Claim Rate",
-        f"{kpis['claim_rate']}%",
-        help="Claims / Stores Created",
-    )
+    col1.metric("Total Prospects", f"{kpis['total_prospects']:,}")
+    col2.metric("Stores Created", f"{kpis['stores_created']:,}")
+    col3.metric("Emails Sent", f"{kpis['emails_sent']:,}")
+    col4.metric("Claims", f"{kpis['claimed']:,}")
+    col5.metric("Claim Rate", f"{kpis['claim_rate']}%")
 
     st.markdown("---")
 
-    # --- Funnel ---
-    st.subheader("Pipeline Funnel")
-    funnel = get_funnel_data()
-    if not funnel.empty:
-        import plotly.express as px
+    # --- Funnel + Platform Breakdown ---
+    col_left, col_right = st.columns([3, 2])
 
-        fig = px.funnel(
-            funnel,
-            x="count",
-            y="status",
-            title="Prospect Pipeline Stages",
-        )
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        st.info("No prospects yet. Trigger a discovery run to get started.")
+    with col_left:
+        st.subheader("Pipeline Funnel")
+        funnel = get_funnel_data()
+        if not funnel.empty:
+            import plotly.express as px
+
+            fig = px.bar(
+                funnel,
+                x="status",
+                y="count",
+                color="status",
+                color_discrete_sequence=CHART_COLORS,
+            )
+            fig.update_layout(height=380, showlegend=False)
+            apply_plotly_theme(fig)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No prospects yet. Trigger a discovery run to get started.")
+
+    with col_right:
+        st.subheader("By Platform")
+        platforms = get_platform_breakdown()
+        if not platforms.empty:
+            import plotly.express as px
+
+            fig = px.pie(
+                platforms,
+                values="count",
+                names="platform",
+                color_discrete_sequence=CHART_COLORS,
+                hole=0.4,
+            )
+            fig.update_layout(height=380)
+            apply_plotly_theme(fig)
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No platform data yet.")
 
     # --- Daily Activity ---
     st.subheader("Daily Activity (Last 30 Days)")
@@ -71,37 +89,55 @@ try:
     if not daily.empty:
         import plotly.express as px
 
-        fig = px.line(
+        fig = px.area(
             daily,
             x="date",
             y=["discovered", "stores_created", "claimed"],
-            title="Daily Pipeline Activity",
             labels={"value": "Count", "variable": "Metric"},
+            color_discrete_sequence=["#1C3838", "#39938F", "#FF9F88"],
         )
-        fig.update_layout(height=350)
+        fig.update_layout(height=320)
+        apply_plotly_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.info("No activity data yet.")
 
-    # --- Status Breakdown ---
-    st.subheader("Status Breakdown")
+    # --- Niche Distribution + Status Breakdown ---
     col_a, col_b = st.columns(2)
+
     with col_a:
-        st.markdown(f"""
-        | Stage | Count |
-        |-------|-------|
-        | Discovered | {kpis['discovered']} |
-        | Scraped | {kpis['scraped']} |
-        | Content Generated | {kpis['content_generated']} |
-        | Store Created | {kpis['stores_created']} |
-        | Email Sent | {kpis['emails_sent']} |
-        | Claimed | {kpis['claimed']} |
-        | Rejected | {kpis['rejected']} |
-        """)
+        st.subheader("Top Niches")
+        niches = get_niche_distribution()
+        if not niches.empty:
+            import plotly.express as px
+
+            fig = px.bar(
+                niches.head(12),
+                x="count",
+                y="niche",
+                orientation="h",
+                color_discrete_sequence=["#39938F"],
+            )
+            fig.update_layout(height=360, yaxis={"categoryorder": "total ascending"})
+            apply_plotly_theme(fig)
+            st.plotly_chart(fig, use_container_width=True)
 
     with col_b:
+        st.subheader("Status Breakdown")
+        st.markdown(f"""
+| Stage | Count |
+|-------|------:|
+| Discovered | {kpis['discovered']:,} |
+| Scraped | {kpis['scraped']:,} |
+| Content Generated | {kpis['content_generated']:,} |
+| Stores Created | {kpis['stores_created']:,} |
+| Emails Sent | {kpis['emails_sent']:,} |
+| Claimed | {kpis['claimed']:,} |
+| Rejected | {kpis['rejected']:,} |
+        """)
+        st.markdown("")
         st.metric("Email Open Rate", f"{kpis['open_rate']}%")
-        st.metric("Claim Conversion Rate", f"{kpis['claim_rate']}%")
+        st.metric("Claim Conversion", f"{kpis['claim_rate']}%")
 
 except Exception as e:
     st.warning(f"Could not connect to database. Make sure PostgreSQL is running.\n\nError: {e}")
