@@ -116,6 +116,7 @@ try:
             height=min(len(prospects) * 38 + 40, 600),
             column_config={
                 "id": st.column_config.NumberColumn("ID", width="small"),
+                "avatar": st.column_config.ImageColumn("Photo", width="small"),
                 "name": st.column_config.TextColumn("Name", width="medium"),
                 "email": st.column_config.TextColumn("Email", width="medium"),
                 "status": st.column_config.TextColumn("Status", width="small"),

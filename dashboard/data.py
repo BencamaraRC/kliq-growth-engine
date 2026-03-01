@@ -170,7 +170,7 @@ def get_prospects_table(
     with engine.connect() as conn:
         result = conn.execute(
             text(f"""
-                SELECT id, name, email, status, primary_platform,
+                SELECT id, name, profile_image_url, email, status, primary_platform,
                        primary_platform_url, website_url, social_links,
                        follower_count, subscriber_count,
                        niche_tags, kliq_application_id, kliq_store_url,
@@ -186,7 +186,7 @@ def get_prospects_table(
     df = pd.DataFrame(
         result,
         columns=[
-            "id", "name", "email", "status", "platform",
+            "id", "name", "avatar", "email", "status", "platform",
             "platform_url", "website", "social_links_raw",
             "followers", "subscribers", "niches",
             "app_id", "store_url", "discovered", "claimed",
