@@ -115,7 +115,13 @@ skip() {
 check_prerequisites() {
     info "Checking prerequisites..."
 
-    command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not installed. See https://cloud.google.com/sdk/docs/install"
+    if ! command -v gcloud >/dev/null 2>&1; then
+        if [[ "$DRY_RUN" == true ]]; then
+            warn "gcloud CLI not installed — dry-run will print commands only"
+        else
+            error "gcloud CLI not installed. See https://cloud.google.com/sdk/docs/install"
+        fi
+    fi
 
     if [[ "$DRY_RUN" == false ]]; then
         CURRENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
@@ -188,8 +194,12 @@ setup_cloud_sql() {
     if skip CLOUD_SQL; then warn "Skipping Cloud SQL (SKIP_CLOUD_SQL=1)"; return; fi
     info "Step 3/9: Setting up Cloud SQL PostgreSQL..."
 
-    if [[ -z "${CLOUD_SQL_PASSWORD}" && "$DRY_RUN" == false ]]; then
-        error "CLOUD_SQL_PASSWORD env var is required. Usage: CLOUD_SQL_PASSWORD=mypassword $0"
+    if [[ -z "${CLOUD_SQL_PASSWORD}" ]]; then
+        if [[ "$DRY_RUN" == true ]]; then
+            CLOUD_SQL_PASSWORD="<PASSWORD>"
+        else
+            error "CLOUD_SQL_PASSWORD env var is required. Usage: CLOUD_SQL_PASSWORD=mypassword $0"
+        fi
     fi
 
     # Create instance
