@@ -41,11 +41,11 @@ async def _discover_coaches(
     from app.db.models import Prospect, ProspectStatus
     from app.db.session import async_session
     from app.scrapers.discovery import DiscoveryOrchestrator
+    from app.scrapers.stan import StanAdapter
     from app.scrapers.youtube import YouTubeAdapter
 
     # Build adapter list
-    adapters = [YouTubeAdapter()]
-    # Future: add SkoolAdapter(), PatreonAdapter(), etc.
+    adapters = [YouTubeAdapter(), StanAdapter()]
 
     orchestrator = DiscoveryOrchestrator(adapters)
 
@@ -124,9 +124,10 @@ async def _scrape_single(platform: str, platform_id: str):
     from app.db.models import Prospect, ProspectStatus, ScrapedContentRecord
     from app.db.session import async_session
     from app.scrapers.discovery import DiscoveryOrchestrator
+    from app.scrapers.stan import StanAdapter
     from app.scrapers.youtube import YouTubeAdapter
 
-    adapters = [YouTubeAdapter()]
+    adapters = [YouTubeAdapter(), StanAdapter()]
     orchestrator = DiscoveryOrchestrator(adapters)
 
     prospect = await orchestrator.scrape_single(platform, platform_id)

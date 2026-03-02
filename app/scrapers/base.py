@@ -20,6 +20,7 @@ class Platform(str, Enum):
     INSTAGRAM = "instagram"
     ONLYFANS = "onlyfans"
     KAJABI = "kajabi"
+    STAN = "stan"
 
 
 @dataclass
@@ -156,6 +157,7 @@ class PlatformAdapter(ABC):
             "linkedin": r"linkedin\.com/in/([a-zA-Z0-9_-]+)",
             "skool": r"skool\.com/([a-zA-Z0-9_-]+)",
             "patreon": r"patreon\.com/([a-zA-Z0-9_-]+)",
+            "stan": r"stan\.store/([a-zA-Z0-9_-]+)",
         }
         for platform_name, pattern in patterns.items():
             match = re.search(pattern, text, re.IGNORECASE)

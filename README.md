@@ -2,7 +2,7 @@
 
 Automated coach discovery, webstore generation, and outreach pipeline for [KLIQ](https://joinkliq.io).
 
-The Growth Engine discovers fitness/wellness coaches on competitor platforms (YouTube, Skool, Patreon, websites), uses AI to generate personalized store content, auto-builds KLIQ webstores, and runs email outreach campaigns — all as a continuous automated loop.
+The Growth Engine discovers coaches on competitor platforms (YouTube, Skool, Patreon, Stan.store, websites), uses AI to generate personalized store content, auto-builds KLIQ webstores, and runs email outreach campaigns — all as a continuous automated loop.
 
 ```
 Discover → Scrape → AI Generate → Build Store → Email Outreach → Coach Claims Store

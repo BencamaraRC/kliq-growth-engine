@@ -39,6 +39,7 @@ class Platform(str, enum.Enum):
     INSTAGRAM = "INSTAGRAM"
     ONLYFANS = "ONLYFANS"
     KAJABI = "KAJABI"
+    STAN = "STAN"
 
 
 class ProspectStatus(str, enum.Enum):

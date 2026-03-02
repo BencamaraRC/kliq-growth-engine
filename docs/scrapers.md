@@ -1,6 +1,6 @@
 # Scrapers
 
-> Platform adapters and the discovery pipeline for finding fitness/wellness coaches.
+> Platform adapters and the discovery pipeline for finding coaches.
 
 ## Overview
 
@@ -16,6 +16,7 @@ The scraping layer discovers coaches on competitor platforms, scrapes their prof
 | `app/scrapers/patreon.py` | Patreon API v2 adapter |
 | `app/scrapers/website.py` | Generic website scraper (Playwright + BeautifulSoup) |
 | `app/scrapers/onlyfans.py` | OnlyFans adapter (Playwright) |
+| `app/scrapers/stan.py` | Stan.store adapter (Playwright) |
 | `app/scrapers/instagram.py` | Stub (not implemented) |
 | `app/scrapers/tiktok.py` | Stub (not implemented) |
 | `app/scrapers/discovery.py` | `DiscoveryOrchestrator` — multi-platform coordination |
@@ -139,6 +140,18 @@ Uses Playwright + BeautifulSoup.
 **File:** `app/scrapers/onlyfans.py`
 
 Uses Playwright (requires account login).
+
+### StanAdapter
+
+**File:** `app/scrapers/stan.py`
+
+Uses Playwright + Google site-search for discovery.
+
+- **Discovery:** Google `site:stan.store` search, then enriches top results
+- **Profile:** Creator page scraping (name, bio, social links, products)
+- **Content:** Product cards (digital products, courses, memberships, coaching)
+- **Pricing:** Per-product pricing extraction
+- **Competitor:** Direct KLIQ competitor — creator commerce platform for digital products
 
 ### Color Extractor
 
