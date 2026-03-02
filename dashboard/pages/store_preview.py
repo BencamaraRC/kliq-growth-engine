@@ -5,6 +5,7 @@ as seen on live stores like Lift Your Vibe. Uses st.components.v1.html() for
 reliable HTML rendering.
 """
 
+import importlib.util
 import json
 import sys
 from pathlib import Path
@@ -12,12 +13,12 @@ from pathlib import Path
 import streamlit as st
 import streamlit.components.v1 as components
 
-# Make the app package importable from the dashboard context
-_project_root = Path(__file__).resolve().parent.parent.parent
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
-
-from app.preview.renderer import render_store_preview  # noqa: E402
+# Import the renderer directly by file path to avoid conflict with dashboard/app.py
+_renderer_path = Path(__file__).resolve().parent.parent.parent / "app" / "preview" / "renderer.py"
+_spec = importlib.util.spec_from_file_location("preview_renderer", _renderer_path)
+_mod = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_mod)
+render_store_preview = _mod.render_store_preview
 
 st.set_page_config(page_title="Store Preview | KLIQ Growth Engine", layout="wide")
 
