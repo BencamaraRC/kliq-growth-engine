@@ -278,7 +278,8 @@ async def build_store(
 
     await session.flush()
 
-    store_url = web_url or f"https://admin.joinkliq.io/app/{app_id}"
+    from app.config import settings
+    store_url = web_url or f"{settings.cms_admin_url}/app/{app_id}"
 
     logger.info(
         f"Store '{name}' created: app_id={app_id}, user_id={user.id}, "

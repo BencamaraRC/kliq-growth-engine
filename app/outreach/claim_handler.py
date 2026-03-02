@@ -9,7 +9,8 @@ When a coach clicks "Claim Your Store" from an outreach email:
 """
 
 import logging
-from datetime import datetime
+import secrets
+from datetime import datetime, timedelta
 
 import bcrypt
 from sqlalchemy import select, update
@@ -75,6 +76,10 @@ async def activate_store(
     app_id = prospect.kliq_application_id
     hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
+    # Generate one-time auto-login token (30-minute expiry)
+    auto_login_token = secrets.token_hex(64)
+    auto_login_expires = datetime.utcnow() + timedelta(minutes=30)
+
     # 1. Activate the CMS user
     await cms_db.execute(
         update(CMSUser).where(
@@ -84,6 +89,8 @@ async def activate_store(
             password=hashed_password,
             status_id=STATUS_ACTIVE,
             is_email_verified=True,
+            auto_login_token=auto_login_token,
+            auto_login_token_expires_at=auto_login_expires,
         )
     )
 
@@ -124,4 +131,5 @@ async def activate_store(
         "application_id": app_id,
         "store_url": prospect.kliq_store_url,
         "email": prospect.email,
+        "auto_login_token": auto_login_token,
     }

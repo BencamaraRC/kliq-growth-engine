@@ -582,6 +582,11 @@ def render_store_preview(
                     <div style="display:flex;align-items:center;gap:8px;">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="{text_primary}" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         <h3 style="font-weight:600;font-size:13px;color:{text_primary};letter-spacing:-0.02em;">Ask me anything</h3>
+                        <div id="ama-typing-persistent" style="display:none;align-items:center;gap:2px;margin-left:4px;">
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                            <span class="typing-dot"></span>
+                        </div>
                     </div>
                     <span style="font-weight:600;font-size:14px;color:{text_primary};">$15</span>
                 </div>
@@ -753,6 +758,8 @@ def render_store_preview(
     setTimeout(function(){{
         var ama=document.getElementById('ama-section');
         if(ama)ama.classList.add('collapsed');
+        var pt=document.getElementById('ama-typing-persistent');
+        if(pt)pt.style.display='flex';
     }},9000);
 }})();
 </script>

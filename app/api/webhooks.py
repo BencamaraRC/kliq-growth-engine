@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.session import get_db, get_cms_db
 from app.outreach.claim_handler import ClaimError, activate_store, validate_claim_token
 from app.outreach.campaign_manager import send_claim_confirmation
@@ -48,7 +49,7 @@ async def claim_store(
             return ClaimResponse(
                 success=True,
                 message="Store already claimed",
-                redirect_url=f"https://admin.joinkliq.io/app/{prospect.kliq_application_id}"
+                redirect_url=f"{settings.cms_admin_url}/app/{prospect.kliq_application_id}"
                 if "prospect" in dir()
                 else None,
             )
@@ -66,7 +67,7 @@ async def claim_store(
     return ClaimResponse(
         success=True,
         message="Store claimed successfully! Welcome to KLIQ.",
-        redirect_url=result.get("store_url") or f"https://admin.joinkliq.io/app/{result['application_id']}",
+        redirect_url=result.get("store_url") or f"{settings.cms_admin_url}/app/{result['application_id']}",
     )
 
 

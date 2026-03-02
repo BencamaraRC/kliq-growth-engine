@@ -3,6 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.cms.models import CMSUser
 from app.db.models import GeneratedContent, Prospect
 
 
@@ -30,6 +31,21 @@ async def get_prospect_by_token(session: AsyncSession, token: str) -> dict | Non
         "kliq_store_url": prospect.kliq_store_url,
         "kliq_application_id": prospect.kliq_application_id,
     }
+
+
+async def get_auto_login_token(cms_db: AsyncSession, prospect: dict) -> str | None:
+    """Fetch the auto-login token for a prospect from the CMS users table."""
+    app_id = prospect.get("kliq_application_id")
+    email = prospect.get("email")
+    if not app_id or not email:
+        return None
+    result = await cms_db.execute(
+        select(CMSUser.auto_login_token).where(
+            CMSUser.application_id == app_id,
+            CMSUser.email == email,
+        )
+    )
+    return result.scalar_one_or_none()
 
 
 async def get_content_counts(session: AsyncSession, prospect_id: int) -> dict:

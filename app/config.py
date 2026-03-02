@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     patreon_client_id: str = ""
     patreon_client_secret: str = ""
 
+    # CMS Admin Dashboard
+    cms_admin_url: str = "https://admin.joinkliq.io"
+
     # Claim Flow
     claim_base_url: str = "http://localhost:8000/claim"
     claim_secret_key: str = "change-me-in-production"

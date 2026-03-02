@@ -93,7 +93,7 @@ def build_outreach_email(
 
     claim_url = f"{settings.claim_base_url}?token={claim_token}"
     unsubscribe_url = f"{settings.claim_base_url}/unsubscribe?email={email}"
-    dashboard_url = f"https://admin.joinkliq.io/app/{application_id}" if application_id else store_url
+    dashboard_url = f"{settings.cms_admin_url}/app/{application_id}" if application_id else store_url
 
     context = {
         "first_name": first_name,

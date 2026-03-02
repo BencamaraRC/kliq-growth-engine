@@ -178,13 +178,20 @@ document.getElementById('pw2').addEventListener('input',function(){{
 </html>"""
 
 
-def render_welcome_page(prospect: dict, content_counts: dict) -> str:
+def render_welcome_page(prospect: dict, content_counts: dict, auto_login_token: str | None = None) -> str:
     """Render the post-claim onboarding page."""
+    from app.config import settings
+
     first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
     store_name = prospect.get("name", "Your Store")
     store_url = prospect.get("kliq_store_url", "")
     app_id = prospect.get("kliq_application_id")
-    dashboard_url = f"https://admin.joinkliq.io/app/{app_id}" if app_id else store_url
+
+    # Use auto-login URL if token is available, otherwise fall back to regular dashboard
+    if auto_login_token and app_id:
+        dashboard_url = f"{settings.cms_admin_url}/auto-login?token={auto_login_token}"
+    else:
+        dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else store_url
     blog_count = content_counts.get("blog_count", 0)
     product_count = content_counts.get("product_count", 0)
 
@@ -350,9 +357,11 @@ def render_error_page(
 
 def render_already_claimed_page(prospect: dict) -> str:
     """Render the 'already claimed' page with a link to the dashboard."""
+    from app.config import settings
+
     app_id = prospect.get("kliq_application_id")
     store_url = prospect.get("kliq_store_url", "")
-    dashboard_url = f"https://admin.joinkliq.io/app/{app_id}" if app_id else store_url
+    dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else store_url
     first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
 
     return f"""{_HEAD}

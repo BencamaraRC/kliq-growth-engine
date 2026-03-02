@@ -261,6 +261,8 @@ class CMSUser(CMSBase):
     is_email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     is_subscribed: Mapped[bool] = mapped_column(Boolean, default=False)
     status_id: Mapped[int] = mapped_column(Integer, index=True)
+    auto_login_token: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
+    auto_login_token_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     is_test_user: Mapped[bool] = mapped_column(Boolean, default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_by: Mapped[int] = mapped_column(Integer, default=1)

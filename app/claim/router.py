@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.claim.queries import get_content_counts, get_prospect_by_token
+from app.claim.queries import get_auto_login_token, get_content_counts, get_prospect_by_token
 from app.claim.renderer import (
     render_already_claimed_page,
     render_claim_page,
@@ -118,6 +118,7 @@ async def claim_submit(
 async def welcome_page(
     token: str = Query(...),
     session: AsyncSession = Depends(get_db),
+    cms_db: AsyncSession = Depends(get_cms_db),
 ):
     """Serve the onboarding/welcome page after claiming."""
     prospect = await get_prospect_by_token(session, token)
@@ -137,5 +138,8 @@ async def welcome_page(
     if prospect["status"] != "CLAIMED":
         return RedirectResponse(url=f"/claim?token={token}")
 
+    # Fetch auto-login token from CMS for seamless dashboard access
+    auto_login_token = await get_auto_login_token(cms_db, prospect)
+
     content_counts = await get_content_counts(session, prospect["id"])
-    return HTMLResponse(content=render_welcome_page(prospect, content_counts))
+    return HTMLResponse(content=render_welcome_page(prospect, content_counts, auto_login_token=auto_login_token))
