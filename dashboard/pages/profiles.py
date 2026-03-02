@@ -132,6 +132,7 @@ try:
                 "niches": st.column_config.TextColumn("Niches", width="medium"),
                 "app_id": st.column_config.NumberColumn("App ID", width="small"),
                 "store_url": st.column_config.LinkColumn("Store", display_text="Open", width="small"),
+                "store_preview": st.column_config.LinkColumn("Preview", display_text="Preview", width="small"),
                 "discovered": st.column_config.DateColumn("Discovered", format="MMM D, YYYY"),
                 "claimed": st.column_config.DateColumn("Claimed", format="MMM D, YYYY"),
             },
@@ -154,23 +155,45 @@ try:
                 st.session_state["profiles_page"] = current_page + 1
                 st.rerun()
 
-        # --- Navigate to detail ---
+        # --- Navigate to detail or store preview ---
         st.markdown("---")
-        st.markdown(
-            '<p style="color:#667085;font-size:14px;">Enter a coach ID to view full details:</p>',
-            unsafe_allow_html=True,
-        )
-        selected_id = st.number_input(
-            "Prospect ID",
-            min_value=1,
-            step=1,
-            value=None,
-            placeholder="Enter ID from the table above",
-            label_visibility="collapsed",
-        )
-        if selected_id:
-            st.session_state["selected_prospect_id"] = int(selected_id)
-            st.switch_page("pages/profile_detail.py")
+        nav_left, nav_right = st.columns(2)
+
+        with nav_left:
+            st.markdown(
+                '<p style="color:#667085;font-size:14px;">View full profile:</p>',
+                unsafe_allow_html=True,
+            )
+            detail_id = st.number_input(
+                "Profile ID",
+                min_value=1,
+                step=1,
+                value=None,
+                placeholder="Enter coach ID",
+                label_visibility="collapsed",
+                key="nav_detail_id",
+            )
+            if detail_id:
+                st.session_state["selected_prospect_id"] = int(detail_id)
+                st.switch_page("pages/profile_detail.py")
+
+        with nav_right:
+            st.markdown(
+                '<p style="color:#667085;font-size:14px;">Preview webstore:</p>',
+                unsafe_allow_html=True,
+            )
+            preview_id = st.number_input(
+                "Preview ID",
+                min_value=1,
+                step=1,
+                value=None,
+                placeholder="Enter coach ID",
+                label_visibility="collapsed",
+                key="nav_preview_id",
+            )
+            if preview_id:
+                st.query_params["id"] = str(int(preview_id))
+                st.switch_page("pages/store_preview.py")
     else:
         st.info("No coaches match the selected filters.")
 

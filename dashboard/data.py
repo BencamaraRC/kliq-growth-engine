@@ -214,6 +214,11 @@ def get_prospects_table(
     df["twitter"] = df["social_links_raw"].apply(lambda r: _parse_social(r, "twitter"))
     df.drop(columns=["social_links_raw"], inplace=True)
 
+    # Store preview link (full URL for LinkColumn)
+    df["store_preview"] = df["id"].apply(
+        lambda pid: f"http://localhost:8501/store_preview?id={pid}"
+    )
+
     return df
 
 

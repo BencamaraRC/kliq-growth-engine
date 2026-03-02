@@ -18,6 +18,8 @@ class Platform(str, Enum):
     WEBSITE = "website"
     TIKTOK = "tiktok"
     INSTAGRAM = "instagram"
+    ONLYFANS = "onlyfans"
+    KAJABI = "kajabi"
 
 
 @dataclass

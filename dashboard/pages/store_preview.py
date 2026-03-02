@@ -62,12 +62,20 @@ try:
 
     options = {f"{p[1]} ({p[2]}) — {p[3]}": p[0] for p in prospects}
     option_keys = list(options.keys())
-    # Default to KLIQ prospect if available
+    # Default to KLIQ prospect if available, or use query param
     default_idx = 0
-    for i, key in enumerate(option_keys):
-        if "KLIQ" in key:
-            default_idx = i
-            break
+    query_id = st.query_params.get("id")
+    if query_id:
+        query_id_int = int(query_id)
+        for i, key in enumerate(option_keys):
+            if options[key] == query_id_int:
+                default_idx = i
+                break
+    else:
+        for i, key in enumerate(option_keys):
+            if "KLIQ" in key:
+                default_idx = i
+                break
     selected = st.selectbox("Select a coach to preview their store", option_keys, index=default_idx)
     prospect_id = options[selected]
 
@@ -136,6 +144,21 @@ try:
     store_name = bio_data.get("store_name", coach_name)
     short_bio = bio_data.get("short_bio", prospect.get("bio", ""))
     profile_img = prospect.get("profile_image_url", "")
+    banner_img_url = prospect.get("banner_image_url", "")
+
+    # Build hero banner — use image if available, else skip banner entirely
+    banner_b64 = _fetch_image_b64(banner_img_url) if banner_img_url else ""
+    _has_banner = bool(banner_b64)
+    if _has_banner:
+        _hero_banner_html = (
+            f'<div style="width:100%;height:140px;position:relative;overflow:hidden;">'
+            f'<img src="{banner_b64}" style="width:100%;height:100%;object-fit:cover;display:block;" />'
+            f'<div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.4) 100%);display:flex;align-items:flex-end;justify-content:center;padding-bottom:12px;">'
+            f'<h1 style="color:#fff;font-size:20px;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin:0;line-height:120%;text-shadow:0 1px 4px rgba(0,0,0,0.4);">{store_name}</h1>'
+            f'</div></div>'
+        )
+    else:
+        _hero_banner_html = ""
 
     # Niche tags
     raw_niche_tags = prospect.get("niche_tags", [])
@@ -369,15 +392,13 @@ try:
             </div>
 
             <!-- HERO BANNER -->
-            <div style="width:100%;height:140px;background:{hero_bg};display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
-                <h1 style="color:#fff;font-size:24px;font-weight:600;text-transform:uppercase;letter-spacing:2px;opacity:0.9;margin:0;line-height:120%;">{store_name}</h1>
-            </div>
+            {_hero_banner_html}
+
 
             <!-- PROFILE SECTION -->
+            <!-- PROFILE SECTION -->
             <div style="display:flex;width:100%;padding:16px;box-sizing:border-box;align-items:flex-start;gap:12px;">
-                <!-- Avatar -->
                 <div style="flex-shrink:0;">{avatar_html}</div>
-                <!-- Name + niche + bio -->
                 <div style="display:flex;padding:0 16px;flex-direction:column;justify-content:center;align-items:flex-start;gap:16px;flex:1 0 0;min-width:0;">
                     <div>
                         <h2 style="color:{text_primary};font-weight:600;font-size:16px;margin:0;line-height:120%;letter-spacing:-0.02em;">{store_name}</h2>
