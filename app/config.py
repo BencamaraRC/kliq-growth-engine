@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     app_env: str = "development"
     app_debug: bool = True
     app_port: int = 8000
+    app_base_url: str = "http://localhost:8000"
 
     # Growth Engine PostgreSQL
     database_url: str = "postgresql+asyncpg://bencamara@localhost:5433/kliq_growth_engine"

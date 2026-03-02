@@ -23,6 +23,7 @@ from app.db.models import (
     Prospect,
     ProspectStatus,
 )
+from app.config import settings
 from app.outreach.brevo_client import BrevoClient
 from app.outreach.email_builder import STEPS, build_outreach_email
 
@@ -122,6 +123,8 @@ async def _send_step(
     colors = prospect.brand_colors or []
     primary_color = f"#{colors[0]}" if colors else "#1E81FF"
 
+    preview_url = f"{settings.app_base_url}/preview/{prospect.id}"
+
     email = build_outreach_email(
         step=step,
         email=prospect.email,
@@ -130,7 +133,7 @@ async def _send_step(
         platform=prospect.primary_platform.value if prospect.primary_platform else "YouTube",
         claim_token=prospect.claim_token or "",
         primary_color=primary_color,
-        store_url=prospect.kliq_store_url or "",
+        store_url=preview_url,
         application_id=prospect.kliq_application_id,
     )
 

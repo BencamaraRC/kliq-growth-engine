@@ -281,14 +281,41 @@ def inject_kliq_theme():
     st.markdown(KLIQ_CSS, unsafe_allow_html=True)
 
 
+def require_auth():
+    """Check authentication and stop the page if the user is not logged in.
+
+    Call this at the top of every page (after set_page_config) to enforce the
+    login gate. The main app.py handles the authenticator setup — this helper
+    just verifies that session state shows an authenticated user.
+    """
+    if not st.session_state.get("authentication_status"):
+        st.warning("Please log in from the main dashboard page.")
+        st.stop()
+
+
 def sidebar_nav():
     """Render the KLIQ-styled sidebar navigation."""
+    require_auth()
+
     st.sidebar.markdown(
         '<div style="padding:4px 0 12px;font-family:Inter,sans-serif;font-weight:700;'
         'font-size:18px;color:#FFFDFA;letter-spacing:-0.01em;">'
         'KLIQ Growth Engine</div>',
         unsafe_allow_html=True,
     )
+
+    # Show logged-in user and logout button
+    username = st.session_state.get("name", "")
+    if username:
+        st.sidebar.markdown(
+            f'<div style="font-size:12px;color:rgba(255,255,255,0.7);padding:0 0 4px;">'
+            f'Logged in as <strong style="color:#fff;">{username}</strong></div>',
+            unsafe_allow_html=True,
+        )
+    authenticator = st.session_state.get("authenticator")
+    if authenticator:
+        authenticator.logout("Logout", "sidebar")
+
     st.sidebar.markdown("---")
     st.sidebar.page_link("app.py", label="Dashboard", icon=":material/dashboard:")
     st.sidebar.page_link("pages/profiles.py", label="Profiles", icon=":material/people:")

@@ -1,0 +1,13 @@
+credentials:
+  usernames:
+    ben:
+      name: Ben Camara
+      password: "$2b$12$u/7kxn0dEb/bAwJ.6geWL.JbnFx.YLCJmqfgnoPqDTFC.gP0l4OUK"
+    team:
+      name: KLIQ Team
+      password: "$2b$12$ZLTIZHHmmzskNJwXIwMV3u7kBgVD2s6xJN8oAv8mLwxxUKjCFUfOO"
+
+cookie:
+  expiry_days: 30
+  key: "kliq-growth-engine-auth-cookie-key"
+  name: "kliq_growth_auth"

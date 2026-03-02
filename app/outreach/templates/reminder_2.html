@@ -29,6 +29,13 @@
         is still unclaimed and we'd hate for it to go to waste.
       </p>
 
+      {% if store_url %}
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
+        <p style="margin: 0 0 8px; font-weight: 600; color: #166534; font-size: 14px;">One last look at your store</p>
+        <a href="{{ store_url }}" style="display: inline-block; background: #1C3838; color: #fff !important; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">Preview Your Store</a>
+      </div>
+      {% endif %}
+
       <p>Here's what's already set up and waiting for you:</p>
       <ul style="color: #555; line-height: 1.8;">
         <li>A branded webstore with your colors and content</li>

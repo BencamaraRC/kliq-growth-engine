@@ -40,6 +40,13 @@
         <p style="color: #777; margin: 4px 0 0;">{{ tagline }}</p>
       </div>
 
+      {% if store_url %}
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
+        <p style="margin: 0 0 8px; font-weight: 600; color: #166534; font-size: 14px;">See your store in action</p>
+        <a href="{{ store_url }}" style="display: inline-block; background: #1C3838; color: #fff !important; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">Preview Your Store</a>
+      </div>
+      {% endif %}
+
       <p>Here's what we've already set up for you:</p>
       <ul class="features">
         {% if blog_count %}<li>{{ blog_count }} blog post{{ 's' if blog_count > 1 }} from your video content</li>{% endif %}
