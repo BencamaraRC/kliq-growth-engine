@@ -178,13 +178,19 @@ document.getElementById('pw2').addEventListener('input',function(){{
 </html>"""
 
 
-def render_welcome_page(prospect: dict, content_counts: dict, auto_login_token: str | None = None) -> str:
-    """Render the post-claim onboarding page."""
+def render_welcome_page(
+    prospect: dict,
+    content_counts: dict,
+    auto_login_token: str | None = None,
+    onboarding: dict | None = None,
+) -> str:
+    """Render the post-claim onboarding page with progress tracking."""
     from app.config import settings
 
     first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
     store_name = prospect.get("name", "Your Store")
     store_url = prospect.get("kliq_store_url", "")
+    token = prospect.get("claim_token", "")
     app_id = prospect.get("kliq_application_id")
 
     # Use auto-login URL if token is available, otherwise fall back to regular dashboard
@@ -195,26 +201,61 @@ def render_welcome_page(prospect: dict, content_counts: dict, auto_login_token: 
     blog_count = content_counts.get("blog_count", 0)
     product_count = content_counts.get("product_count", 0)
 
-    # Step cards
-    def _step(num, title, desc, cta_text, cta_url):
+    # Onboarding state
+    ob = onboarding or {}
+    progress_pct = ob.get("progress_pct", 0)
+    prospect_id = prospect.get("id", 0)
+
+    def _is_done(step_name):
+        return ob.get(step_name, False)
+
+    # Step cards with completion state
+    def _step(num, title, desc, cta_text, cta_url, step_key, extra_attrs=""):
+        done = _is_done(step_key)
+        if done:
+            badge_circle = f'<div style="width:28px;height:28px;border-radius:50%;background:{POSITIVE};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+            title_style = f"text-decoration:line-through;color:{TEXT_TERTIARY};"
+            badge_html = f'<span style="font-size:11px;font-weight:600;color:{POSITIVE};background:#ECFDF3;padding:2px 8px;border-radius:4px;margin-left:8px;">Completed</span>'
+            cta_html = ""
+            border_color = POSITIVE
+        else:
+            badge_circle = f'<div style="width:28px;height:28px;border-radius:50%;background:{TANGERINE};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#fff;font-weight:700;font-size:13px;">{num}</span></div>'
+            title_style = f"color:{TEXT_PRIMARY};"
+            badge_html = ""
+            cta_html = f'<a href="{cta_url}" target="_blank" class="btn-outline" {extra_attrs}>{cta_text}</a>'
+            border_color = TANGERINE
+
         return f"""
-        <div style="display:flex;gap:14px;padding:16px;background:{CARD_BG};border-left:3px solid {TANGERINE};border-radius:0 8px 8px 0;border:1px solid {BORDER};border-left:3px solid {TANGERINE};">
-            <div style="width:28px;height:28px;border-radius:50%;background:{TANGERINE};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                <span style="color:#fff;font-weight:700;font-size:13px;">{num}</span>
-            </div>
+        <div style="display:flex;gap:14px;padding:16px;background:{CARD_BG};border-left:3px solid {border_color};border-radius:0 8px 8px 0;border:1px solid {BORDER};border-left:3px solid {border_color};">
+            {badge_circle}
             <div style="flex:1;">
-                <div style="font-weight:600;font-size:14px;color:{TEXT_PRIMARY};margin-bottom:4px;">{title}</div>
+                <div style="font-weight:600;font-size:14px;{title_style}margin-bottom:4px;">{title}{badge_html}</div>
                 <div style="font-size:13px;color:{TEXT_TERTIARY};line-height:150%;margin-bottom:10px;">{desc}</div>
-                <a href="{cta_url}" target="_blank" class="btn-outline">{cta_text}</a>
+                {cta_html}
             </div>
         </div>"""
 
+    review_url = f"/review-content?token={token}"
+    stripe_url = f"/connect-stripe?token={token}"
+
     steps_html = f"""
-    {_step(1, "Explore Your Store", "See what we've built. Review your products, blog posts, and branding.", "View Store", store_url or dashboard_url)}
-    {_step(2, "Customize Your Content", "Update product descriptions, prices, and add your own content.", "Open Dashboard", dashboard_url)}
-    {_step(3, "Connect Stripe", "Start accepting payments by connecting your Stripe account.", "Set Up Payments", f"{dashboard_url}/payments" if dashboard_url else "#")}
-    {_step(4, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#")}
+    {_step(1, "Explore Your Store", "See what we've built. Review your products, blog posts, and branding.", "View Store", store_url or dashboard_url, "store_explored", 'id="view-store-btn"')}
+    {_step(2, "Review Your Content", "Check your blog posts, programs, and about page. Make sure everything looks right.", "Review Content", review_url, "content_reviewed")}
+    {_step(3, "Connect Stripe", "Start accepting payments by connecting your Stripe account.", "Set Up Payments", stripe_url, "stripe_connected")}
+    {_step(4, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#", "first_share")}
     """
+
+    # Progress bar HTML
+    progress_bar_html = f"""
+    <div style="margin-bottom:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-weight:600;font-size:13px;color:{TEXT_PRIMARY};">Setup Progress</span>
+            <span style="font-weight:700;font-size:13px;color:{KLIQ_GREEN};">{progress_pct}%</span>
+        </div>
+        <div style="height:8px;background:{SURFACE};border-radius:4px;overflow:hidden;">
+            <div id="progress-fill" style="height:100%;width:{progress_pct}%;background:{KLIQ_GREEN};border-radius:4px;transition:width 0.5s ease;"></div>
+        </div>
+    </div>"""
 
     return f"""{_HEAD}
 <title>Welcome to KLIQ</title>
@@ -237,6 +278,9 @@ def render_welcome_page(prospect: dict, content_counts: dict, auto_login_token: 
         <h1 style="font-size:26px;font-weight:700;color:{KLIQ_GREEN};line-height:130%;">Welcome to KLIQ, {first_name}!</h1>
         <p style="font-size:15px;color:{TEXT_SECONDARY};margin-top:4px;">{store_name} is now live</p>
     </div>
+
+    <!-- Progress Bar -->
+    {progress_bar_html}
 
     <!-- What We Built -->
     <div style="background:{SURFACE};border-radius:10px;padding:16px;margin-bottom:24px;">
@@ -296,14 +340,38 @@ def render_welcome_page(prospect: dict, content_counts: dict, auto_login_token: 
 </div>
 
 <script>
+var PROSPECT_ID={prospect_id};
+function markStep(step){{
+    fetch('/api/onboarding/'+PROSPECT_ID+'/complete-step',{{
+        method:'POST',
+        headers:{{'Content-Type':'application/json'}},
+        body:JSON.stringify({{step:step}})
+    }}).then(function(r){{return r.json();}}).then(function(d){{
+        if(d.progress_pct){{
+            document.getElementById('progress-fill').style.width=d.progress_pct+'%';
+            document.querySelector('[style*="progress_pct"]')||void 0;
+        }}
+    }}).catch(function(){{}});
+}}
+
 function copyUrl(){{
     var el=document.getElementById('store-url');
     navigator.clipboard.writeText(el.value).then(function(){{
         var btn=document.getElementById('copy-btn');
         btn.textContent='Copied!';
         setTimeout(function(){{btn.textContent='Copy';}},2000);
+        markStep('first_share');
     }});
 }}
+
+// Track "View Store" click
+var vsBtn=document.getElementById('view-store-btn');
+if(vsBtn){{
+    vsBtn.addEventListener('click',function(){{
+        markStep('store_explored');
+    }});
+}}
+
 // Confetti
 (function(){{
     var colors=['{KLIQ_GREEN}','{TANGERINE}','#DEFE9C','#9CF0FF','#39938F'];
@@ -349,6 +417,187 @@ def render_error_page(
     <h1 style="font-size:22px;font-weight:700;color:{TEXT_PRIMARY};margin-bottom:8px;">{title}</h1>
     <p style="font-size:14px;color:{TEXT_SECONDARY};line-height:150%;">{message}</p>
     {cta_html}
+    {_FOOTER_HTML}
+</div>
+</body>
+</html>"""
+
+
+def render_review_content_page(prospect: dict, pages: list[dict], products: list[dict]) -> str:
+    """Render the content review page listing all CMS pages and products."""
+    from app.config import settings
+
+    token = prospect.get("claim_token", "")
+    app_id = prospect.get("kliq_application_id")
+    store_name = prospect.get("name", "Your Store")
+    dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else "#"
+
+    # Build pages list
+    pages_html = ""
+    if pages:
+        for p in pages:
+            page_type = "Blog Post" if p["page_type_id"] == 2 else "About Page" if p["page_type_id"] == 1 else "Page"
+            status = "Published" if p["status_id"] == 2 else "Draft"
+            status_color = POSITIVE if p["status_id"] == 2 else TEXT_TERTIARY
+            excerpt = p["description"][:120] + "..." if len(p["description"]) > 120 else p["description"]
+            pages_html += f"""
+            <div style="padding:14px;border:1px solid {BORDER};border-radius:8px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-weight:600;font-size:14px;color:{TEXT_PRIMARY};">{p["title"] or "Untitled"}</span>
+                    <span style="font-size:11px;font-weight:600;color:{status_color};background:{SURFACE};padding:2px 8px;border-radius:4px;">{status}</span>
+                </div>
+                <div style="font-size:12px;color:{TEXT_TERTIARY};margin-bottom:4px;">{page_type}</div>
+                <div style="font-size:13px;color:{TEXT_SECONDARY};line-height:150%;">{excerpt}</div>
+            </div>"""
+    else:
+        pages_html = f'<div style="text-align:center;padding:24px;color:{TEXT_TERTIARY};font-size:13px;">No pages found</div>'
+
+    # Build products list
+    products_html = ""
+    if products:
+        for p in products:
+            price = f"${p['unit_amount'] / 100:.2f}/{p['interval']}" if p["unit_amount"] else "Free"
+            status = "Published" if p["status_id"] == 2 else "Draft"
+            status_color = POSITIVE if p["status_id"] == 2 else TEXT_TERTIARY
+            products_html += f"""
+            <div style="padding:14px;border:1px solid {BORDER};border-radius:8px;margin-bottom:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-weight:600;font-size:14px;color:{TEXT_PRIMARY};">{p["name"]}</span>
+                    <span style="font-size:11px;font-weight:600;color:{status_color};background:{SURFACE};padding:2px 8px;border-radius:4px;">{status}</span>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:{KLIQ_GREEN};margin-bottom:4px;">{price}</div>
+                <div style="font-size:13px;color:{TEXT_SECONDARY};line-height:150%;">{p["description"][:120]}</div>
+            </div>"""
+    else:
+        products_html = f'<div style="text-align:center;padding:24px;color:{TEXT_TERTIARY};font-size:13px;">No products found</div>'
+
+    return f"""{_HEAD}
+<title>Review Your Content | KLIQ</title>
+</head>
+<body>
+<div class="card">
+    <div class="logo"><span>KLIQ</span></div>
+
+    <div style="margin-bottom:24px;">
+        <a href="/welcome?token={token}" style="font-size:13px;color:{KLIQ_GREEN};text-decoration:none;font-weight:600;">&larr; Back to Welcome</a>
+    </div>
+
+    <h1 style="font-size:22px;font-weight:700;color:{KLIQ_GREEN};margin-bottom:4px;">Review Your Content</h1>
+    <p style="font-size:14px;color:{TEXT_SECONDARY};margin-bottom:24px;">Here's everything we created for {store_name}. You can edit any of these from your <a href="{dashboard_url}" target="_blank" style="color:{KLIQ_GREEN};font-weight:600;text-decoration:none;">CMS dashboard</a>.</p>
+
+    <!-- Pages -->
+    <div style="margin-bottom:24px;">
+        <div style="font-weight:600;font-size:15px;color:{TEXT_PRIMARY};margin-bottom:12px;">Pages ({len(pages)})</div>
+        {pages_html}
+    </div>
+
+    <!-- Products -->
+    <div style="margin-bottom:24px;">
+        <div style="font-weight:600;font-size:15px;color:{TEXT_PRIMARY};margin-bottom:12px;">Programs ({len(products)})</div>
+        {products_html}
+    </div>
+
+    <!-- Confirmation -->
+    <form method="POST" action="/review-content">
+        <input type="hidden" name="token" value="{token}" />
+        <button type="submit" class="btn">Looks Good!</button>
+    </form>
+
+    <p style="text-align:center;font-size:12px;color:{TEXT_TERTIARY};margin-top:12px;">
+        You can always edit your content later from the dashboard.
+    </p>
+
+    {_FOOTER_HTML}
+</div>
+</body>
+</html>"""
+
+
+def render_stripe_connect_page(
+    prospect: dict,
+    already_connected: bool = False,
+    error: str | None = None,
+) -> str:
+    """Render the Stripe key entry form."""
+    token = prospect.get("claim_token", "")
+    store_name = prospect.get("name", "Your Store")
+
+    if already_connected:
+        return f"""{_HEAD}
+<title>Stripe Connected | KLIQ</title>
+</head>
+<body>
+<div class="card" style="text-align:center;">
+    <div class="logo"><span>KLIQ</span></div>
+    <div style="width:56px;height:56px;border-radius:50%;background:#ECFDF3;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{POSITIVE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h1 style="font-size:22px;font-weight:700;color:{TEXT_PRIMARY};margin-bottom:8px;">Stripe Already Connected</h1>
+    <p style="font-size:14px;color:{TEXT_SECONDARY};line-height:150%;margin-bottom:20px;">Your Stripe account is set up for {store_name}. You're ready to accept payments.</p>
+    <a href="/welcome?token={token}" class="btn" style="display:inline-block;width:auto;">Back to Welcome</a>
+    {_FOOTER_HTML}
+</div>
+</body>
+</html>"""
+
+    error_html = ""
+    if error:
+        error_html = f'<div class="error-box">{error}</div>'
+
+    return f"""{_HEAD}
+<title>Connect Stripe | KLIQ</title>
+</head>
+<body>
+<div class="card">
+    <div class="logo"><span>KLIQ</span></div>
+
+    <div style="margin-bottom:24px;">
+        <a href="/welcome?token={token}" style="font-size:13px;color:{KLIQ_GREEN};text-decoration:none;font-weight:600;">&larr; Back to Welcome</a>
+    </div>
+
+    <h1 style="font-size:22px;font-weight:700;color:{KLIQ_GREEN};margin-bottom:4px;">Connect Stripe</h1>
+    <p style="font-size:14px;color:{TEXT_SECONDARY};margin-bottom:20px;">Enter your Stripe API keys to start accepting payments on {store_name}.</p>
+
+    <!-- Instructions -->
+    <div style="background:{SURFACE};border-radius:10px;padding:16px;margin-bottom:20px;">
+        <div style="font-weight:600;font-size:13px;color:{TEXT_PRIMARY};margin-bottom:8px;">How to find your API keys:</div>
+        <ol style="font-size:13px;color:{TEXT_SECONDARY};line-height:180%;margin:0;padding-left:18px;">
+            <li>Go to <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:{KLIQ_GREEN};font-weight:600;text-decoration:none;">Stripe Dashboard &rarr; Developers &rarr; API Keys</a></li>
+            <li>Copy your <strong>Secret key</strong> (starts with <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px;">sk_</code>)</li>
+            <li>Paste it below</li>
+        </ol>
+    </div>
+
+    {error_html}
+
+    <form method="POST" action="/connect-stripe">
+        <input type="hidden" name="token" value="{token}" />
+
+        <div class="field">
+            <label>Stripe Secret Key *</label>
+            <input type="password" name="stripe_secret" id="sk" placeholder="sk_live_..." required />
+            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Required. Starts with sk_live_ or sk_test_</div>
+        </div>
+
+        <div class="field">
+            <label>Webhook Secret</label>
+            <input type="password" name="webhook_secret" placeholder="whsec_..." />
+            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Optional. For automatic payment confirmations.</div>
+        </div>
+
+        <div class="field">
+            <label>Account ID</label>
+            <input type="email" name="account_id" placeholder="acct_..." style="border:1px solid {BORDER};border-radius:8px;" />
+            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Optional. Found in Settings &rarr; Account details.</div>
+        </div>
+
+        <button type="submit" class="btn">Connect Stripe</button>
+    </form>
+
+    <p style="text-align:center;font-size:11px;color:{TEXT_TERTIARY};margin-top:12px;">
+        Your keys are encrypted and stored securely. We never share them.
+    </p>
+
     {_FOOTER_HTML}
 </div>
 </body>

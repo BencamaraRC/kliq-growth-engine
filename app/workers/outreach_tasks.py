@@ -9,7 +9,7 @@ import asyncio
 import logging
 
 from app.db.session import async_session
-from app.outreach.campaign_manager import process_outreach
+from app.outreach.campaign_manager import process_onboarding_emails, process_outreach
 from app.outreach.brevo_client import BrevoClient
 from app.outreach.email_builder import build_outreach_email
 from app.db.models import CampaignEvent, Campaign, CampaignStatus, EmailStatus, Prospect
@@ -100,4 +100,22 @@ async def _process_queue() -> dict:
     async with async_session() as session:
         results = await process_outreach(session)
         logger.info(f"Outreach queue processed: {results}")
+        return results
+
+
+@celery_app.task(name="app.workers.outreach_tasks.process_onboarding_emails_task")
+def process_onboarding_emails_task():
+    """Process onboarding follow-up emails for claimed coaches.
+
+    Called every 6 hours by Celery Beat. Sends steps 5-7 based on
+    time since claim and onboarding completion status.
+    """
+    return _run_async(_process_onboarding_emails())
+
+
+async def _process_onboarding_emails() -> dict:
+    """Run the onboarding email processor."""
+    async with async_session() as session:
+        results = await process_onboarding_emails(session)
+        logger.info(f"Onboarding emails processed: {results}")
         return results

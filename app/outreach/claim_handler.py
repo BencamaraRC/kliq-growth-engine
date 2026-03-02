@@ -16,9 +16,9 @@ import bcrypt
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cms.models import Application, ApplicationSetting, CMSUser
+from app.cms.models import Application, ApplicationSetting, CMSUser, Page, Product
 from app.cms.store_builder import STATUS_ACTIVE, STATUS_INACTIVE
-from app.db.models import Prospect, ProspectStatus
+from app.db.models import OnboardingProgress, Prospect, ProspectStatus
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +51,35 @@ async def validate_claim_token(growth_db: AsyncSession, token: str) -> Prospect:
     return prospect
 
 
+async def activate_store_content(cms_db: AsyncSession, application_id: int) -> int:
+    """Activate all pages and products for a store (status 1 → 2).
+
+    Called during claim so the coach's store is live immediately.
+    Returns the number of rows updated.
+    """
+    try:
+        pages_result = await cms_db.execute(
+            update(Page).where(
+                Page.application_id == application_id,
+                Page.status_id == STATUS_INACTIVE,
+                Page.deleted_at.is_(None),
+            ).values(status_id=STATUS_ACTIVE)
+        )
+        products_result = await cms_db.execute(
+            update(Product).where(
+                Product.application_id == application_id,
+                Product.status_id == STATUS_INACTIVE,
+                Product.deleted_at.is_(None),
+            ).values(status_id=STATUS_ACTIVE)
+        )
+        total = (pages_result.rowcount or 0) + (products_result.rowcount or 0)
+        logger.info(f"Activated {total} pages/products for app {application_id}")
+        return total
+    except Exception:
+        logger.exception(f"Failed to activate content for app {application_id}")
+        return 0
+
+
 async def activate_store(
     cms_db: AsyncSession,
     growth_db: AsyncSession,
@@ -62,7 +91,9 @@ async def activate_store(
     1. Hash the new password
     2. Update CMS user password and status → Active
     3. Update CMS application status → Active
-    4. Update prospect status → CLAIMED
+    4. Activate all pages/products (draft → published)
+    5. Update prospect status → CLAIMED
+    6. Create OnboardingProgress with password_set=True
 
     Args:
         cms_db: CMS MySQL session.
@@ -103,11 +134,23 @@ async def activate_store(
         )
     )
 
+    # 3. Activate all store content (pages + products)
+    await activate_store_content(cms_db, app_id)
+
     await cms_db.commit()
 
-    # 3. Update prospect in Growth DB
+    # 4. Update prospect in Growth DB
     prospect.status = ProspectStatus.CLAIMED
     prospect.claimed_at = datetime.utcnow()
+
+    # 5. Create onboarding progress with password_set=True
+    onboarding = OnboardingProgress(
+        prospect_id=prospect.id,
+        password_set=True,
+        progress_pct=20,
+    )
+    growth_db.add(onboarding)
+
     await growth_db.commit()
 
     logger.info(f"Store {app_id} activated for {prospect.email}")
@@ -117,6 +160,11 @@ async def activate_store(
     from app.events.slack import notify_store_claimed
     log_event(
         "store_claimed",
+        prospect_id=prospect.id,
+        application_id=app_id,
+    )
+    log_event(
+        "onboarding_started",
         prospect_id=prospect.id,
         application_id=app_id,
     )

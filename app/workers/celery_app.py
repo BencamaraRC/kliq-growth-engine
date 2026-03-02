@@ -55,4 +55,9 @@ celery_app.conf.beat_schedule = {
         "task": "app.workers.outreach_tasks.process_outreach_queue",
         "schedule": crontab(minute="*/30"),
     },
+    # Process onboarding follow-up emails every 6 hours
+    "onboarding-emails": {
+        "task": "app.workers.outreach_tasks.process_onboarding_emails_task",
+        "schedule": crontab(hour="*/6", minute=15),
+    },
 }

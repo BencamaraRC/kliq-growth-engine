@@ -39,6 +39,25 @@ STEPS = {
         "subject": "Welcome to KLIQ, {{ first_name }}!",
         "delay_days": 0,  # Sent immediately on claim
     },
+    # Post-claim onboarding follow-ups (sent to CLAIMED coaches with incomplete steps)
+    5: {
+        "template": "onboarding_review_content.html",
+        "subject": "{{ first_name }}, review your store content",
+        "delay_days": 1,  # +1 day after claim
+        "skip_if": "content_reviewed",
+    },
+    6: {
+        "template": "onboarding_connect_stripe.html",
+        "subject": "{{ first_name }}, start earning with Stripe",
+        "delay_days": 3,  # +3 days after claim
+        "skip_if": "stripe_connected",
+    },
+    7: {
+        "template": "onboarding_first_share.html",
+        "subject": "{{ first_name }}, share with your first client",
+        "delay_days": 7,  # +7 days after claim
+        "skip_if": "first_share",
+    },
 }
 
 

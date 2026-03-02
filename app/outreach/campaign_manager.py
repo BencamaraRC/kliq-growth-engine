@@ -20,6 +20,7 @@ from app.db.models import (
     CampaignEvent,
     CampaignStatus,
     EmailStatus,
+    OnboardingProgress,
     Prospect,
     ProspectStatus,
 )
@@ -237,6 +238,55 @@ async def _find_due_for_step(
             due.append((prospect, event))
 
     return due
+
+
+async def process_onboarding_emails(session: AsyncSession) -> dict:
+    """Send follow-up onboarding emails (steps 5-7) to claimed coaches.
+
+    For each step:
+    - Find claimed prospects past the delay cutoff (from claimed_at)
+    - Skip if the relevant onboarding step is already complete
+    - Send via existing _send_step() which handles duplicate checking
+
+    Called every 6 hours by Celery Beat.
+    """
+    results = {"sent": 0, "skipped": 0, "errors": 0}
+    brevo = BrevoClient()
+
+    for step_num in [5, 6, 7]:
+        step_config = STEPS[step_num]
+        delay_days = step_config["delay_days"]
+        skip_field = step_config.get("skip_if")
+        cutoff = datetime.utcnow() - timedelta(days=delay_days)
+
+        # Find claimed prospects past the delay
+        query = (
+            select(Prospect, OnboardingProgress)
+            .outerjoin(OnboardingProgress, OnboardingProgress.prospect_id == Prospect.id)
+            .where(
+                Prospect.status == ProspectStatus.CLAIMED,
+                Prospect.claimed_at <= cutoff,
+                Prospect.email.is_not(None),
+            )
+        )
+        result = await session.execute(query)
+        rows = result.all()
+
+        for prospect, onboarding in rows:
+            # Skip if onboarding step already complete
+            if onboarding and skip_field and getattr(onboarding, skip_field, False):
+                results["skipped"] += 1
+                continue
+
+            success = await _send_step(session, brevo, prospect, step=step_num)
+            if success:
+                results["sent"] += 1
+            else:
+                # _send_step returns False for duplicates too, not just errors
+                results["skipped"] += 1
+
+    logger.info(f"Onboarding emails processed: {results}")
+    return results
 
 
 async def _get_active_campaign(session: AsyncSession) -> Campaign:

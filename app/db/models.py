@@ -9,6 +9,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     JSON,
+    Boolean,
     DateTime,
     Enum,
     Float,
@@ -16,6 +17,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -126,6 +128,7 @@ class Prospect(Base):
     generated_content: Mapped[list["GeneratedContent"]] = relationship(back_populates="prospect")
     campaign_events: Mapped[list["CampaignEvent"]] = relationship(back_populates="prospect")
     platform_profiles: Mapped[list["PlatformProfile"]] = relationship(back_populates="prospect")
+    onboarding_progress: Mapped["OnboardingProgress | None"] = relationship(back_populates="prospect", uselist=False)
 
 
 class PlatformProfile(Base):
@@ -248,3 +251,32 @@ class CampaignEvent(Base):
 
     campaign: Mapped["Campaign"] = relationship(back_populates="events")
     prospect: Mapped["Prospect"] = relationship(back_populates="campaign_events")
+
+
+class OnboardingProgress(Base):
+    """Tracks a coach's post-claim onboarding progress."""
+
+    __tablename__ = "onboarding_progress"
+    __table_args__ = (UniqueConstraint("prospect_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    prospect_id: Mapped[int] = mapped_column(ForeignKey("prospects.id"), unique=True)
+
+    # Individual step booleans (queryable for analytics)
+    password_set: Mapped[bool] = mapped_column(Boolean, default=False)
+    store_explored: Mapped[bool] = mapped_column(Boolean, default=False)
+    content_reviewed: Mapped[bool] = mapped_column(Boolean, default=False)
+    stripe_connected: Mapped[bool] = mapped_column(Boolean, default=False)
+    first_share: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    # Computed progress (0-100)
+    progress_pct: Mapped[int] = mapped_column(Integer, default=0)
+
+    # Timestamps
+    started_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    prospect: Mapped["Prospect"] = relationship(back_populates="onboarding_progress")
