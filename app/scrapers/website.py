@@ -387,6 +387,7 @@ class WebsiteAdapter(PlatformAdapter):
 
     @staticmethod
     def _extract_niche_tags(text: str) -> list[str]:
+        """Extract niche tags from text."""
         niche_keywords = {
             "fitness": ["fitness", "workout", "exercise", "training", "gym"],
             "yoga": ["yoga", "meditation", "mindfulness"],
@@ -394,6 +395,10 @@ class WebsiteAdapter(PlatformAdapter):
             "strength": ["strength", "powerlifting", "weightlifting"],
             "wellness": ["wellness", "health", "self-care", "holistic"],
             "coaching": ["coaching", "coach", "mentor"],
+            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
+            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
+            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
+            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
         }
         text_lower = (text or "").lower()
         return [tag for tag, keywords in niche_keywords.items() if any(kw in text_lower for kw in keywords)]

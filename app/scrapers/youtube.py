@@ -282,7 +282,7 @@ class YouTubeAdapter(PlatformAdapter):
             return ""
 
     def _extract_niche_tags(self, text: str) -> list[str]:
-        """Extract fitness/wellness niche tags from text."""
+        """Extract niche tags from text."""
         niche_keywords = {
             "fitness": ["fitness", "workout", "exercise", "training"],
             "yoga": ["yoga", "vinyasa", "ashtanga", "meditation"],
@@ -294,6 +294,10 @@ class YouTubeAdapter(PlatformAdapter):
             "crossfit": ["crossfit", "wod", "functional fitness"],
             "calisthenics": ["calisthenics", "bodyweight"],
             "martial_arts": ["martial arts", "mma", "boxing", "kickboxing"],
+            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
+            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
+            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
+            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
         }
 
         text_lower = text.lower()
