@@ -3,11 +3,7 @@
 Run with: streamlit run dashboard/app.py
 """
 
-from pathlib import Path
-
 import streamlit as st
-import yaml
-import streamlit_authenticator as stauth
 
 st.set_page_config(
     page_title="KLIQ Growth Engine",
@@ -15,30 +11,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-# --- Authentication Gate ---
-_auth_config_path = Path(__file__).parent / "auth_config.yaml"
-with open(_auth_config_path) as f:
-    _auth_cfg = yaml.safe_load(f)
-
-authenticator = stauth.Authenticate(
-    _auth_cfg["credentials"],
-    _auth_cfg["cookie"]["name"],
-    _auth_cfg["cookie"]["key"],
-    _auth_cfg["cookie"]["expiry_days"],
-)
-
-authenticator.login()
-
-if st.session_state.get("authentication_status") is None:
-    st.info("Please log in to access the Growth Engine dashboard.")
-    st.stop()
-elif st.session_state.get("authentication_status") is False:
-    st.error("Invalid username or password.")
-    st.stop()
-
-# Store authenticator in session state so theme.py can access it for logout
-st.session_state["authenticator"] = authenticator
 
 from theme import inject_kliq_theme, sidebar_nav, apply_plotly_theme, CHART_COLORS
 

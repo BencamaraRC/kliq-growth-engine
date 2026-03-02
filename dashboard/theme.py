@@ -7,7 +7,11 @@ shadow cards, status badges, etc.).
 Usage: call inject_kliq_theme() at the top of every page after set_page_config().
 """
 
+from pathlib import Path
+
 import streamlit as st
+import yaml
+import streamlit_authenticator as stauth
 
 # ─── KLIQ Design Tokens ──────────────────────────────────────────────────────
 
@@ -281,16 +285,39 @@ def inject_kliq_theme():
     st.markdown(KLIQ_CSS, unsafe_allow_html=True)
 
 
+def _get_authenticator():
+    """Load or return the cached authenticator instance."""
+    if "authenticator" not in st.session_state:
+        _auth_config_path = Path(__file__).parent / "auth_config.yaml"
+        with open(_auth_config_path) as f:
+            _auth_cfg = yaml.safe_load(f)
+        authenticator = stauth.Authenticate(
+            _auth_cfg["credentials"],
+            _auth_cfg["cookie"]["name"],
+            _auth_cfg["cookie"]["key"],
+            _auth_cfg["cookie"]["expiry_days"],
+        )
+        st.session_state["authenticator"] = authenticator
+    return st.session_state["authenticator"]
+
+
 def require_auth():
     """Check authentication and stop the page if the user is not logged in.
 
-    Call this at the top of every page (after set_page_config) to enforce the
-    login gate. The main app.py handles the authenticator setup — this helper
-    just verifies that session state shows an authenticated user.
+    Initializes the authenticator and reads the auth cookie on every page
+    so sessions persist across Streamlit multi-page navigation.
     """
+    authenticator = _get_authenticator()
+
+    # Let the authenticator check the cookie to restore session
     if not st.session_state.get("authentication_status"):
-        st.warning("Please log in from the main dashboard page.")
-        st.stop()
+        authenticator.login()
+        if st.session_state.get("authentication_status") is None:
+            st.info("Please log in to access the Growth Engine dashboard.")
+            st.stop()
+        elif st.session_state.get("authentication_status") is False:
+            st.error("Invalid username or password.")
+            st.stop()
 
 
 def sidebar_nav():
