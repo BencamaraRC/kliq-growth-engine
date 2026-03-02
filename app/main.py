@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api import campaigns, pipeline, prospects, webhooks
+from app.claim import router as claim_router
 from app.preview import router as preview_router
 from app.config import settings
 from app.db.session import engine
@@ -26,6 +27,7 @@ app.include_router(campaigns.router, prefix="/api/campaigns", tags=["campaigns"]
 app.include_router(pipeline.router, prefix="/api/pipeline", tags=["pipeline"])
 app.include_router(webhooks.router, prefix="/api/webhooks", tags=["webhooks"])
 app.include_router(preview_router.router, tags=["preview"])
+app.include_router(claim_router.router, tags=["claim"])
 
 
 @app.get("/health")
