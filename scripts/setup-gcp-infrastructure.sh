@@ -1,14 +1,39 @@
 #!/usr/bin/env bash
 # =============================================================================
-# KLIQ Growth Engine — GCP Infrastructure Setup
+# KLIQ Growth Engine — GCP Infrastructure Setup (non-interactive)
 # =============================================================================
 #
 # Run this script ONCE to set up all GCP resources before first deploy.
 # Prerequisites: gcloud CLI authenticated with Owner/Editor on rcwl-development
 #
 # Usage:
-#   chmod +x scripts/setup-gcp-infrastructure.sh
-#   ./scripts/setup-gcp-infrastructure.sh
+#   # Full setup (skips Cloud Scheduler — no API URL yet):
+#   CLOUD_SQL_PASSWORD=mypassword ./scripts/setup-gcp-infrastructure.sh
+#
+#   # With Cloud Scheduler (after first deploy):
+#   API_URL=https://kliq-growth-api-xxx.run.app \
+#   SCHEDULER_SECRET=mysecret \
+#   ./scripts/setup-gcp-infrastructure.sh --scheduler-only
+#
+#   # Dry run — prints commands without executing:
+#   ./scripts/setup-gcp-infrastructure.sh --dry-run
+#
+#   # Skip specific steps:
+#   SKIP_CLOUD_SQL=1 SKIP_VPC=1 ./scripts/setup-gcp-infrastructure.sh
+#
+# Environment variables:
+#   CLOUD_SQL_PASSWORD  (required for Cloud SQL user creation)
+#   API_URL             (optional — Cloud Scheduler endpoint base URL)
+#   SCHEDULER_SECRET    (optional — required if API_URL is set)
+#   SKIP_APIS=1         Skip enabling APIs
+#   SKIP_REGISTRY=1     Skip Artifact Registry
+#   SKIP_CLOUD_SQL=1    Skip Cloud SQL
+#   SKIP_VPC=1          Skip VPC Connector
+#   SKIP_SA=1           Skip Service Account
+#   SKIP_WIF=1          Skip Workload Identity Federation
+#   SKIP_SECRETS=1      Skip Secret Manager
+#   SKIP_MIGRATE=1      Skip Migration Job
+#   SKIP_SCHEDULER=1    Skip Cloud Scheduler
 #
 # The script is idempotent — safe to re-run (existing resources are skipped).
 # =============================================================================
@@ -38,6 +63,27 @@ CLOUD_SQL_TIER="db-f1-micro"
 CLOUD_SQL_DB="kliq_growth_engine"
 CLOUD_SQL_USER="kliq"
 
+# From environment
+CLOUD_SQL_PASSWORD="${CLOUD_SQL_PASSWORD:-}"
+API_URL="${API_URL:-}"
+SCHEDULER_SECRET="${SCHEDULER_SECRET:-}"
+DRY_RUN=false
+SCHEDULER_ONLY=false
+
+# ── Parse arguments ──────────────────────────────────────────────────────────
+
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run)      DRY_RUN=true ;;
+        --scheduler-only) SCHEDULER_ONLY=true ;;
+        --help|-h)
+            head -37 "$0" | tail -35
+            exit 0
+            ;;
+        *) echo "Unknown argument: $arg"; exit 1 ;;
+    esac
+done
+
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
 RED='\033[0;31m'
@@ -51,7 +97,35 @@ ok()    { echo -e "${GREEN}[OK]${NC}    $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
-confirm() {
+run() {
+    if [[ "$DRY_RUN" == true ]]; then
+        echo -e "  ${YELLOW}[DRY-RUN]${NC} $*"
+    else
+        eval "$@"
+    fi
+}
+
+skip() {
+    local var="SKIP_$1"
+    [[ "${!var:-}" == "1" ]]
+}
+
+# ── Pre-flight checks ───────────────────────────────────────────────────────
+
+check_prerequisites() {
+    info "Checking prerequisites..."
+
+    command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not installed. See https://cloud.google.com/sdk/docs/install"
+
+    if [[ "$DRY_RUN" == false ]]; then
+        CURRENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
+        if [[ "${CURRENT_PROJECT}" != "${PROJECT_ID}" ]]; then
+            warn "Current project is '${CURRENT_PROJECT}', switching to '${PROJECT_ID}'"
+            gcloud config set project "${PROJECT_ID}"
+        fi
+    fi
+    ok "gcloud configured for project ${PROJECT_ID}"
+
     echo ""
     echo -e "${YELLOW}────────────────────────────────────────────${NC}"
     echo -e "${YELLOW}  KLIQ Growth Engine — GCP Infrastructure   ${NC}"
@@ -62,30 +136,14 @@ confirm() {
     echo "  SQL Instance:  ${CLOUD_SQL_INSTANCE}"
     echo "  Service Acct:  ${SERVICE_ACCOUNT}"
     echo "  GitHub Repo:   ${GITHUB_ORG}/${GITHUB_REPO}"
+    echo "  Dry run:       ${DRY_RUN}"
     echo ""
-    read -rp "Proceed with setup? (y/N) " response
-    [[ "$response" =~ ^[Yy]$ ]] || { echo "Aborted."; exit 0; }
-    echo ""
-}
-
-# ── Pre-flight checks ───────────────────────────────────────────────────────
-
-check_prerequisites() {
-    info "Checking prerequisites..."
-
-    command -v gcloud >/dev/null 2>&1 || error "gcloud CLI not installed. See https://cloud.google.com/sdk/docs/install"
-
-    CURRENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
-    if [[ "${CURRENT_PROJECT}" != "${PROJECT_ID}" ]]; then
-        warn "Current project is '${CURRENT_PROJECT}', switching to '${PROJECT_ID}'"
-        gcloud config set project "${PROJECT_ID}"
-    fi
-    ok "gcloud configured for project ${PROJECT_ID}"
 }
 
 # ── Step 1: Enable required APIs ────────────────────────────────────────────
 
 enable_apis() {
+    if skip APIS; then warn "Skipping API enablement (SKIP_APIS=1)"; return; fi
     info "Step 1/9: Enabling required GCP APIs..."
 
     APIS=(
@@ -102,23 +160,24 @@ enable_apis() {
     )
 
     for api in "${APIS[@]}"; do
-        gcloud services enable "${api}" --quiet 2>/dev/null && ok "  ${api}" || warn "  ${api} (may already be enabled)"
+        run "gcloud services enable '${api}' --quiet 2>/dev/null" && ok "  ${api}" || warn "  ${api} (may already be enabled)"
     done
 }
 
 # ── Step 2: Artifact Registry ───────────────────────────────────────────────
 
 setup_artifact_registry() {
+    if skip REGISTRY; then warn "Skipping Artifact Registry (SKIP_REGISTRY=1)"; return; fi
     info "Step 2/9: Setting up Artifact Registry..."
 
-    if gcloud artifacts repositories describe "${REGISTRY_NAME}" \
+    if [[ "$DRY_RUN" == false ]] && gcloud artifacts repositories describe "${REGISTRY_NAME}" \
         --location="${REGION}" --format="value(name)" 2>/dev/null; then
         ok "Artifact Registry '${REGISTRY_NAME}' already exists"
     else
-        gcloud artifacts repositories create "${REGISTRY_NAME}" \
+        run "gcloud artifacts repositories create '${REGISTRY_NAME}' \
             --repository-format=docker \
-            --location="${REGION}" \
-            --description="KLIQ Growth Engine Docker images"
+            --location='${REGION}' \
+            --description='KLIQ Growth Engine Docker images'"
         ok "Created Artifact Registry '${REGISTRY_NAME}'"
     fi
 }
@@ -126,68 +185,74 @@ setup_artifact_registry() {
 # ── Step 3: Cloud SQL PostgreSQL ────────────────────────────────────────────
 
 setup_cloud_sql() {
+    if skip CLOUD_SQL; then warn "Skipping Cloud SQL (SKIP_CLOUD_SQL=1)"; return; fi
     info "Step 3/9: Setting up Cloud SQL PostgreSQL..."
 
-    if gcloud sql instances describe "${CLOUD_SQL_INSTANCE}" --format="value(name)" 2>/dev/null; then
+    if [[ -z "${CLOUD_SQL_PASSWORD}" && "$DRY_RUN" == false ]]; then
+        error "CLOUD_SQL_PASSWORD env var is required. Usage: CLOUD_SQL_PASSWORD=mypassword $0"
+    fi
+
+    # Create instance
+    if [[ "$DRY_RUN" == false ]] && gcloud sql instances describe "${CLOUD_SQL_INSTANCE}" --format="value(name)" 2>/dev/null; then
         ok "Cloud SQL instance '${CLOUD_SQL_INSTANCE}' already exists"
     else
         warn "Creating Cloud SQL instance (this takes 3-5 minutes)..."
-        gcloud sql instances create "${CLOUD_SQL_INSTANCE}" \
+        run "gcloud sql instances create '${CLOUD_SQL_INSTANCE}' \
             --database-version=POSTGRES_15 \
-            --tier="${CLOUD_SQL_TIER}" \
-            --region="${REGION}" \
+            --tier='${CLOUD_SQL_TIER}' \
+            --region='${REGION}' \
             --storage-type=SSD \
             --storage-size=10GB \
             --no-assign-ip \
             --network=default \
-            --quiet
+            --quiet"
         ok "Created Cloud SQL instance '${CLOUD_SQL_INSTANCE}'"
     fi
 
     # Create database
-    if gcloud sql databases describe "${CLOUD_SQL_DB}" \
+    if [[ "$DRY_RUN" == false ]] && gcloud sql databases describe "${CLOUD_SQL_DB}" \
         --instance="${CLOUD_SQL_INSTANCE}" --format="value(name)" 2>/dev/null; then
         ok "Database '${CLOUD_SQL_DB}' already exists"
     else
-        gcloud sql databases create "${CLOUD_SQL_DB}" \
-            --instance="${CLOUD_SQL_INSTANCE}"
+        run "gcloud sql databases create '${CLOUD_SQL_DB}' \
+            --instance='${CLOUD_SQL_INSTANCE}'"
         ok "Created database '${CLOUD_SQL_DB}'"
     fi
 
-    # Create user (prompt for password)
-    echo ""
-    read -rsp "  Enter password for Cloud SQL user '${CLOUD_SQL_USER}': " DB_PASSWORD
-    echo ""
-    gcloud sql users create "${CLOUD_SQL_USER}" \
-        --instance="${CLOUD_SQL_INSTANCE}" \
-        --password="${DB_PASSWORD}" 2>/dev/null \
+    # Create user
+    run "gcloud sql users create '${CLOUD_SQL_USER}' \
+        --instance='${CLOUD_SQL_INSTANCE}' \
+        --password='${CLOUD_SQL_PASSWORD}' 2>/dev/null" \
         && ok "Created user '${CLOUD_SQL_USER}'" \
-        || warn "User '${CLOUD_SQL_USER}' may already exist — update password manually if needed"
+        || warn "User '${CLOUD_SQL_USER}' may already exist"
 
-    # Get connection name for later
-    CONNECTION_NAME=$(gcloud sql instances describe "${CLOUD_SQL_INSTANCE}" \
-        --format="value(connectionName)")
-    ok "Cloud SQL connection name: ${CONNECTION_NAME}"
-    echo ""
-    echo -e "  ${CYAN}DATABASE_URL for production:${NC}"
-    echo "  postgresql+asyncpg://${CLOUD_SQL_USER}:<PASSWORD>@/<CLOUD_SQL_DB>?host=/cloudsql/${CONNECTION_NAME}"
-    echo ""
+    # Get connection name
+    if [[ "$DRY_RUN" == false ]]; then
+        CONNECTION_NAME=$(gcloud sql instances describe "${CLOUD_SQL_INSTANCE}" \
+            --format="value(connectionName)")
+        ok "Cloud SQL connection name: ${CONNECTION_NAME}"
+        echo ""
+        echo -e "  ${CYAN}DATABASE_URL for production:${NC}"
+        echo "  postgresql+asyncpg://${CLOUD_SQL_USER}:${CLOUD_SQL_PASSWORD}@/${CLOUD_SQL_DB}?host=/cloudsql/${CONNECTION_NAME}"
+        echo ""
+    fi
 }
 
 # ── Step 4: VPC Connector ──────────────────────────────────────────────────
 
 setup_vpc_connector() {
+    if skip VPC; then warn "Skipping VPC Connector (SKIP_VPC=1)"; return; fi
     info "Step 4/9: Setting up VPC Connector..."
 
-    if gcloud compute networks vpc-access connectors describe "${VPC_CONNECTOR}" \
+    if [[ "$DRY_RUN" == false ]] && gcloud compute networks vpc-access connectors describe "${VPC_CONNECTOR}" \
         --region="${REGION}" --format="value(name)" 2>/dev/null; then
         ok "VPC Connector '${VPC_CONNECTOR}' already exists"
     else
-        gcloud compute networks vpc-access connectors create "${VPC_CONNECTOR}" \
-            --region="${REGION}" \
-            --range="10.8.0.0/28" \
+        run "gcloud compute networks vpc-access connectors create '${VPC_CONNECTOR}' \
+            --region='${REGION}' \
+            --range='10.8.0.0/28' \
             --min-instances=2 \
-            --max-instances=3
+            --max-instances=3"
         ok "Created VPC Connector '${VPC_CONNECTOR}'"
     fi
 }
@@ -195,17 +260,17 @@ setup_vpc_connector() {
 # ── Step 5: Service Account ────────────────────────────────────────────────
 
 setup_service_account() {
+    if skip SA; then warn "Skipping Service Account (SKIP_SA=1)"; return; fi
     info "Step 5/9: Setting up Service Account..."
 
-    if gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" --format="value(email)" 2>/dev/null; then
+    if [[ "$DRY_RUN" == false ]] && gcloud iam service-accounts describe "${SERVICE_ACCOUNT}" --format="value(email)" 2>/dev/null; then
         ok "Service account '${SERVICE_ACCOUNT}' already exists"
     else
-        gcloud iam service-accounts create "${SERVICE_ACCOUNT_NAME}" \
-            --display-name="KLIQ Growth Engine"
+        run "gcloud iam service-accounts create '${SERVICE_ACCOUNT_NAME}' \
+            --display-name='KLIQ Growth Engine'"
         ok "Created service account '${SERVICE_ACCOUNT}'"
     fi
 
-    # Grant roles
     ROLES=(
         "roles/cloudsql.client"
         "roles/secretmanager.secretAccessor"
@@ -219,11 +284,11 @@ setup_service_account() {
 
     info "  Granting IAM roles..."
     for role in "${ROLES[@]}"; do
-        gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-            --member="serviceAccount:${SERVICE_ACCOUNT}" \
-            --role="${role}" \
+        run "gcloud projects add-iam-policy-binding '${PROJECT_ID}' \
+            --member='serviceAccount:${SERVICE_ACCOUNT}' \
+            --role='${role}' \
             --condition=None \
-            --quiet 2>/dev/null
+            --quiet 2>/dev/null"
         ok "    ${role}"
     done
 }
@@ -231,69 +296,77 @@ setup_service_account() {
 # ── Step 6: Workload Identity Federation ────────────────────────────────────
 
 setup_workload_identity() {
-    info "Step 6/9: Setting up Workload Identity Federation (GitHub → GCP)..."
+    if skip WIF; then warn "Skipping Workload Identity Federation (SKIP_WIF=1)"; return; fi
+    info "Step 6/9: Setting up Workload Identity Federation (GitHub -> GCP)..."
 
     # Create workload identity pool
-    if gcloud iam workload-identity-pools describe "${WIF_POOL}" \
+    if [[ "$DRY_RUN" == false ]] && gcloud iam workload-identity-pools describe "${WIF_POOL}" \
         --location="global" --format="value(name)" 2>/dev/null; then
         ok "Workload Identity Pool '${WIF_POOL}' already exists"
     else
-        gcloud iam workload-identity-pools create "${WIF_POOL}" \
-            --location="global" \
-            --display-name="GitHub Actions Pool"
+        run "gcloud iam workload-identity-pools create '${WIF_POOL}' \
+            --location='global' \
+            --display-name='GitHub Actions Pool'"
         ok "Created Workload Identity Pool '${WIF_POOL}'"
     fi
 
     # Create OIDC provider
-    if gcloud iam workload-identity-pools providers describe "${WIF_PROVIDER}" \
+    if [[ "$DRY_RUN" == false ]] && gcloud iam workload-identity-pools providers describe "${WIF_PROVIDER}" \
         --workload-identity-pool="${WIF_POOL}" \
         --location="global" --format="value(name)" 2>/dev/null; then
         ok "Workload Identity Provider '${WIF_PROVIDER}' already exists"
     else
-        gcloud iam workload-identity-pools providers create-oidc "${WIF_PROVIDER}" \
-            --location="global" \
-            --workload-identity-pool="${WIF_POOL}" \
-            --display-name="GitHub OIDC Provider" \
-            --issuer-uri="https://token.actions.githubusercontent.com" \
-            --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" \
-            --attribute-condition="assertion.repository == '${GITHUB_ORG}/${GITHUB_REPO}'"
+        run "gcloud iam workload-identity-pools providers create-oidc '${WIF_PROVIDER}' \
+            --location='global' \
+            --workload-identity-pool='${WIF_POOL}' \
+            --display-name='GitHub OIDC Provider' \
+            --issuer-uri='https://token.actions.githubusercontent.com' \
+            --attribute-mapping='google.subject=assertion.sub,attribute.repository=assertion.repository' \
+            --attribute-condition=\"assertion.repository == '${GITHUB_ORG}/${GITHUB_REPO}'\""
         ok "Created Workload Identity Provider '${WIF_PROVIDER}'"
     fi
 
     # Allow GitHub repo to impersonate the service account
-    WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${WIF_POOL}" \
-        --location="global" --format="value(name)")
+    if [[ "$DRY_RUN" == false ]]; then
+        WIF_POOL_ID=$(gcloud iam workload-identity-pools describe "${WIF_POOL}" \
+            --location="global" --format="value(name)")
+    else
+        WIF_POOL_ID="projects/${PROJECT_ID}/locations/global/workloadIdentityPools/${WIF_POOL}"
+    fi
 
-    gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT}" \
-        --role="roles/iam.workloadIdentityUser" \
-        --member="principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_ORG}/${GITHUB_REPO}" \
-        --quiet 2>/dev/null
-    ok "Linked GitHub ${GITHUB_ORG}/${GITHUB_REPO} → ${SERVICE_ACCOUNT}"
+    run "gcloud iam service-accounts add-iam-policy-binding '${SERVICE_ACCOUNT}' \
+        --role='roles/iam.workloadIdentityUser' \
+        --member='principalSet://iam.googleapis.com/${WIF_POOL_ID}/attribute.repository/${GITHUB_ORG}/${GITHUB_REPO}' \
+        --quiet 2>/dev/null"
+    ok "Linked GitHub ${GITHUB_ORG}/${GITHUB_REPO} -> ${SERVICE_ACCOUNT}"
 
-    # Grant service account permission to deploy Cloud Run
-    gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-        --member="serviceAccount:${SERVICE_ACCOUNT}" \
-        --role="roles/run.admin" \
+    # Deploy permissions
+    run "gcloud projects add-iam-policy-binding '${PROJECT_ID}' \
+        --member='serviceAccount:${SERVICE_ACCOUNT}' \
+        --role='roles/run.admin' \
         --condition=None \
-        --quiet 2>/dev/null
+        --quiet 2>/dev/null"
 
-    gcloud projects add-iam-policy-binding "${PROJECT_ID}" \
-        --member="serviceAccount:${SERVICE_ACCOUNT}" \
-        --role="roles/artifactregistry.writer" \
+    run "gcloud projects add-iam-policy-binding '${PROJECT_ID}' \
+        --member='serviceAccount:${SERVICE_ACCOUNT}' \
+        --role='roles/artifactregistry.writer' \
         --condition=None \
-        --quiet 2>/dev/null
+        --quiet 2>/dev/null"
 
-    # Also needs to act as itself for Cloud Run deploys
-    gcloud iam service-accounts add-iam-policy-binding "${SERVICE_ACCOUNT}" \
-        --role="roles/iam.serviceAccountUser" \
-        --member="serviceAccount:${SERVICE_ACCOUNT}" \
-        --quiet 2>/dev/null
+    run "gcloud iam service-accounts add-iam-policy-binding '${SERVICE_ACCOUNT}' \
+        --role='roles/iam.serviceAccountUser' \
+        --member='serviceAccount:${SERVICE_ACCOUNT}' \
+        --quiet 2>/dev/null"
     ok "Granted deploy permissions to service account"
 
     # Print values for GitHub secrets
-    PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${WIF_PROVIDER}" \
-        --workload-identity-pool="${WIF_POOL}" \
-        --location="global" --format="value(name)")
+    if [[ "$DRY_RUN" == false ]]; then
+        PROVIDER_FULL=$(gcloud iam workload-identity-pools providers describe "${WIF_PROVIDER}" \
+            --workload-identity-pool="${WIF_POOL}" \
+            --location="global" --format="value(name)")
+    else
+        PROVIDER_FULL="projects/${PROJECT_ID}/locations/global/workloadIdentityPools/${WIF_POOL}/providers/${WIF_PROVIDER}"
+    fi
 
     echo ""
     echo -e "  ${CYAN}Add these as GitHub repo secrets:${NC}"
@@ -305,11 +378,8 @@ setup_workload_identity() {
 # ── Step 7: Secret Manager ─────────────────────────────────────────────────
 
 setup_secrets() {
-    info "Step 7/9: Setting up Secret Manager..."
-    echo ""
-    echo "  The following secrets need to be stored in Secret Manager."
-    echo "  You can create them now interactively, or later via the console."
-    echo ""
+    if skip SECRETS; then warn "Skipping Secret Manager (SKIP_SECRETS=1)"; return; fi
+    info "Step 7/9: Setting up Secret Manager (creating empty secrets)..."
 
     SECRETS=(
         "DATABASE_URL"
@@ -328,32 +398,17 @@ setup_secrets() {
         "SCHEDULER_SECRET"
     )
 
-    read -rp "  Create secrets interactively now? (y/N) " create_now
-    echo ""
-
     for secret in "${SECRETS[@]}"; do
-        # Create the secret if it doesn't exist
-        if gcloud secrets describe "${secret}" --format="value(name)" 2>/dev/null; then
+        if [[ "$DRY_RUN" == false ]] && gcloud secrets describe "${secret}" --format="value(name)" 2>/dev/null; then
             ok "  Secret '${secret}' already exists"
         else
-            gcloud secrets create "${secret}" --replication-policy="automatic" --quiet
+            run "gcloud secrets create '${secret}' --replication-policy='automatic' --quiet"
             ok "  Created secret '${secret}'"
-
-            if [[ "${create_now}" =~ ^[Yy]$ ]]; then
-                read -rsp "    Enter value for ${secret} (or press Enter to skip): " secret_value
-                echo ""
-                if [[ -n "${secret_value}" ]]; then
-                    echo -n "${secret_value}" | gcloud secrets versions add "${secret}" --data-file=-
-                    ok "    Set value for '${secret}'"
-                else
-                    warn "    Skipped — set via: echo -n 'value' | gcloud secrets versions add ${secret} --data-file=-"
-                fi
-            fi
         fi
     done
 
     echo ""
-    echo -e "  ${CYAN}To set a secret value later:${NC}"
+    echo -e "  ${CYAN}Set secret values with:${NC}"
     echo "  echo -n 'your-value' | gcloud secrets versions add SECRET_NAME --data-file=-"
     echo ""
 }
@@ -361,19 +416,11 @@ setup_secrets() {
 # ── Step 8: Cloud Run Migration Job ────────────────────────────────────────
 
 setup_migration_job() {
+    if skip MIGRATE; then warn "Skipping Migration Job (SKIP_MIGRATE=1)"; return; fi
     info "Step 8/9: Setting up Cloud Run Migration Job..."
 
-    # Build the secret env vars flags for the migration job
-    SECRET_ENV_FLAGS=""
-    SECRETS_FOR_MIGRATE=("DATABASE_URL" "CMS_DATABASE_URL" "REDIS_URL")
-    for secret in "${SECRETS_FOR_MIGRATE[@]}"; do
-        SECRET_ENV_FLAGS="${SECRET_ENV_FLAGS} --set-secrets=${secret}=${secret}:latest"
-    done
-
-    if gcloud run jobs describe kliq-migrate --region="${REGION}" --format="value(name)" 2>/dev/null; then
+    if [[ "$DRY_RUN" == false ]] && gcloud run jobs describe kliq-migrate --region="${REGION}" --format="value(name)" 2>/dev/null; then
         ok "Cloud Run Job 'kliq-migrate' already exists"
-        warn "Update it after first image push with:"
-        echo "  gcloud run jobs update kliq-migrate --image=${REGISTRY}/api:latest --region=${REGION}"
     else
         warn "Migration job will be created on first deploy (needs image in registry first)."
         echo ""
@@ -396,22 +443,18 @@ setup_migration_job() {
 # ── Step 9: Cloud Scheduler ────────────────────────────────────────────────
 
 setup_cloud_scheduler() {
+    if skip SCHEDULER; then warn "Skipping Cloud Scheduler (SKIP_SCHEDULER=1)"; return; fi
     info "Step 9/9: Setting up Cloud Scheduler jobs..."
-    echo ""
-    echo "  These jobs will be created after the API is deployed."
-    echo "  You need the API URL first."
-    echo ""
-    read -rp "  Enter the API URL (e.g., https://kliq-growth-api-XXXXX.run.app), or press Enter to skip: " API_URL
 
     if [[ -z "${API_URL}" ]]; then
-        warn "Skipping Cloud Scheduler setup. Run the commands below after deploying the API."
+        warn "Skipping Cloud Scheduler — API_URL not set."
+        echo "  Re-run with: API_URL=https://kliq-growth-api-xxx.run.app SCHEDULER_SECRET=xxx $0 --scheduler-only"
         echo ""
-        echo -e "  ${CYAN}Replace <API_URL> and <SCHEDULER_SECRET> then run:${NC}"
-        API_URL="<API_URL>"
-        SCHED_SECRET="<SCHEDULER_SECRET>"
-    else
-        read -rsp "  Enter the SCHEDULER_SECRET value: " SCHED_SECRET
-        echo ""
+        return
+    fi
+
+    if [[ -z "${SCHEDULER_SECRET}" ]]; then
+        error "SCHEDULER_SECRET env var is required when API_URL is set."
     fi
 
     JOBS=(
@@ -423,31 +466,19 @@ setup_cloud_scheduler() {
     for job_def in "${JOBS[@]}"; do
         IFS='|' read -r job_name schedule endpoint description <<< "${job_def}"
 
-        if [[ "${API_URL}" != "<API_URL>" ]]; then
-            if gcloud scheduler jobs describe "${job_name}" --location="${REGION}" --format="value(name)" 2>/dev/null; then
-                ok "  Scheduler job '${job_name}' already exists"
-            else
-                gcloud scheduler jobs create http "${job_name}" \
-                    --location="${REGION}" \
-                    --schedule="${schedule}" \
-                    --uri="${endpoint}" \
-                    --http-method=POST \
-                    --headers="X-Scheduler-Secret=${SCHED_SECRET},Content-Type=application/json" \
-                    --attempt-deadline=300s \
-                    --description="${description}" \
-                    --quiet
-                ok "  Created scheduler job '${job_name}' (${schedule})"
-            fi
+        if [[ "$DRY_RUN" == false ]] && gcloud scheduler jobs describe "${job_name}" --location="${REGION}" --format="value(name)" 2>/dev/null; then
+            ok "  Scheduler job '${job_name}' already exists"
         else
-            echo ""
-            echo "  gcloud scheduler jobs create http ${job_name} \\"
-            echo "    --location=${REGION} \\"
-            echo "    --schedule=\"${schedule}\" \\"
-            echo "    --uri=${endpoint} \\"
-            echo "    --http-method=POST \\"
-            echo "    --headers=\"X-Scheduler-Secret=${SCHED_SECRET},Content-Type=application/json\" \\"
-            echo "    --attempt-deadline=300s \\"
-            echo "    --description=\"${description}\""
+            run "gcloud scheduler jobs create http '${job_name}' \
+                --location='${REGION}' \
+                --schedule='${schedule}' \
+                --uri='${endpoint}' \
+                --http-method=POST \
+                --headers='X-Scheduler-Secret=${SCHEDULER_SECRET},Content-Type=application/json' \
+                --attempt-deadline=300s \
+                --description='${description}' \
+                --quiet"
+            ok "  Created scheduler job '${job_name}' (${schedule})"
         fi
     done
     echo ""
@@ -469,24 +500,25 @@ print_summary() {
     echo "       echo -n 'redis://default:xxx@xxx.upstash.io:6379' | \\"
     echo "         gcloud secrets versions add REDIS_URL --data-file=-"
     echo ""
-    echo "  2. Set all secret values in Secret Manager (if not done above):"
+    echo "  2. Set all secret values in Secret Manager:"
     echo "     gcloud secrets list"
+    echo "     echo -n 'value' | gcloud secrets versions add SECRET_NAME --data-file=-"
     echo ""
     echo "  3. Add GitHub repo secrets at:"
     echo "     https://github.com/${GITHUB_ORG}/${GITHUB_REPO}/settings/secrets/actions"
-    echo ""
-    echo "     Required secrets:"
-    echo "       WIF_PROVIDER        (printed above)"
-    echo "       WIF_SERVICE_ACCOUNT (printed above)"
+    echo "     WIF_PROVIDER        (printed above)"
+    echo "     WIF_SERVICE_ACCOUNT (printed above)"
     echo ""
     echo "  4. First deploy — push an image manually, then create the migration job:"
     echo "     make build && make push"
-    echo "     (then run the gcloud run jobs create command printed above)"
     echo ""
-    echo "  5. After API deploys, set up Cloud Scheduler (if skipped above):"
-    echo "     API_URL=\$(gcloud run services describe kliq-growth-api --region=${REGION} --format='value(status.url)')"
-    echo "     Then re-run this script or use the commands printed above."
-    echo ""
+    if [[ -z "${API_URL}" ]]; then
+        echo "  5. After API deploys, set up Cloud Scheduler:"
+        echo "     API_URL=\$(gcloud run services describe kliq-growth-api --region=${REGION} --format='value(status.url)') \\"
+        echo "     SCHEDULER_SECRET=your-secret \\"
+        echo "     $0 --scheduler-only"
+        echo ""
+    fi
     echo "  6. Update Cloud Run services to use secrets + VPC connector:"
     echo "     For each service (kliq-growth-api, kliq-growth-worker, kliq-growth-dashboard):"
     echo ""
@@ -510,7 +542,7 @@ print_summary() {
     echo "SCHEDULER_SECRET=SCHEDULER_SECRET:latest \\"
     echo "       --set-env-vars=APP_ENV=production,APP_DEBUG=false"
     echo ""
-    echo -e "  Estimated monthly cost: ${CYAN}\$55–85/month${NC}"
+    echo -e "  Estimated monthly cost: ${CYAN}\$55-85/month${NC}"
     echo "    Cloud Run API:     \$5-15"
     echo "    Cloud Run Worker:  \$30-50"
     echo "    Cloud Run Dash:    \$2-5"
@@ -524,8 +556,14 @@ print_summary() {
 # ── Main ────────────────────────────────────────────────────────────────────
 
 main() {
-    confirm
     check_prerequisites
+
+    if [[ "$SCHEDULER_ONLY" == true ]]; then
+        setup_cloud_scheduler
+        ok "Cloud Scheduler setup done."
+        return
+    fi
+
     enable_apis
     setup_artifact_registry
     setup_cloud_sql
