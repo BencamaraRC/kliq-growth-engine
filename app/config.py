@@ -60,6 +60,16 @@ class Settings(BaseSettings):
     # BigQuery
     bigquery_events_table: str = "growth_engine_events"
 
+    # Cloud Scheduler
+    scheduler_secret: str = ""
+
+    # Database Pool
+    database_pool_size: int = 10
+    database_max_overflow: int = 5
+
+    # Logging
+    log_level: str = "INFO"
+
     # Rate Limits
     youtube_max_daily_units: int = 10000
     scrape_delay_seconds: int = 2

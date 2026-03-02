@@ -1,4 +1,5 @@
 import asyncio
+import os
 from logging.config import fileConfig
 
 from alembic import context
@@ -10,6 +11,13 @@ from app.db.models import Base
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Override sqlalchemy.url from DATABASE_URL env var if set
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    # Alembic runs synchronously — convert async driver to sync
+    database_url = database_url.replace("+asyncpg", "+psycopg2")
+    config.set_main_option("sqlalchemy.url", database_url)
 
 target_metadata = Base.metadata
 
@@ -39,7 +47,21 @@ async def run_async_migrations():
 
 
 def run_migrations_online():
-    asyncio.run(run_async_migrations())
+    # If DATABASE_URL was set and converted to sync driver, use sync path
+    url = config.get_main_option("sqlalchemy.url")
+    if "+psycopg2" in url:
+        from sqlalchemy import engine_from_config
+
+        connectable = engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
+        with connectable.connect() as connection:
+            do_run_migrations(connection)
+        connectable.dispose()
+    else:
+        asyncio.run(run_async_migrations())
 
 
 if context.is_offline_mode():
