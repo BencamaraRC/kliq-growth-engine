@@ -33,12 +33,12 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 
 # Load .env before importing app modules
-from dotenv import load_dotenv
+from dotenv import load_dotenv  # noqa: E402
+
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 
-import psycopg2
-import psycopg2.extras
-
+import psycopg2  # noqa: E402
+import psycopg2.extras  # noqa: E402
 
 # ─── Step 0: Prerequisites ────────────────────────────────────────────────────
 
@@ -50,9 +50,7 @@ def check_prerequisites(skip_db: bool = False, skip_ai: bool = False) -> dict:
 
     # yt-dlp
     try:
-        out = subprocess.run(
-            ["yt-dlp", "--version"], capture_output=True, text=True, timeout=10
-        )
+        out = subprocess.run(["yt-dlp", "--version"], capture_output=True, text=True, timeout=10)
         results["yt-dlp"] = out.stdout.strip()
         print(f"  ✓ yt-dlp {results['yt-dlp']}")
     except Exception as e:
@@ -61,7 +59,8 @@ def check_prerequisites(skip_db: bool = False, skip_ai: bool = False) -> dict:
 
     # youtube-transcript-api
     try:
-        from youtube_transcript_api import YouTubeTranscriptApi
+        from youtube_transcript_api import YouTubeTranscriptApi  # noqa: F401
+
         results["transcripts"] = True
         print("  ✓ youtube-transcript-api")
     except ImportError:
@@ -72,8 +71,10 @@ def check_prerequisites(skip_db: bool = False, skip_ai: bool = False) -> dict:
     if not skip_db:
         try:
             conn = psycopg2.connect(
-                host="localhost", port=5433,
-                dbname="kliq_growth_engine", user="bencamara",
+                host="localhost",
+                port=5433,
+                dbname="kliq_growth_engine",
+                user="bencamara",
             )
             conn.close()
             results["db"] = True
@@ -139,7 +140,8 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
         "yt-dlp",
         "--flat-playlist",
         "--dump-json",
-        "--playlist-items", f"1:{max_videos * 2}",  # fetch extra in case some fail
+        "--playlist-items",
+        f"1:{max_videos * 2}",  # fetch extra in case some fail
         f"{channel_url}/videos",
     ]
     result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
@@ -176,7 +178,7 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
         or first.get("uploader_id")
         or ""
     )
-    channel_url_canonical = first.get("channel_url", first.get("uploader_url", channel_url))
+    _channel_url_canonical = first.get("channel_url", first.get("uploader_url", channel_url))
 
     print(f"  Channel: {channel_name} (ID: {channel_id})")
     print(f"  Videos found: {len(video_entries)}")
@@ -188,17 +190,21 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
         if not video_id:
             continue
 
-        print(f"  [{i+1}/{min(max_videos, len(video_entries))}] Fetching: {entry.get('title', video_id)[:60]}...")
+        print(
+            f"  [{i + 1}/{min(max_videos, len(video_entries))}] Fetching: {entry.get('title', video_id)[:60]}..."
+        )
 
         # Full video metadata
         vid_cmd = [
-            "yt-dlp", "--dump-json", "--skip-download",
+            "yt-dlp",
+            "--dump-json",
+            "--skip-download",
             f"https://www.youtube.com/watch?v={video_id}",
         ]
         vid_result = subprocess.run(vid_cmd, capture_output=True, text=True, timeout=60)
 
         if vid_result.returncode != 0:
-            print(f"    Skipped (error)")
+            print("    Skipped (error)")
             continue
 
         try:
@@ -210,12 +216,13 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
         transcript = ""
         try:
             from youtube_transcript_api import YouTubeTranscriptApi
+
             api = YouTubeTranscriptApi()
             result_t = api.fetch(video_id)
             transcript = " ".join(s.text for s in result_t.snippets)
             print(f"    Transcript: {len(transcript)} chars")
         except Exception:
-            print(f"    Transcript: not available")
+            print("    Transcript: not available")
 
         thumbnail = vid_data.get("thumbnail", "")
         if not thumbnail:
@@ -223,18 +230,20 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
             if thumbs:
                 thumbnail = thumbs[-1].get("url", "")
 
-        videos.append({
-            "video_id": video_id,
-            "title": vid_data.get("title", ""),
-            "description": vid_data.get("description", ""),
-            "transcript": transcript,
-            "thumbnail_url": thumbnail,
-            "view_count": vid_data.get("view_count", 0),
-            "like_count": vid_data.get("like_count", 0),
-            "upload_date": vid_data.get("upload_date", ""),
-            "duration": vid_data.get("duration", 0),
-            "tags": vid_data.get("tags", []),
-        })
+        videos.append(
+            {
+                "video_id": video_id,
+                "title": vid_data.get("title", ""),
+                "description": vid_data.get("description", ""),
+                "transcript": transcript,
+                "thumbnail_url": thumbnail,
+                "view_count": vid_data.get("view_count", 0),
+                "like_count": vid_data.get("like_count", 0),
+                "upload_date": vid_data.get("upload_date", ""),
+                "duration": vid_data.get("duration", 0),
+                "tags": vid_data.get("tags", []),
+            }
+        )
 
         # Rate limit
         if i < len(video_entries) - 1:
@@ -250,7 +259,9 @@ def scrape_youtube_channel(channel_input: str, max_videos: int = 5) -> tuple:
     # Extract channel-level info from the full video data we already fetched
     if videos:
         first_vid_cmd = [
-            "yt-dlp", "--dump-json", "--skip-download",
+            "yt-dlp",
+            "--dump-json",
+            "--skip-download",
             f"https://www.youtube.com/watch?v={videos[0]['video_id']}",
         ]
         first_vid_result = subprocess.run(first_vid_cmd, capture_output=True, text=True, timeout=30)
@@ -359,8 +370,10 @@ def _extract_niche_tags(text: str) -> list[str]:
 
 def get_db_connection():
     return psycopg2.connect(
-        host="localhost", port=5433,
-        dbname="kliq_growth_engine", user="bencamara",
+        host="localhost",
+        port=5433,
+        dbname="kliq_growth_engine",
+        user="bencamara",
     )
 
 
@@ -387,23 +400,33 @@ def store_prospect(conn, profile: dict) -> int:
             if profile["banner_image_url"]:
                 img_clause += ", banner_image_url = %s"
                 img_params.append(profile["banner_image_url"])
-            cur.execute(f"""
+            cur.execute(
+                f"""
                 UPDATE prospects SET
                     status = 'SCRAPED', name = %s, email = %s, bio = %s,
                     website_url = %s, social_links = %s, niche_tags = %s,
                     follower_count = %s, subscriber_count = %s, content_count = %s,
                     updated_at = NOW(){img_clause}
                 WHERE id = %s
-            """, (
-                profile["name"], profile["email"], profile["bio"],
-                profile["website_url"], json.dumps(profile["social_links"]),
-                json.dumps(profile["niche_tags"]),
-                profile["follower_count"], profile["subscriber_count"],
-                profile["content_count"], *img_params, prospect_id,
-            ))
+            """,
+                (
+                    profile["name"],
+                    profile["email"],
+                    profile["bio"],
+                    profile["website_url"],
+                    json.dumps(profile["social_links"]),
+                    json.dumps(profile["niche_tags"]),
+                    profile["follower_count"],
+                    profile["subscriber_count"],
+                    profile["content_count"],
+                    *img_params,
+                    prospect_id,
+                ),
+            )
             print(f"  Updated existing prospect ID={prospect_id}")
         else:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO prospects (
                     status, name, email, primary_platform, primary_platform_id,
                     primary_platform_url, bio, profile_image_url, banner_image_url,
@@ -413,18 +436,23 @@ def store_prospect(conn, profile: dict) -> int:
                     'SCRAPED', %s, %s, 'YOUTUBE', %s, %s, %s, %s, %s, %s,
                     %s, %s, %s, %s, %s
                 ) RETURNING id
-            """, (
-                profile["name"], profile["email"],
-                profile["platform_id"],
-                f"https://www.youtube.com/channel/{profile['platform_id']}",
-                profile["bio"],
-                profile["profile_image_url"], profile["banner_image_url"],
-                profile["website_url"],
-                json.dumps(profile["social_links"]),
-                json.dumps(profile["niche_tags"]),
-                profile["follower_count"], profile["subscriber_count"],
-                profile["content_count"],
-            ))
+            """,
+                (
+                    profile["name"],
+                    profile["email"],
+                    profile["platform_id"],
+                    f"https://www.youtube.com/channel/{profile['platform_id']}",
+                    profile["bio"],
+                    profile["profile_image_url"],
+                    profile["banner_image_url"],
+                    profile["website_url"],
+                    json.dumps(profile["social_links"]),
+                    json.dumps(profile["niche_tags"]),
+                    profile["follower_count"],
+                    profile["subscriber_count"],
+                    profile["content_count"],
+                ),
+            )
             prospect_id = cur.fetchone()[0]
             print(f"  Created prospect ID={prospect_id}")
 
@@ -444,7 +472,8 @@ def store_scraped_content(conn, prospect_id: int, videos: list[dict]):
         )
 
         for video in videos:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO scraped_content (
                     prospect_id, platform, content_type, title, description,
                     body, url, thumbnail_url, view_count, engagement_count,
@@ -452,17 +481,19 @@ def store_scraped_content(conn, prospect_id: int, videos: list[dict]):
                 ) VALUES (
                     %s, 'YOUTUBE', 'video', %s, %s, %s, %s, %s, %s, %s, %s
                 )
-            """, (
-                prospect_id,
-                video["title"],
-                video["description"],
-                video["transcript"],
-                f"https://www.youtube.com/watch?v={video['video_id']}",
-                video["thumbnail_url"],
-                video["view_count"],
-                video.get("like_count", 0),
-                json.dumps(video.get("tags", [])),
-            ))
+            """,
+                (
+                    prospect_id,
+                    video["title"],
+                    video["description"],
+                    video["transcript"],
+                    f"https://www.youtube.com/watch?v={video['video_id']}",
+                    video["thumbnail_url"],
+                    video["view_count"],
+                    video.get("like_count", 0),
+                    json.dumps(video.get("tags", [])),
+                ),
+            )
 
     conn.commit()
     print(f"  Stored {len(videos)} videos")
@@ -474,9 +505,9 @@ def store_scraped_content(conn, prospect_id: int, videos: list[dict]):
 
 def run_ai_generation(profile: dict, videos: list[dict]) -> dict:
     """Run all AI generators and return results."""
-    from app.ai.client import AIClient
     from app.ai.bio_generator import generate_bio
     from app.ai.blog_generator import generate_blogs_batch
+    from app.ai.client import AIClient
     from app.ai.pricing_analyzer import analyze_pricing
     from app.ai.seo_generator import generate_seo
     from app.scrapers.color_extractor import extract_colors_from_url
@@ -489,16 +520,18 @@ def run_ai_generation(profile: dict, videos: list[dict]) -> dict:
     print("  [3a] Generating coach bio...")
     content_titles = [v["title"] for v in videos if v["title"]]
 
-    bio = asyncio.run(generate_bio(
-        client=client,
-        name=profile["name"],
-        platform="youtube",
-        bio=profile["bio"],
-        niche_tags=profile["niche_tags"],
-        follower_count=profile["follower_count"],
-        content_count=len(videos),
-        content_titles=content_titles,
-    ))
+    bio = asyncio.run(
+        generate_bio(
+            client=client,
+            name=profile["name"],
+            platform="youtube",
+            bio=profile["bio"],
+            niche_tags=profile["niche_tags"],
+            follower_count=profile["follower_count"],
+            content_count=len(videos),
+            content_titles=content_titles,
+        )
+    )
     results["bio"] = bio
     print(f"       Tagline: {bio.tagline}")
     print(f"       Specialties: {', '.join(bio.specialties)}")
@@ -510,50 +543,58 @@ def run_ai_generation(profile: dict, videos: list[dict]) -> dict:
         # Use transcript if available, fall back to description
         text = v["transcript"] or v["description"]
         if text and len(text) >= 200:
-            video_dicts.append({
-                "title": v["title"],
-                "transcript": text,
-                "description": v["description"],
-                "view_count": v["view_count"],
-                "url": f"https://www.youtube.com/watch?v={v['video_id']}",
-            })
-    blogs = asyncio.run(generate_blogs_batch(
-        client=client,
-        coach_name=profile["name"],
-        videos=video_dicts,
-        max_blogs=3,
-    ))
+            video_dicts.append(
+                {
+                    "title": v["title"],
+                    "transcript": text,
+                    "description": v["description"],
+                    "view_count": v["view_count"],
+                    "url": f"https://www.youtube.com/watch?v={v['video_id']}",
+                }
+            )
+    blogs = asyncio.run(
+        generate_blogs_batch(
+            client=client,
+            coach_name=profile["name"],
+            videos=video_dicts,
+            max_blogs=3,
+        )
+    )
     results["blogs"] = blogs
     for b in blogs:
         print(f"       - {b.blog_title}")
 
     # 3c. Pricing
     print("  [3c] Analyzing pricing...")
-    pricing = asyncio.run(analyze_pricing(
-        client=client,
-        name=profile["name"],
-        niche_tags=profile["niche_tags"],
-        follower_count=profile["follower_count"],
-        pricing_tiers=[],  # YouTube has no native pricing
-        content_types=["videos", "blog posts"],
-    ))
+    pricing = asyncio.run(
+        analyze_pricing(
+            client=client,
+            name=profile["name"],
+            niche_tags=profile["niche_tags"],
+            follower_count=profile["follower_count"],
+            pricing_tiers=[],  # YouTube has no native pricing
+            content_types=["videos", "blog posts"],
+        )
+    )
     results["pricing"] = pricing
     for p in pricing.products:
         sym = "$" if p.currency == "USD" else "£"
         interval = f"/{p.interval}" if p.interval else ""
         rec = " [RECOMMENDED]" if p.recommended else ""
-        print(f"       - {p.name}: {sym}{p.price_cents/100:.2f}{interval}{rec}")
+        print(f"       - {p.name}: {sym}{p.price_cents / 100:.2f}{interval}{rec}")
 
     # 3d. SEO
     print("  [3d] Generating SEO metadata...")
-    seo = asyncio.run(generate_seo(
-        client=client,
-        name=profile["name"],
-        tagline=bio.tagline,
-        specialties=bio.specialties,
-        niche_tags=profile["niche_tags"],
-        content_titles=content_titles[:10],
-    ))
+    seo = asyncio.run(
+        generate_seo(
+            client=client,
+            name=profile["name"],
+            tagline=bio.tagline,
+            specialties=bio.specialties,
+            niche_tags=profile["niche_tags"],
+            content_titles=content_titles[:10],
+        )
+    )
     results["seo"] = seo
     print(f"       Slug: {seo.store_slug}")
     print(f"       Title: {seo.seo_title}")
@@ -595,17 +636,28 @@ def store_generated_content(conn, prospect_id: int, results: dict, videos: list[
 
         # Bio
         bio = results["bio"]
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO generated_content (prospect_id, content_type, title, body)
             VALUES (%s, 'bio', %s, %s)
-        """, (prospect_id, bio.tagline, json.dumps({
-            "tagline": bio.tagline,
-            "short_bio": bio.short_bio,
-            "long_bio": bio.long_bio,
-            "specialties": bio.specialties,
-            "coaching_style": bio.coaching_style,
-            "store_name": results.get("seo", None) and results["seo"].store_slug.replace("-", " ").title() or "",
-        })))
+        """,
+            (
+                prospect_id,
+                bio.tagline,
+                json.dumps(
+                    {
+                        "tagline": bio.tagline,
+                        "short_bio": bio.short_bio,
+                        "long_bio": bio.long_bio,
+                        "specialties": bio.specialties,
+                        "coaching_style": bio.coaching_style,
+                        "store_name": results.get("seo", None)
+                        and results["seo"].store_slug.replace("-", " ").title()
+                        or "",
+                    }
+                ),
+            ),
+        )
 
         # Blogs
         for blog in results["blogs"]:
@@ -617,70 +669,107 @@ def store_generated_content(conn, prospect_id: int, results: dict, videos: list[
                     break
             # Fallback: match by video ID in source URL
             if not thumbnail and blog.source_video_url:
-                vid_id = blog.source_video_url.split("v=")[-1] if "v=" in blog.source_video_url else ""
+                vid_id = (
+                    blog.source_video_url.split("v=")[-1] if "v=" in blog.source_video_url else ""
+                )
                 for v in videos:
                     if v["video_id"] == vid_id:
                         thumbnail = v["thumbnail_url"]
                         break
 
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO generated_content (prospect_id, content_type, title, body)
                 VALUES (%s, 'blog', %s, %s)
-            """, (prospect_id, blog.blog_title, json.dumps({
-                "excerpt": blog.excerpt,
-                "body_html": blog.body_html,
-                "tags": blog.tags,
-                "seo_title": blog.seo_title,
-                "seo_description": blog.seo_description,
-                "source_video_url": blog.source_video_url,
-                "thumbnail": thumbnail,
-                "views": 0,
-            })))
+            """,
+                (
+                    prospect_id,
+                    blog.blog_title,
+                    json.dumps(
+                        {
+                            "excerpt": blog.excerpt,
+                            "body_html": blog.body_html,
+                            "tags": blog.tags,
+                            "seo_title": blog.seo_title,
+                            "seo_description": blog.seo_description,
+                            "source_video_url": blog.source_video_url,
+                            "thumbnail": thumbnail,
+                            "views": 0,
+                        }
+                    ),
+                ),
+            )
 
         # Products
         for product in results["pricing"].products:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO generated_content (prospect_id, content_type, title, body)
                 VALUES (%s, 'product', %s, %s)
-            """, (prospect_id, product.name, json.dumps({
-                "description": product.description,
-                "type": product.type,
-                "price_cents": product.price_cents,
-                "currency": product.currency,
-                "interval": product.interval,
-                "features": product.features,
-                "recommended": product.recommended,
-            })))
+            """,
+                (
+                    prospect_id,
+                    product.name,
+                    json.dumps(
+                        {
+                            "description": product.description,
+                            "type": product.type,
+                            "price_cents": product.price_cents,
+                            "currency": product.currency,
+                            "interval": product.interval,
+                            "features": product.features,
+                            "recommended": product.recommended,
+                        }
+                    ),
+                ),
+            )
 
         # SEO
         seo = results["seo"]
-        cur.execute("""
+        cur.execute(
+            """
             INSERT INTO generated_content (prospect_id, content_type, title, body)
             VALUES (%s, 'seo', %s, %s)
-        """, (prospect_id, seo.seo_title, json.dumps({
-            "seo_title": seo.seo_title,
-            "seo_description": seo.seo_description,
-            "seo_keywords": seo.seo_keywords,
-            "og_title": seo.og_title,
-            "og_description": seo.og_description,
-            "store_slug": seo.store_slug,
-        })))
+        """,
+            (
+                prospect_id,
+                seo.seo_title,
+                json.dumps(
+                    {
+                        "seo_title": seo.seo_title,
+                        "seo_description": seo.seo_description,
+                        "seo_keywords": seo.seo_keywords,
+                        "og_title": seo.og_title,
+                        "og_description": seo.og_description,
+                        "store_slug": seo.store_slug,
+                    }
+                ),
+            ),
+        )
 
         # Colors
         colors = results["colors"]
         if colors:
-            cur.execute("""
+            cur.execute(
+                """
                 INSERT INTO generated_content (prospect_id, content_type, title, body)
                 VALUES (%s, 'colors', 'Brand Colors', %s)
-            """, (prospect_id, json.dumps({
-                "primary": colors.primary,
-                "secondary": colors.secondary,
-                "accent": colors.accent,
-                "background": colors.background,
-                "text": colors.text,
-                "palette": colors.palette,
-                "hero_bg": colors.primary,
-            })))
+            """,
+                (
+                    prospect_id,
+                    json.dumps(
+                        {
+                            "primary": colors.primary,
+                            "secondary": colors.secondary,
+                            "accent": colors.accent,
+                            "background": colors.background,
+                            "text": colors.text,
+                            "palette": colors.palette,
+                            "hero_bg": colors.primary,
+                        }
+                    ),
+                ),
+            )
 
         # Update prospect status
         cur.execute(
@@ -689,7 +778,9 @@ def store_generated_content(conn, prospect_id: int, results: dict, videos: list[
         )
 
     conn.commit()
-    print(f"  Stored: bio, {len(results['blogs'])} blogs, {len(results['pricing'].products)} products, SEO, colors")
+    print(
+        f"  Stored: bio, {len(results['blogs'])} blogs, {len(results['pricing'].products)} products, SEO, colors"
+    )
     print()
 
 
@@ -719,11 +810,11 @@ def print_store_preview(profile: dict, results: dict):
     for p in pricing.products:
         sym = "$" if p.currency == "USD" else "£"
         interval = f"/{p.interval}" if p.interval else ""
-        print(f"    - {p.name}: {sym}{p.price_cents/100:.2f}{interval}")
+        print(f"    - {p.name}: {sym}{p.price_cents / 100:.2f}{interval}")
     print(f"\n  Blog Posts ({len(blogs)}):")
     for b in blogs:
         print(f"    - {b.blog_title}")
-    print(f"\n  View full preview: http://localhost:8501/store_preview")
+    print("\n  View full preview: http://localhost:8501/store_preview")
     print("=" * 60)
     print()
 
@@ -743,8 +834,8 @@ def cms_dry_run(profile: dict, results: dict):
     print(f"    Application:        name='{profile['name']}'")
     print(f"    ApplicationSetting: web_url='{seo.store_slug}.joinkliq.io'")
     print(f"    ApplicationColor:   primary='{colors.primary if colors else '#1E81FF'}'")
-    print(f"    Role:               'Coach Admin' (user_type=3)")
-    print(f"    User:               email='{profile.get('email') or f'unclaimed@joinkliq.io'}'")
+    print("    Role:               'Coach Admin' (user_type=3)")
+    print(f"    User:               email='{profile.get('email') or 'unclaimed@joinkliq.io'}'")
     print(f"    Products:           {len(pricing.products)} products (Draft)")
     print(f"    Pages:              1 About + {len(blogs)} blog posts (Draft)")
     print("  [SKIPPED - CMS MySQL not accessible locally]")
@@ -803,13 +894,13 @@ def print_summary(profile: dict, videos: list[dict], results: dict | None):
     print("  PIPELINE COMPLETE")
     print("=" * 60)
     print(f"  Coach:         {profile['name']}")
-    print(f"  Platform:      YouTube")
+    print("  Platform:      YouTube")
     print(f"  Videos:        {len(videos)} scraped")
     transcripts = sum(1 for v in videos if v["transcript"])
     print(f"  Transcripts:   {transcripts} extracted")
 
     if results:
-        print(f"  Bio:           Generated")
+        print("  Bio:           Generated")
         print(f"  Blogs:         {len(results['blogs'])} generated")
         print(f"  Products:      {len(results['pricing'].products)} suggested")
         print(f"  SEO:           {results['seo'].store_slug}.joinkliq.io")
@@ -818,7 +909,9 @@ def print_summary(profile: dict, videos: list[dict], results: dict | None):
         if usage:
             total = usage.get("total_tokens", 0)
             # Rough cost estimate (Sonnet: $3/M input + $15/M output)
-            est_cost = (usage.get("input_tokens", 0) * 3 + usage.get("output_tokens", 0) * 15) / 1_000_000
+            est_cost = (
+                usage.get("input_tokens", 0) * 3 + usage.get("output_tokens", 0) * 15
+            ) / 1_000_000
             print(f"  Tokens:        {total:,} (~${est_cost:.2f})")
     print("=" * 60)
 
@@ -830,8 +923,12 @@ def main():
         epilog=__doc__,
     )
     parser.add_argument("channel", help="YouTube channel (@handle, URL, or channel ID)")
-    parser.add_argument("--max-videos", type=int, default=5, help="Max videos to scrape (default: 5)")
-    parser.add_argument("--max-blogs", type=int, default=3, help="Max blogs to generate (default: 3)")
+    parser.add_argument(
+        "--max-videos", type=int, default=5, help="Max videos to scrape (default: 5)"
+    )
+    parser.add_argument(
+        "--max-blogs", type=int, default=3, help="Max blogs to generate (default: 3)"
+    )
     parser.add_argument("--skip-ai", action="store_true", help="Skip AI generation (scraping only)")
     parser.add_argument("--skip-db", action="store_true", help="Skip database storage")
     args = parser.parse_args()

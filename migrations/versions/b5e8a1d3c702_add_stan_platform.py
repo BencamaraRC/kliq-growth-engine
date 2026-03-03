@@ -4,10 +4,10 @@ Revision ID: b5e8a1d3c702
 Revises: a3f2c7e19b04
 Create Date: 2026-03-02 18:00:00.000000
 """
+
 from typing import Sequence, Union
 
 from alembic import op
-
 
 revision: str = "b5e8a1d3c702"
 down_revision: Union[str, None] = "a3f2c7e19b04"

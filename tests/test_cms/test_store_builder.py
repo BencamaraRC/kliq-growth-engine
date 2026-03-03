@@ -1,7 +1,5 @@
 """Tests for the CMS store builder — color mapping and helper functions."""
 
-import pytest
-
 from app.cms.store_builder import _build_colors, _is_dark_hex
 from app.scrapers.color_extractor import BrandColors
 

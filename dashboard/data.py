@@ -9,7 +9,7 @@ import os
 from datetime import datetime, timedelta
 
 import pandas as pd
-from sqlalchemy import create_engine, func, text
+from sqlalchemy import create_engine, text
 
 # Build sync DB URL from the async one
 _async_url = os.getenv(
@@ -30,17 +30,27 @@ def get_kpi_summary() -> dict:
 
         status_map = {row[0]: row[1] for row in by_status}
 
-        stores = status_map.get("STORE_CREATED", 0) + status_map.get("EMAIL_SENT", 0) + status_map.get("CLAIMED", 0)
-        emails_sent = status_map.get("EMAIL_SENT", 0) + status_map.get("CLAIMED", 0)
+        stores = (
+            status_map.get("STORE_CREATED", 0)
+            + status_map.get("EMAIL_SENT", 0)
+            + status_map.get("CLAIMED", 0)
+        )
+        _emails_sent = status_map.get("EMAIL_SENT", 0) + status_map.get("CLAIMED", 0)
         claimed = status_map.get("CLAIMED", 0)
 
-        total_emails = conn.execute(
-            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'SENT'")
-        ).scalar() or 0
+        total_emails = (
+            conn.execute(
+                text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'SENT'")
+            ).scalar()
+            or 0
+        )
 
-        total_opened = conn.execute(
-            text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'OPENED'")
-        ).scalar() or 0
+        total_opened = (
+            conn.execute(
+                text("SELECT COUNT(*) FROM campaign_events WHERE email_status = 'OPENED'")
+            ).scalar()
+            or 0
+        )
 
     return {
         "total_prospects": total,
@@ -186,10 +196,22 @@ def get_prospects_table(
     df = pd.DataFrame(
         result,
         columns=[
-            "id", "name", "avatar", "email", "status", "platform",
-            "platform_url", "website", "social_links_raw",
-            "followers", "subscribers", "niches",
-            "app_id", "store_url", "discovered", "claimed",
+            "id",
+            "name",
+            "avatar",
+            "email",
+            "status",
+            "platform",
+            "platform_url",
+            "website",
+            "social_links_raw",
+            "followers",
+            "subscribers",
+            "niches",
+            "app_id",
+            "store_url",
+            "discovered",
+            "claimed",
         ],
     )
 
@@ -231,9 +253,7 @@ def get_prospects_count(
     """Count prospects matching filters (for pagination)."""
     where, params = _build_prospect_filters(status, platform, niche, search)
     with engine.connect() as conn:
-        return conn.execute(
-            text(f"SELECT COUNT(*) FROM prospects {where}"), params
-        ).scalar() or 0
+        return conn.execute(text(f"SELECT COUNT(*) FROM prospects {where}"), params).scalar() or 0
 
 
 def get_all_platforms() -> list[str]:
@@ -283,18 +303,20 @@ def get_campaign_stats() -> dict:
     steps = []
     for row in step_stats:
         step_num, total, sent, opened, clicked, bounced, unsub = row
-        steps.append({
-            "step": step_names.get(step_num, f"Step {step_num}"),
-            "step_num": step_num,
-            "total": total,
-            "sent": sent,
-            "opened": opened,
-            "clicked": clicked,
-            "bounced": bounced,
-            "unsubscribed": unsub,
-            "open_rate": round(opened / sent * 100, 1) if sent else 0,
-            "click_rate": round(clicked / sent * 100, 1) if sent else 0,
-        })
+        steps.append(
+            {
+                "step": step_names.get(step_num, f"Step {step_num}"),
+                "step_num": step_num,
+                "total": total,
+                "sent": sent,
+                "opened": opened,
+                "clicked": clicked,
+                "bounced": bounced,
+                "unsubscribed": unsub,
+                "open_rate": round(opened / sent * 100, 1) if sent else 0,
+                "click_rate": round(clicked / sent * 100, 1) if sent else 0,
+            }
+        )
 
     return {"steps": steps}
 

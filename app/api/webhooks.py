@@ -7,9 +7,9 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.db.session import get_db, get_cms_db
-from app.outreach.claim_handler import ClaimError, activate_store, validate_claim_token
+from app.db.session import get_cms_db, get_db
 from app.outreach.campaign_manager import send_claim_confirmation
+from app.outreach.claim_handler import ClaimError, activate_store, validate_claim_token
 from app.outreach.tracking import process_brevo_event
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,8 @@ async def claim_store(
     return ClaimResponse(
         success=True,
         message="Store claimed successfully! Welcome to KLIQ.",
-        redirect_url=result.get("store_url") or f"{settings.cms_admin_url}/app/{result['application_id']}",
+        redirect_url=result.get("store_url")
+        or f"{settings.cms_admin_url}/app/{result['application_id']}",
     )
 
 

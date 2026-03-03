@@ -7,7 +7,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Profiles | KLIQ Growth Engine", layout="wide")
 
-from theme import inject_kliq_theme, sidebar_nav, render_status_badge, render_platform_badge
+from theme import inject_kliq_theme, sidebar_nav  # noqa: E402
 
 inject_kliq_theme()
 sidebar_nav()
@@ -45,8 +45,16 @@ try:
     with col_status:
         status_filter = st.selectbox(
             "Status",
-            ["All Statuses", "DISCOVERED", "SCRAPED", "CONTENT_GENERATED",
-             "STORE_CREATED", "EMAIL_SENT", "CLAIMED", "REJECTED"],
+            [
+                "All Statuses",
+                "DISCOVERED",
+                "SCRAPED",
+                "CONTENT_GENERATED",
+                "STORE_CREATED",
+                "EMAIL_SENT",
+                "CLAIMED",
+                "REJECTED",
+            ],
             label_visibility="collapsed",
         )
 
@@ -87,7 +95,7 @@ try:
         end = min(offset + PAGE_SIZE, total_count)
         st.markdown(
             f'<p style="color:#667085;font-size:14px;margin:8px 0;">'
-            f'Showing {start}–{end} of {total_count:,} coaches</p>',
+            f"Showing {start}–{end} of {total_count:,} coaches</p>",
             unsafe_allow_html=True,
         )
 
@@ -121,18 +129,32 @@ try:
                 "email": st.column_config.TextColumn("Email", width="medium"),
                 "status": st.column_config.TextColumn("Status", width="small"),
                 "platform": st.column_config.TextColumn("Platform", width="small"),
-                "platform_url": st.column_config.LinkColumn("Platform", display_text="Open", width="small"),
-                "website": st.column_config.LinkColumn("Website", display_text="Open", width="small"),
-                "instagram": st.column_config.LinkColumn("Instagram", display_text="Open", width="small"),
-                "youtube": st.column_config.LinkColumn("YouTube", display_text="Open", width="small"),
+                "platform_url": st.column_config.LinkColumn(
+                    "Platform", display_text="Open", width="small"
+                ),
+                "website": st.column_config.LinkColumn(
+                    "Website", display_text="Open", width="small"
+                ),
+                "instagram": st.column_config.LinkColumn(
+                    "Instagram", display_text="Open", width="small"
+                ),
+                "youtube": st.column_config.LinkColumn(
+                    "YouTube", display_text="Open", width="small"
+                ),
                 "tiktok": st.column_config.LinkColumn("TikTok", display_text="Open", width="small"),
-                "twitter": st.column_config.LinkColumn("Twitter/X", display_text="Open", width="small"),
+                "twitter": st.column_config.LinkColumn(
+                    "Twitter/X", display_text="Open", width="small"
+                ),
                 "followers": st.column_config.NumberColumn("Followers", format="%d"),
                 "subscribers": st.column_config.NumberColumn("Subscribers", format="%d"),
                 "niches": st.column_config.TextColumn("Niches", width="medium"),
                 "app_id": st.column_config.NumberColumn("App ID", width="small"),
-                "store_url": st.column_config.LinkColumn("Store", display_text="Open", width="small"),
-                "store_preview": st.column_config.LinkColumn("Preview", display_text="Preview", width="small"),
+                "store_url": st.column_config.LinkColumn(
+                    "Store", display_text="Open", width="small"
+                ),
+                "store_preview": st.column_config.LinkColumn(
+                    "Preview", display_text="Preview", width="small"
+                ),
                 "discovered": st.column_config.DateColumn("Discovered", format="MMM D, YYYY"),
                 "claimed": st.column_config.DateColumn("Claimed", format="MMM D, YYYY"),
             },
@@ -147,7 +169,7 @@ try:
         with col_page_info:
             st.markdown(
                 f'<p style="text-align:center;color:#667085;font-size:14px;padding-top:8px;">'
-                f'Page {current_page + 1} of {total_pages}</p>',
+                f"Page {current_page + 1} of {total_pages}</p>",
                 unsafe_allow_html=True,
             )
         with col_next:

@@ -10,7 +10,7 @@ from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader
 
-from app.ai.client import AIClient, MODEL_SONNET
+from app.ai.client import MODEL_SONNET, AIClient
 
 logger = logging.getLogger(__name__)
 

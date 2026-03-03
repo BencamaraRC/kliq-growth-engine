@@ -12,7 +12,6 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 
 from app.scrapers.base import (
-    Platform,
     PlatformAdapter,
     ScrapedContent,
     ScrapedPricing,
@@ -265,9 +264,7 @@ class DiscoveryOrchestrator:
                 return prospect
         return None
 
-    async def _cross_platform_enrich(
-        self, prospect: EnrichedProspect
-    ) -> EnrichedProspect:
+    async def _cross_platform_enrich(self, prospect: EnrichedProspect) -> EnrichedProspect:
         """Follow social links to enrich profile from other platforms.
 
         If a YouTube channel links to Skool/Patreon/website, scrape those too.
@@ -300,9 +297,7 @@ class DiscoveryOrchestrator:
                 if not prospect.email and profile.email:
                     prospect.email = profile.email
 
-                logger.info(
-                    f"Cross-platform enriched {prospect.name} from {platform_name}"
-                )
+                logger.info(f"Cross-platform enriched {prospect.name} from {platform_name}")
             except NotImplementedError:
                 logger.debug(f"{platform_name} adapter not yet implemented, skipping enrichment")
             except Exception as e:

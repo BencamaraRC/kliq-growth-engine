@@ -11,9 +11,7 @@ from app.db.models import GeneratedContent, OnboardingProgress, Prospect
 
 async def get_prospect_by_token(session: AsyncSession, token: str) -> dict | None:
     """Fetch a prospect by claim_token and return as a dict, or None."""
-    result = await session.execute(
-        select(Prospect).where(Prospect.claim_token == token)
-    )
+    result = await session.execute(select(Prospect).where(Prospect.claim_token == token))
     prospect = result.scalar_one_or_none()
     if not prospect:
         return None
@@ -63,7 +61,13 @@ async def get_content_counts(session: AsyncSession, prospect_id: int) -> dict:
 
 # ─── Onboarding Progress Queries ─────────────────────────────────────────────
 
-ONBOARDING_STEPS = ["password_set", "store_explored", "content_reviewed", "stripe_connected", "first_share"]
+ONBOARDING_STEPS = [
+    "password_set",
+    "store_explored",
+    "content_reviewed",
+    "stripe_connected",
+    "first_share",
+]
 
 
 async def get_or_create_onboarding(session: AsyncSession, prospect_id: int) -> OnboardingProgress:
@@ -117,7 +121,9 @@ async def complete_onboarding_step(session: AsyncSession, prospect_id: int, step
     return await get_onboarding_dict(session, prospect_id)
 
 
-async def get_incomplete_onboarding_prospects(session: AsyncSession, claimed_before: datetime) -> list:
+async def get_incomplete_onboarding_prospects(
+    session: AsyncSession, claimed_before: datetime
+) -> list:
     """Find prospects with incomplete onboarding who claimed before a cutoff date."""
     result = await session.execute(
         select(OnboardingProgress, Prospect)

@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.db.models import (
     Campaign,
     CampaignEvent,
@@ -24,7 +25,6 @@ from app.db.models import (
     Prospect,
     ProspectStatus,
 )
-from app.config import settings
 from app.outreach.brevo_client import BrevoClient
 from app.outreach.email_builder import STEPS, build_outreach_email
 
@@ -167,6 +167,7 @@ async def _send_step(
     if result.success:
         logger.info(f"Sent step {step} to {prospect.email} (message_id={result.message_id})")
         from app.events.bigquery import log_event
+
         log_event(
             "email_sent",
             prospect_id=prospect.id,
@@ -214,7 +215,9 @@ async def _find_due_for_step(
         .where(
             and_(
                 CampaignEvent.step == previous_step,
-                CampaignEvent.email_status.in_([EmailStatus.SENT, EmailStatus.OPENED, EmailStatus.CLICKED]),
+                CampaignEvent.email_status.in_(
+                    [EmailStatus.SENT, EmailStatus.OPENED, EmailStatus.CLICKED]
+                ),
                 CampaignEvent.sent_at <= cutoff,
                 Prospect.status != ProspectStatus.CLAIMED,
                 Prospect.status != ProspectStatus.REJECTED,

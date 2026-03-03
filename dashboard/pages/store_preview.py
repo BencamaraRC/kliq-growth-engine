@@ -7,7 +7,6 @@ reliable HTML rendering.
 
 import importlib.util
 import json
-import sys
 from pathlib import Path
 
 import streamlit as st
@@ -69,9 +68,9 @@ try:
     # --- Load all data ---
     with engine.connect() as conn:
         prospect = dict(
-            conn.execute(
-                text("SELECT * FROM prospects WHERE id = :id"), {"id": prospect_id}
-            ).fetchone()._mapping
+            conn.execute(text("SELECT * FROM prospects WHERE id = :id"), {"id": prospect_id})
+            .fetchone()
+            ._mapping
         )
 
         generated = conn.execute(
@@ -83,11 +82,13 @@ try:
     generated_content = []
     for row in generated:
         r = dict(row._mapping)
-        generated_content.append({
-            "content_type": r.get("content_type", ""),
-            "title": r.get("title", ""),
-            "body": r.get("body", "{}"),
-        })
+        generated_content.append(
+            {
+                "content_type": r.get("content_type", ""),
+                "title": r.get("title", ""),
+                "body": r.get("body", "{}"),
+            }
+        )
 
     # Render the store preview HTML using the shared renderer
     full_html = render_store_preview(prospect=prospect, generated_content=generated_content)
@@ -123,9 +124,18 @@ try:
             blogs.append(parsed)
 
     with st.expander("Debug: Raw Generated Data"):
-        st.json({"bio": bio_data, "seo": seo_data, "colors": color_data, "products": products, "blogs": blogs})
+        st.json(
+            {
+                "bio": bio_data,
+                "seo": seo_data,
+                "colors": color_data,
+                "products": products,
+                "blogs": blogs,
+            }
+        )
 
 except Exception as e:
     st.error(f"Error: {e}")
     import traceback
+
     st.code(traceback.format_exc())

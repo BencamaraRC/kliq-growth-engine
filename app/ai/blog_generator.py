@@ -118,7 +118,8 @@ async def generate_blogs_batch(
     """
     # Filter videos with usable transcripts and sort by views
     eligible = [
-        v for v in videos
+        v
+        for v in videos
         if v.get("transcript", "") and len(v.get("transcript", "")) >= MIN_TRANSCRIPT_LENGTH
     ]
     eligible.sort(key=lambda v: v.get("view_count", 0), reverse=True)
@@ -137,5 +138,7 @@ async def generate_blogs_batch(
         if blog:
             blogs.append(blog)
 
-    logger.info(f"Generated {len(blogs)} blogs for {coach_name} from {len(eligible)} eligible videos")
+    logger.info(
+        f"Generated {len(blogs)} blogs for {coach_name} from {len(eligible)} eligible videos"
+    )
     return blogs

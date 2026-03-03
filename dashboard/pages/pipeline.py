@@ -7,7 +7,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Pipeline | KLIQ Growth Engine", layout="wide")
 
-from theme import inject_kliq_theme, sidebar_nav, apply_plotly_theme, CHART_COLORS
+from theme import CHART_COLORS, apply_plotly_theme, inject_kliq_theme, sidebar_nav  # noqa: E402
 
 inject_kliq_theme()
 sidebar_nav()
@@ -89,7 +89,16 @@ try:
     st.subheader("Recent Prospects")
     status_filter = st.selectbox(
         "Filter by status",
-        ["All", "DISCOVERED", "SCRAPED", "CONTENT_GENERATED", "STORE_CREATED", "EMAIL_SENT", "CLAIMED", "REJECTED"],
+        [
+            "All",
+            "DISCOVERED",
+            "SCRAPED",
+            "CONTENT_GENERATED",
+            "STORE_CREATED",
+            "EMAIL_SENT",
+            "CLAIMED",
+            "REJECTED",
+        ],
     )
     status_val = None if status_filter == "All" else status_filter
     prospects = get_prospects_table(status=status_val, limit=50)

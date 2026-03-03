@@ -14,7 +14,6 @@ Stan.store pages are structured as:
 
 import logging
 import re
-from typing import Optional
 
 from playwright.async_api import async_playwright
 
@@ -69,7 +68,9 @@ class StanAdapter(PlatformAdapter):
                 page = await browser.new_page()
                 try:
                     # Google site-search for Stan.store creators
-                    search_url = f"https://www.google.com/search?q=site:stan.store+{query.replace(' ', '+')}"
+                    search_url = (
+                        f"https://www.google.com/search?q=site:stan.store+{query.replace(' ', '+')}"
+                    )
                     await page.goto(search_url, wait_until="networkidle", timeout=30000)
 
                     # Extract Stan.store URLs from search results
@@ -140,7 +141,9 @@ class StanAdapter(PlatformAdapter):
             name = await _safe_text(page, "h1, [data-testid='creator-name']")
 
             # Bio / description
-            bio = await _safe_text(page, "[data-testid='creator-bio'], .bio, .description, h1 + p, h1 + div p")
+            bio = await _safe_text(
+                page, "[data-testid='creator-bio'], .bio, .description, h1 + p, h1 + div p"
+            )
 
             # Profile image
             profile_img = await _safe_attr(
@@ -213,7 +216,9 @@ class StanAdapter(PlatformAdapter):
                     img = await _el_attr(product, "img", "src")
                     href = await product.get_attribute("href") or ""
 
-                    product_url = href if href.startswith("http") else f"{STAN_BASE}{href}" if href else url
+                    product_url = (
+                        href if href.startswith("http") else f"{STAN_BASE}{href}" if href else url
+                    )
 
                     if title:
                         content.append(
@@ -254,7 +259,9 @@ class StanAdapter(PlatformAdapter):
 
                 for product in products:
                     title = await _el_text(product, "h3, h4, .product-title, .title")
-                    price_text = await _el_text(product, ".price, [data-testid='price'], span:has-text('$')")
+                    price_text = await _el_text(
+                        product, ".price, [data-testid='price'], span:has-text('$')"
+                    )
 
                     price_info = _parse_price(price_text)
                     if price_info.get("amount", 0) > 0:
@@ -284,13 +291,51 @@ class StanAdapter(PlatformAdapter):
             "strength": ["strength", "powerlifting", "weightlifting", "bodybuilding"],
             "wellness": ["wellness", "health", "self-care", "holistic"],
             "coaching": ["coaching", "coach", "mentor"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
         text_lower = (text or "").lower()
-        return [tag for tag, keywords in niche_keywords.items() if any(kw in text_lower for kw in keywords)]
+        return [
+            tag
+            for tag, keywords in niche_keywords.items()
+            if any(kw in text_lower for kw in keywords)
+        ]
 
 
 # --- Playwright helpers ---

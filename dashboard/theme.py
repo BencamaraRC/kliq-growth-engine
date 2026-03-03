@@ -10,8 +10,8 @@ Usage: call inject_kliq_theme() at the top of every page after set_page_config()
 from pathlib import Path
 
 import streamlit as st
-import yaml
 import streamlit_authenticator as stauth
+import yaml
 
 # ─── KLIQ Design Tokens ──────────────────────────────────────────────────────
 
@@ -280,6 +280,7 @@ footer {visibility: hidden;}
 
 # ─── Page Setup ───────────────────────────────────────────────────────────────
 
+
 def inject_kliq_theme():
     """Inject the KLIQ design system CSS. Call at the top of every page."""
     st.markdown(KLIQ_CSS, unsafe_allow_html=True)
@@ -327,7 +328,7 @@ def sidebar_nav():
     st.sidebar.markdown(
         '<div style="padding:4px 0 12px;font-family:Inter,sans-serif;font-weight:700;'
         'font-size:18px;color:#FFFDFA;letter-spacing:-0.01em;">'
-        'KLIQ Growth Engine</div>',
+        "KLIQ Growth Engine</div>",
         unsafe_allow_html=True,
     )
 
@@ -346,15 +347,20 @@ def sidebar_nav():
     st.sidebar.markdown("---")
     st.sidebar.page_link("app.py", label="Dashboard", icon=":material/dashboard:")
     st.sidebar.page_link("pages/profiles.py", label="Profiles", icon=":material/people:")
-    st.sidebar.page_link("pages/profile_detail.py", label="Profile Detail", icon=":material/person:")
+    st.sidebar.page_link(
+        "pages/profile_detail.py", label="Profile Detail", icon=":material/person:"
+    )
     st.sidebar.page_link("pages/pipeline.py", label="Pipeline", icon=":material/monitoring:")
     st.sidebar.page_link("pages/campaigns.py", label="Campaigns", icon=":material/mail:")
-    st.sidebar.page_link("pages/store_preview.py", label="Store Preview", icon=":material/storefront:")
+    st.sidebar.page_link(
+        "pages/store_preview.py", label="Store Preview", icon=":material/storefront:"
+    )
     st.sidebar.markdown("---")
     st.sidebar.caption("v0.2.0 | Growth Engine")
 
 
 # ─── Component Helpers ────────────────────────────────────────────────────────
+
 
 def render_status_badge(status: str) -> str:
     """Return HTML for a colored status pill badge."""
@@ -363,7 +369,7 @@ def render_status_badge(status: str) -> str:
     label = status.replace("_", " ").title()
     return (
         f'<span style="display:inline-block;padding:2px 10px;border-radius:9999px;'
-        f'font-size:12px;font-weight:500;color:{text_color};background:{bg_color};'
+        f"font-size:12px;font-weight:500;color:{text_color};background:{bg_color};"
         f'font-family:Inter,sans-serif;">{label}</span>'
     )
 
@@ -374,7 +380,7 @@ def render_platform_badge(platform: str) -> str:
     text_color, bg_color = PLATFORM_COLORS.get(key, ("#4D5761", "#F3F4F6"))
     return (
         f'<span style="display:inline-block;padding:2px 10px;border-radius:9999px;'
-        f'font-size:12px;font-weight:500;color:{text_color};background:{bg_color};'
+        f"font-size:12px;font-weight:500;color:{text_color};background:{bg_color};"
         f'font-family:Inter,sans-serif;">{platform}</span>'
     )
 
@@ -387,10 +393,14 @@ def render_niche_tags(tags) -> str:
     for tag in tags[:6]:
         html_tags.append(
             f'<span style="display:inline-block;padding:2px 10px;border-radius:9999px;'
-            f'font-size:12px;font-weight:500;color:#1C3838;background:#F3FAF8;'
+            f"font-size:12px;font-weight:500;color:#1C3838;background:#F3FAF8;"
             f'border:1px solid #D7F0ED;margin:2px;font-family:Inter,sans-serif;">{tag}</span>'
         )
-    extra = f' <span style="color:#9DA4AE;font-size:12px;">+{len(tags)-6} more</span>' if len(tags) > 6 else ""
+    extra = (
+        f' <span style="color:#9DA4AE;font-size:12px;">+{len(tags) - 6} more</span>'
+        if len(tags) > 6
+        else ""
+    )
     return " ".join(html_tags) + extra
 
 
@@ -403,7 +413,7 @@ def render_brand_colors(colors) -> str:
         hex_c = c if c.startswith("#") else f"#{c}"
         swatches.append(
             f'<span style="display:inline-block;width:24px;height:24px;border-radius:6px;'
-            f'background:{hex_c};border:1px solid #EAECF0;margin-right:4px;'
+            f"background:{hex_c};border:1px solid #EAECF0;margin-right:4px;"
             f'vertical-align:middle;" title="{hex_c}"></span>'
         )
     return " ".join(swatches)

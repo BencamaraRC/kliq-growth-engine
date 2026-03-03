@@ -1,12 +1,10 @@
 """Tests for the discovery orchestrator — dedup and enrichment."""
 
-import pytest
-
 from app.scrapers.base import Platform, ScrapedProfile
 from app.scrapers.discovery import (
+    NAME_SIMILARITY_THRESHOLD,
     DiscoveryOrchestrator,
     EnrichedProspect,
-    NAME_SIMILARITY_THRESHOLD,
 )
 
 
@@ -20,7 +18,9 @@ class TestEnrichedProspect:
 
     def test_bio_uses_longest(self):
         primary = self._make_profile(bio="Short bio")
-        secondary = self._make_profile(platform=Platform.SKOOL, bio="A much longer and more detailed bio about this coach")
+        secondary = self._make_profile(
+            platform=Platform.SKOOL, bio="A much longer and more detailed bio about this coach"
+        )
         prospect = EnrichedProspect(primary_profile=primary, platform_profiles=[secondary])
         assert "longer" in prospect.bio
 

@@ -49,7 +49,7 @@ label{{display:block;font-size:13px;font-weight:600;color:{TEXT_PRIMARY};margin-
 </style>
 """
 
-_FOOTER_HTML = f"""
+_FOOTER_HTML = """
 <div class="footer">Powered by <strong>KLIQ</strong></div>
 """
 
@@ -66,7 +66,9 @@ def render_claim_page(
         content_counts: Dict with blog_count and product_count.
         errors: Optional list of validation error messages to display.
     """
-    first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
+    first_name = prospect.get("first_name") or (
+        prospect.get("name", "").split()[0] if prospect.get("name") else "Coach"
+    )
     email = prospect.get("email", "")
     token = prospect.get("claim_token", "")
     store_name = prospect.get("name", "Your Store")
@@ -88,7 +90,11 @@ def render_claim_page(
         stats_parts.append(f"{blog_count} blog post{'s' if blog_count != 1 else ''}")
     if product_count:
         stats_parts.append(f"{product_count} program{'s' if product_count != 1 else ''}")
-    stats_line = " and ".join(stats_parts) + " created for you" if stats_parts else "Your personalized store is ready"
+    stats_line = (
+        " and ".join(stats_parts) + " created for you"
+        if stats_parts
+        else "Your personalized store is ready"
+    )
 
     # Error HTML
     error_html = ""
@@ -187,7 +193,9 @@ def render_welcome_page(
     """Render the post-claim onboarding page with progress tracking."""
     from app.config import settings
 
-    first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
+    first_name = prospect.get("first_name") or (
+        prospect.get("name", "").split()[0] if prospect.get("name") else "Coach"
+    )
     store_name = prospect.get("name", "Your Store")
     store_url = prospect.get("kliq_store_url", "")
     token = prospect.get("claim_token", "")
@@ -290,13 +298,13 @@ def render_welcome_page(
                 <div style="width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{KLIQ_GREEN}" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                 </div>
-                <span style="font-size:13px;color:{TEXT_SECONDARY};">{blog_count} blog post{'s' if blog_count != 1 else ''}</span>
+                <span style="font-size:13px;color:{TEXT_SECONDARY};">{blog_count} blog post{"s" if blog_count != 1 else ""}</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
                 <div style="width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{KLIQ_GREEN}" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
                 </div>
-                <span style="font-size:13px;color:{TEXT_SECONDARY};">{product_count} program{'s' if product_count != 1 else ''}</span>
+                <span style="font-size:13px;color:{TEXT_SECONDARY};">{product_count} program{"s" if product_count != 1 else ""}</span>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
                 <div style="width:32px;height:32px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center;">
@@ -436,10 +444,18 @@ def render_review_content_page(prospect: dict, pages: list[dict], products: list
     pages_html = ""
     if pages:
         for p in pages:
-            page_type = "Blog Post" if p["page_type_id"] == 2 else "About Page" if p["page_type_id"] == 1 else "Page"
+            page_type = (
+                "Blog Post"
+                if p["page_type_id"] == 2
+                else "About Page"
+                if p["page_type_id"] == 1
+                else "Page"
+            )
             status = "Published" if p["status_id"] == 2 else "Draft"
             status_color = POSITIVE if p["status_id"] == 2 else TEXT_TERTIARY
-            excerpt = p["description"][:120] + "..." if len(p["description"]) > 120 else p["description"]
+            excerpt = (
+                p["description"][:120] + "..." if len(p["description"]) > 120 else p["description"]
+            )
             pages_html += f"""
             <div style="padding:14px;border:1px solid {BORDER};border-radius:8px;margin-bottom:8px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -611,7 +627,9 @@ def render_already_claimed_page(prospect: dict) -> str:
     app_id = prospect.get("kliq_application_id")
     store_url = prospect.get("kliq_store_url", "")
     dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else store_url
-    first_name = prospect.get("first_name") or (prospect.get("name", "").split()[0] if prospect.get("name") else "Coach")
+    first_name = prospect.get("first_name") or (
+        prospect.get("name", "").split()[0] if prospect.get("name") else "Coach"
+    )
 
     return f"""{_HEAD}
 <title>Store Already Claimed | KLIQ</title>

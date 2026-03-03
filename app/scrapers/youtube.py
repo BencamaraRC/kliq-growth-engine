@@ -11,7 +11,6 @@ Quota budget (10,000 units/day):
 """
 
 import logging
-from typing import Optional
 
 from googleapiclient.discovery import build
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -147,7 +146,7 @@ class YouTubeAdapter(PlatformAdapter):
 
         # Extract website from channel settings
         website_url = None
-        custom_url = snippet.get("customUrl", "")
+        _custom_url = snippet.get("customUrl", "")
         if branding.get("channel", {}).get("unsubscribedTrailer"):
             website_url = branding["channel"].get("unsubscribedTrailer")
 
@@ -157,12 +156,8 @@ class YouTubeAdapter(PlatformAdapter):
             platform_id=platform_id,
             name=snippet.get("title", ""),
             bio=description,
-            profile_image_url=snippet.get("thumbnails", {})
-            .get("high", {})
-            .get("url", ""),
-            banner_image_url=branding.get("image", {}).get(
-                "bannerExternalUrl", ""
-            ),
+            profile_image_url=snippet.get("thumbnails", {}).get("high", {}).get("url", ""),
+            banner_image_url=branding.get("image", {}).get("bannerExternalUrl", ""),
             email=await self.extract_email(
                 ScrapedProfile(
                     platform=Platform.YOUTUBE,
@@ -246,9 +241,7 @@ class YouTubeAdapter(PlatformAdapter):
                     description=snippet.get("description", ""),
                     body=transcript_text,
                     url=f"https://www.youtube.com/watch?v={vid_id}",
-                    thumbnail_url=snippet.get("thumbnails", {})
-                    .get("high", {})
-                    .get("url", ""),
+                    thumbnail_url=snippet.get("thumbnails", {}).get("high", {}).get("url", ""),
                     published_at=snippet.get("publishedAt"),
                     view_count=int(stats.get("viewCount", 0)),
                     engagement_count=int(stats.get("likeCount", 0))
@@ -294,10 +287,44 @@ class YouTubeAdapter(PlatformAdapter):
             "crossfit": ["crossfit", "wod", "functional fitness"],
             "calisthenics": ["calisthenics", "bodyweight"],
             "martial_arts": ["martial arts", "mma", "boxing", "kickboxing"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
 
         text_lower = text.lower()

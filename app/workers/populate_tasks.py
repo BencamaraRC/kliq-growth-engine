@@ -22,7 +22,8 @@ from app.cms.media import upload_store_images
 from app.cms.products import create_products
 from app.cms.store_builder import build_store
 from app.db.models import GeneratedContent, Prospect, ProspectStatus
-from app.db.session import async_session, cms_session as cms_async_session
+from app.db.session import async_session
+from app.db.session import cms_session as cms_async_session
 from app.scrapers.color_extractor import BrandColors
 from app.workers.celery_app import celery_app
 
@@ -52,6 +53,7 @@ def create_store_task(self, prospect_id: int):
     except Exception as exc:
         logger.error(f"Store creation failed for prospect {prospect_id}: {exc}")
         from app.events.slack import notify_pipeline_error
+
         notify_pipeline_error("store_creation", prospect_id=prospect_id, error=str(exc))
         raise self.retry(exc=exc, countdown=120)
 
@@ -98,7 +100,9 @@ async def _create_store(prospect_id: int) -> dict:
 
     # Determine names
     first_name = prospect.first_name or prospect.name.split()[0]
-    last_name = prospect.last_name or (prospect.name.split()[1] if len(prospect.name.split()) > 1 else "")
+    last_name = prospect.last_name or (
+        prospect.name.split()[1] if len(prospect.name.split()) > 1 else ""
+    )
 
     # 2. Create store in CMS MySQL
     async with cms_async_session() as cms_db:
@@ -122,16 +126,18 @@ async def _create_store(prospect_id: int) -> dict:
         products = []
         for pr in product_records:
             p = json.loads(pr.body)
-            products.append(SuggestedProduct(
-                name=pr.title or p.get("name", ""),
-                description=p.get("description", ""),
-                type=p.get("type", "subscription"),
-                price_cents=p.get("price_cents", 999),
-                currency=p.get("currency", "USD"),
-                interval=p.get("interval"),
-                features=p.get("features", []),
-                recommended=p.get("recommended", False),
-            ))
+            products.append(
+                SuggestedProduct(
+                    name=pr.title or p.get("name", ""),
+                    description=p.get("description", ""),
+                    type=p.get("type", "subscription"),
+                    price_cents=p.get("price_cents", 999),
+                    currency=p.get("currency", "USD"),
+                    interval=p.get("interval"),
+                    features=p.get("features", []),
+                    recommended=p.get("recommended", False),
+                )
+            )
 
         product_ids = []
         if products:
@@ -156,15 +162,17 @@ async def _create_store(prospect_id: int) -> dict:
         for br in blog_records:
             b = json.loads(br.body)
             if b.get("body_html"):
-                blogs.append(GeneratedBlog(
-                    blog_title=br.title or b.get("blog_title", ""),
-                    excerpt=b.get("excerpt", ""),
-                    body_html=b.get("body_html", ""),
-                    tags=b.get("tags", []),
-                    seo_title=b.get("seo_title", ""),
-                    seo_description=b.get("seo_description", ""),
-                    source_video_url=b.get("source_video_url", ""),
-                ))
+                blogs.append(
+                    GeneratedBlog(
+                        blog_title=br.title or b.get("blog_title", ""),
+                        excerpt=b.get("excerpt", ""),
+                        body_html=b.get("body_html", ""),
+                        tags=b.get("tags", []),
+                        seo_title=b.get("seo_title", ""),
+                        seo_description=b.get("seo_description", ""),
+                        source_video_url=b.get("source_video_url", ""),
+                    )
+                )
 
         if blogs:
             blog_ids = await create_blog_pages(cms_db, store.application_id, blogs)
@@ -188,11 +196,13 @@ async def _create_store(prospect_id: int) -> dict:
         prospect.claim_token = claim_token
         prospect.status = ProspectStatus.STORE_CREATED
         from datetime import datetime
+
         prospect.store_created_at = datetime.utcnow()
         await growth_db.commit()
 
     # Log event
     from app.events.bigquery import log_event
+
     log_event(
         "store_created",
         prospect_id=prospect_id,

@@ -8,13 +8,12 @@ All records are created with status_id=1 (Inactive/Draft).
 When the coach claims the store, status flips to 2 (Active).
 """
 
-import json
 import logging
 import secrets
 import uuid
 
 import bcrypt
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.cms.models import (
@@ -279,6 +278,7 @@ async def build_store(
     await session.flush()
 
     from app.config import settings
+
     store_url = web_url or f"{settings.cms_admin_url}/app/{app_id}"
 
     logger.info(
@@ -302,9 +302,7 @@ async def _get_next_application_id(session: AsyncSession) -> int:
     The applications table does NOT use auto-increment.
     We query MAX(id) + 1 with a row lock to prevent race conditions.
     """
-    result = await session.execute(
-        select(func.max(Application.id)).with_for_update()
-    )
+    result = await session.execute(select(func.max(Application.id)).with_for_update())
     max_id = result.scalar_one_or_none()
     return (max_id or 0) + 1
 
@@ -403,17 +401,15 @@ async def _create_permission_groups(session: AsyncSession, role_id: int):
     """
     # Find all permission modules that include user_type 3 (Coach Admin)
     modules_result = await session.execute(
-        select(PermissionModule).where(
-            PermissionModule.user_types.like('%"3"%')
-        ).order_by(PermissionModule.order)
+        select(PermissionModule)
+        .where(PermissionModule.user_types.like('%"3"%'))
+        .order_by(PermissionModule.order)
     )
     modules = modules_result.scalars().all()
 
     for module in modules:
         refs_result = await session.execute(
-            select(PermissionReference).where(
-                PermissionReference.permission_module_id == module.id
-            )
+            select(PermissionReference).where(PermissionReference.permission_module_id == module.id)
         )
         references = refs_result.scalars().all()
 

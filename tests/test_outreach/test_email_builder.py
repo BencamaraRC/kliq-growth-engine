@@ -94,6 +94,7 @@ class TestTrackingEventMap:
 
     def test_event_map_has_all_types(self):
         from app.outreach.tracking import EVENT_MAP
+
         assert "delivered" in EVENT_MAP
         assert "opened" in EVENT_MAP
         assert "click" in EVENT_MAP

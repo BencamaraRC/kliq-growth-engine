@@ -8,13 +8,12 @@ Handles:
 import asyncio
 import logging
 
+from app.db.models import CampaignEvent, EmailStatus, Prospect
 from app.db.session import async_session
-from app.outreach.campaign_manager import process_onboarding_emails, process_outreach
 from app.outreach.brevo_client import BrevoClient
+from app.outreach.campaign_manager import process_onboarding_emails, process_outreach
 from app.outreach.email_builder import build_outreach_email
-from app.db.models import CampaignEvent, Campaign, CampaignStatus, EmailStatus, Prospect
 from app.workers.celery_app import celery_app
-from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +66,7 @@ async def _send_single_email(prospect_id: int, campaign_id: int, step: int) -> d
 
         # Record event
         from datetime import datetime
+
         event = CampaignEvent(
             campaign_id=campaign_id,
             prospect_id=prospect_id,

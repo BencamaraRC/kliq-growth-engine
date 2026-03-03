@@ -25,9 +25,7 @@ def discover_coaches_task(
     max_per_platform: int = 50,
 ):
     """Discover coaches across platforms and store in database."""
-    return _run_async(
-        _discover_coaches(platforms, search_queries, max_per_platform)
-    )
+    return _run_async(_discover_coaches(platforms, search_queries, max_per_platform))
 
 
 async def _discover_coaches(
@@ -103,6 +101,7 @@ async def _discover_coaches(
 
     # Log events
     from app.events.bigquery import log_event
+
     for prospect in prospects[:created_count]:
         log_event(
             "prospect_discovered",

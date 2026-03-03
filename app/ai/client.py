@@ -76,8 +76,7 @@ class AIClient:
             except anthropic.RateLimitError:
                 delay = min(BASE_DELAY * (2**attempt), MAX_DELAY)
                 logger.warning(
-                    f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES}), "
-                    f"retrying in {delay:.1f}s"
+                    f"Rate limited (attempt {attempt + 1}/{MAX_RETRIES}), retrying in {delay:.1f}s"
                 )
                 time.sleep(delay)
 
@@ -158,7 +157,7 @@ class AIClient:
         if cleaned.startswith("```"):
             lines = cleaned.split("\n")
             # Remove first line (```json or ```) and last line (```)
-            lines = [l for l in lines if not l.strip().startswith("```")]
+            lines = [line for line in lines if not line.strip().startswith("```")]
             cleaned = "\n".join(lines).strip()
 
         return json.loads(cleaned)

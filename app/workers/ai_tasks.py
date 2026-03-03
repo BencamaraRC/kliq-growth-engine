@@ -52,6 +52,7 @@ def generate_content_task(self, prospect_id: int):
     except Exception as exc:
         logger.error(f"AI content generation failed for prospect {prospect_id}: {exc}")
         from app.events.slack import notify_pipeline_error
+
         notify_pipeline_error("ai_generation", prospect_id=prospect_id, error=str(exc))
         raise self.retry(exc=exc, countdown=60)
 
@@ -68,17 +69,13 @@ async def _generate_all_content(prospect_id: int) -> dict:
 
         # Load scraped content
         content_result = await session.execute(
-            select(ScrapedContentRecord).where(
-                ScrapedContentRecord.prospect_id == prospect_id
-            )
+            select(ScrapedContentRecord).where(ScrapedContentRecord.prospect_id == prospect_id)
         )
         scraped_content = content_result.scalars().all()
 
         # Load scraped pricing
         pricing_result = await session.execute(
-            select(ScrapedPricingRecord).where(
-                ScrapedPricingRecord.prospect_id == prospect_id
-            )
+            select(ScrapedPricingRecord).where(ScrapedPricingRecord.prospect_id == prospect_id)
         )
         scraped_pricing = pricing_result.scalars().all()
 
@@ -96,13 +93,21 @@ async def _generate_all_content(prospect_id: int) -> dict:
             content_count=len(scraped_content),
             content_titles=content_titles,
         )
-        await _store_generated(session, prospect_id, "bio", bio.tagline, json.dumps({
-            "tagline": bio.tagline,
-            "short_bio": bio.short_bio,
-            "long_bio": bio.long_bio,
-            "specialties": bio.specialties,
-            "coaching_style": bio.coaching_style,
-        }))
+        await _store_generated(
+            session,
+            prospect_id,
+            "bio",
+            bio.tagline,
+            json.dumps(
+                {
+                    "tagline": bio.tagline,
+                    "short_bio": bio.short_bio,
+                    "long_bio": bio.long_bio,
+                    "specialties": bio.specialties,
+                    "coaching_style": bio.coaching_style,
+                }
+            ),
+        )
         results["generated"].append("bio")
 
         # 2. Generate Blogs from video transcripts
@@ -124,14 +129,22 @@ async def _generate_all_content(prospect_id: int) -> dict:
             max_blogs=5,
         )
         for blog in blogs:
-            await _store_generated(session, prospect_id, "blog", blog.blog_title, json.dumps({
-                "excerpt": blog.excerpt,
-                "body_html": blog.body_html,
-                "tags": blog.tags,
-                "seo_title": blog.seo_title,
-                "seo_description": blog.seo_description,
-                "source_video_url": blog.source_video_url,
-            }))
+            await _store_generated(
+                session,
+                prospect_id,
+                "blog",
+                blog.blog_title,
+                json.dumps(
+                    {
+                        "excerpt": blog.excerpt,
+                        "body_html": blog.body_html,
+                        "tags": blog.tags,
+                        "seo_title": blog.seo_title,
+                        "seo_description": blog.seo_description,
+                        "source_video_url": blog.source_video_url,
+                    }
+                ),
+            )
         results["generated"].append(f"blogs({len(blogs)})")
 
         # 3. Analyze Pricing
@@ -158,15 +171,23 @@ async def _generate_all_content(prospect_id: int) -> dict:
             content_types=content_types or ["videos", "blog posts"],
         )
         for product in pricing.products:
-            await _store_generated(session, prospect_id, "product", product.name, json.dumps({
-                "description": product.description,
-                "type": product.type,
-                "price_cents": product.price_cents,
-                "currency": product.currency,
-                "interval": product.interval,
-                "features": product.features,
-                "recommended": product.recommended,
-            }))
+            await _store_generated(
+                session,
+                prospect_id,
+                "product",
+                product.name,
+                json.dumps(
+                    {
+                        "description": product.description,
+                        "type": product.type,
+                        "price_cents": product.price_cents,
+                        "currency": product.currency,
+                        "interval": product.interval,
+                        "features": product.features,
+                        "recommended": product.recommended,
+                    }
+                ),
+            )
         results["generated"].append(f"products({len(pricing.products)})")
 
         # 4. Generate SEO
@@ -179,36 +200,54 @@ async def _generate_all_content(prospect_id: int) -> dict:
             location=prospect.location or "",
             content_titles=content_titles[:10],
         )
-        await _store_generated(session, prospect_id, "seo", seo.seo_title, json.dumps({
-            "seo_title": seo.seo_title,
-            "seo_description": seo.seo_description,
-            "seo_keywords": seo.seo_keywords,
-            "og_title": seo.og_title,
-            "og_description": seo.og_description,
-            "store_slug": seo.store_slug,
-        }))
+        await _store_generated(
+            session,
+            prospect_id,
+            "seo",
+            seo.seo_title,
+            json.dumps(
+                {
+                    "seo_title": seo.seo_title,
+                    "seo_description": seo.seo_description,
+                    "seo_keywords": seo.seo_keywords,
+                    "og_title": seo.og_title,
+                    "og_description": seo.og_description,
+                    "store_slug": seo.store_slug,
+                }
+            ),
+        )
         results["generated"].append("seo")
 
         # 5. Extract Brand Colors
         colors = await extract_colors_from_url(prospect.profile_image_url or "")
         if colors:
-            await _store_generated(session, prospect_id, "colors", "Brand Colors", json.dumps({
-                "primary": colors.primary,
-                "secondary": colors.secondary,
-                "accent": colors.accent,
-                "background": colors.background,
-                "text": colors.text,
-                "palette": colors.palette,
-            }))
+            await _store_generated(
+                session,
+                prospect_id,
+                "colors",
+                "Brand Colors",
+                json.dumps(
+                    {
+                        "primary": colors.primary,
+                        "secondary": colors.secondary,
+                        "accent": colors.accent,
+                        "background": colors.background,
+                        "text": colors.text,
+                        "palette": colors.palette,
+                    }
+                ),
+            )
             results["generated"].append("colors")
 
         # Update prospect status
         from app.db.models import ProspectStatus
+
         prospect.status = ProspectStatus.CONTENT_GENERATED
         await session.commit()
 
         # Log event
         from app.events.bigquery import log_event
+
         log_event("content_generated", prospect_id=prospect_id)
 
         results["token_usage"] = client.usage_summary

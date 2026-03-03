@@ -57,7 +57,9 @@ async def upload_image_from_url(
             ExtraArgs={"ContentType": ct, "ACL": "public-read"},
         )
 
-        s3_url = f"https://{settings.aws_s3_bucket}.s3.{settings.aws_s3_region}.amazonaws.com/{s3_key}"
+        s3_url = (
+            f"https://{settings.aws_s3_bucket}.s3.{settings.aws_s3_region}.amazonaws.com/{s3_key}"
+        )
         logger.info(f"Uploaded image to S3: {s3_url}")
         return s3_url
 

@@ -8,9 +8,7 @@ from app.db.models import GeneratedContent, Prospect
 
 async def get_prospect_by_id(session: AsyncSession, prospect_id: int) -> dict | None:
     """Fetch a prospect by ID and return as a dict, or None if not found."""
-    result = await session.execute(
-        select(Prospect).where(Prospect.id == prospect_id)
-    )
+    result = await session.execute(select(Prospect).where(Prospect.id == prospect_id))
     prospect = result.scalar_one_or_none()
     if not prospect:
         return None

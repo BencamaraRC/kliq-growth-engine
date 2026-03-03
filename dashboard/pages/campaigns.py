@@ -7,7 +7,7 @@ import streamlit as st
 
 st.set_page_config(page_title="Campaigns | KLIQ Growth Engine", layout="wide")
 
-from theme import inject_kliq_theme, sidebar_nav, apply_plotly_theme
+from theme import apply_plotly_theme, inject_kliq_theme, sidebar_nav  # noqa: E402
 
 inject_kliq_theme()
 sidebar_nav()
@@ -46,16 +46,35 @@ try:
         step_df = pd.DataFrame(steps)
 
         fig = go.Figure()
-        fig.add_trace(go.Bar(name="Sent", x=step_df["step"], y=step_df["sent"], marker_color="#1C3838"))
-        fig.add_trace(go.Bar(name="Opened", x=step_df["step"], y=step_df["opened"], marker_color="#039855"))
-        fig.add_trace(go.Bar(name="Clicked", x=step_df["step"], y=step_df["clicked"], marker_color="#FF9F88"))
-        fig.add_trace(go.Bar(name="Bounced", x=step_df["step"], y=step_df["bounced"], marker_color="#D92D20"))
+        fig.add_trace(
+            go.Bar(name="Sent", x=step_df["step"], y=step_df["sent"], marker_color="#1C3838")
+        )
+        fig.add_trace(
+            go.Bar(name="Opened", x=step_df["step"], y=step_df["opened"], marker_color="#039855")
+        )
+        fig.add_trace(
+            go.Bar(name="Clicked", x=step_df["step"], y=step_df["clicked"], marker_color="#FF9F88")
+        )
+        fig.add_trace(
+            go.Bar(name="Bounced", x=step_df["step"], y=step_df["bounced"], marker_color="#D92D20")
+        )
         fig.update_layout(barmode="group", height=400)
         apply_plotly_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
 
         st.dataframe(
-            step_df[["step", "sent", "opened", "clicked", "bounced", "unsubscribed", "open_rate", "click_rate"]],
+            step_df[
+                [
+                    "step",
+                    "sent",
+                    "opened",
+                    "clicked",
+                    "bounced",
+                    "unsubscribed",
+                    "open_rate",
+                    "click_rate",
+                ]
+            ],
             use_container_width=True,
             hide_index=True,
             column_config={
@@ -77,13 +96,17 @@ try:
         total_clicked = sum(s["clicked"] for s in steps)
         total_claimed = kpis["claimed"]
 
-        funnel_data = pd.DataFrame({
-            "stage": ["Emails Sent", "Opened", "Clicked", "Claimed"],
-            "count": [total_sent, total_opened, total_clicked, total_claimed],
-        })
+        funnel_data = pd.DataFrame(
+            {
+                "stage": ["Emails Sent", "Opened", "Clicked", "Claimed"],
+                "count": [total_sent, total_opened, total_clicked, total_claimed],
+            }
+        )
 
         fig = px.funnel(
-            funnel_data, x="count", y="stage",
+            funnel_data,
+            x="count",
+            y="stage",
             color_discrete_sequence=["#1C3838", "#39938F", "#FF9F88", "#039855"],
         )
         fig.update_layout(height=350)

@@ -24,7 +24,6 @@ def full_pipeline_task(prospect_id: int):
     The scraping should already be done before this task is called.
     """
     from app.workers.ai_tasks import generate_content_task
-    from app.workers.outreach_tasks import send_outreach_email_task
     from app.workers.populate_tasks import create_store_task
 
     pipeline = chain(

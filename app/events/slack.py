@@ -120,9 +120,7 @@ def notify_daily_digest(
     errors: int,
 ):
     """Daily summary of Growth Engine activity."""
-    conversion_rate = (
-        f"{(claims / emails_sent * 100):.1f}%" if emails_sent > 0 else "N/A"
-    )
+    conversion_rate = f"{(claims / emails_sent * 100):.1f}%" if emails_sent > 0 else "N/A"
 
     msg = SlackMessage(
         text=f":bar_chart: *Daily Growth Engine Digest*\nDiscovered: {prospects_discovered} | Stores: {stores_created} | Emails: {emails_sent} | Claims: {claims}",

@@ -104,8 +104,7 @@ class OnlyFansAdapter(PlatformAdapter):
                 # Display name
                 name = await _safe_text(
                     page,
-                    ".g-user-name, .b-username__text, "
-                    'h1[data-name], [class*="userName"]',
+                    '.g-user-name, .b-username__text, h1[data-name], [class*="userName"]',
                 )
                 if not name:
                     name = platform_id
@@ -120,8 +119,7 @@ class OnlyFansAdapter(PlatformAdapter):
                 # Profile image
                 profile_img = await _safe_attr(
                     page,
-                    ".g-avatar img, .b-profile__user img, "
-                    'img[class*="avatar"], img[alt*="avatar"]',
+                    '.g-avatar img, .b-profile__user img, img[class*="avatar"], img[alt*="avatar"]',
                     "src",
                 )
 
@@ -153,9 +151,7 @@ class OnlyFansAdapter(PlatformAdapter):
                 # Extract email from bio
                 email = None
                 if bio:
-                    email_match = re.search(
-                        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", bio
-                    )
+                    email_match = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", bio)
                     if email_match:
                         email = email_match.group()
 
@@ -219,15 +215,11 @@ class OnlyFansAdapter(PlatformAdapter):
 
                 # Scroll to load posts
                 for _ in range(min(3, max_items // 5)):
-                    await page.evaluate(
-                        "window.scrollTo(0, document.body.scrollHeight)"
-                    )
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                     await page.wait_for_timeout(2000)
 
                 # Extract visible post previews
-                post_els = await page.query_selector_all(
-                    ".b-post, [class*='postItem'], article"
-                )
+                post_els = await page.query_selector_all(".b-post, [class*='postItem'], article")
                 content = []
 
                 for post in post_els[:max_items]:
@@ -327,17 +319,12 @@ class OnlyFansAdapter(PlatformAdapter):
 
                 # Bundle pricing (discount tiers)
                 bundle_els = await page.query_selector_all(
-                    ".b-offer-bundle, [class*='bundleItem'], "
-                    "[class*='subscriptionBundle']"
+                    ".b-offer-bundle, [class*='bundleItem'], [class*='subscriptionBundle']"
                 )
                 for bundle in bundle_els:
                     duration = await _el_text(bundle, "[class*='duration'], .months")
-                    bundle_price = await _el_text(
-                        bundle, "[class*='price'], .amount"
-                    )
-                    discount = await _el_text(
-                        bundle, "[class*='discount'], .save"
-                    )
+                    bundle_price = await _el_text(bundle, "[class*='price'], .amount")
+                    discount = await _el_text(bundle, "[class*='discount'], .save")
 
                     bp = _parse_of_price(bundle_price)
                     if bp["amount"] > 0:
@@ -383,10 +370,44 @@ class OnlyFansAdapter(PlatformAdapter):
             "dance": ["dance", "dancer", "choreography", "twerk"],
             "martial_arts": ["martial arts", "mma", "boxing", "kickboxing", "jiu jitsu"],
             "flexibility": ["flexibility", "contortion", "splits", "mobility"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
 
         text_lower = (text or "").lower()
@@ -458,8 +479,7 @@ async def _extract_stats(page) -> dict:
     stats = {"posts": 0, "media": 0, "likes": 0}
     try:
         stat_els = await page.query_selector_all(
-            ".b-profile__sections__count, [class*='profileStat'], "
-            ".b-tabs__nav__item"
+            ".b-profile__sections__count, [class*='profileStat'], .b-tabs__nav__item"
         )
         for el in stat_els:
             text = (await el.inner_text()).strip().lower()

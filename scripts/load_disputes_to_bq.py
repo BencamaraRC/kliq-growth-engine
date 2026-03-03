@@ -21,9 +21,7 @@ DATASET_ID = "sentinel"
 TABLE_ID = "stripe_disputes"
 FULL_TABLE_ID = f"{PROJECT_ID}.{DATASET_ID}.{TABLE_ID}"
 
-CSV_PATH = os.path.expanduser(
-    "~/Downloads/Disputes_Export_Query_2022-12-01_to_2026-03-01.csv"
-)
+CSV_PATH = os.path.expanduser("~/Downloads/Disputes_Export_Query_2022-12-01_to_2026-03-01.csv")
 
 # Service account — try project-local first, then known GCP keys
 SA_PATH = os.path.join(os.path.dirname(__file__), "..", "service-account.json")
@@ -185,11 +183,23 @@ def main():
 
     # Replace NaN with None for string columns
     str_cols = [
-        "dispute_id", "description", "dispute_currency", "charge_currency",
-        "charge_id", "card_fingerprint", "card_brand", "card_funding",
-        "customer_email", "customer_id", "reason", "status",
-        "visa_ce3_status", "visa_compliance_status",
-        "payment_method_type", "payment_intent", "account_id",
+        "dispute_id",
+        "description",
+        "dispute_currency",
+        "charge_currency",
+        "charge_id",
+        "card_fingerprint",
+        "card_brand",
+        "card_funding",
+        "customer_email",
+        "customer_id",
+        "reason",
+        "status",
+        "visa_ce3_status",
+        "visa_compliance_status",
+        "payment_method_type",
+        "payment_intent",
+        "account_id",
     ]
     for col in str_cols:
         df[col] = df[col].where(df[col].notna(), None)

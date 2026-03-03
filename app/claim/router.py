@@ -116,6 +116,7 @@ async def claim_submit(
     # Send claim confirmation email (non-blocking)
     try:
         from app.outreach.campaign_manager import send_claim_confirmation
+
         await send_claim_confirmation(growth_db, prospect_obj)
     except Exception:
         logger.exception("Failed to send claim confirmation email")
@@ -153,7 +154,11 @@ async def welcome_page(
 
     content_counts = await get_content_counts(session, prospect["id"])
     onboarding = await get_onboarding_dict(session, prospect["id"])
-    return HTMLResponse(content=render_welcome_page(prospect, content_counts, auto_login_token=auto_login_token, onboarding=onboarding))
+    return HTMLResponse(
+        content=render_welcome_page(
+            prospect, content_counts, auto_login_token=auto_login_token, onboarding=onboarding
+        )
+    )
 
 
 # ─── Review Content ───────────────────────────────────────────────────────────
@@ -231,7 +236,11 @@ async def connect_stripe_page(
         )
 
     onboarding = await get_onboarding_dict(session, prospect["id"])
-    return HTMLResponse(content=render_stripe_connect_page(prospect, already_connected=onboarding.get("stripe_connected", False)))
+    return HTMLResponse(
+        content=render_stripe_connect_page(
+            prospect, already_connected=onboarding.get("stripe_connected", False)
+        )
+    )
 
 
 @router.post("/connect-stripe", response_class=HTMLResponse)
@@ -242,6 +251,7 @@ async def connect_stripe_submit(
 ):
     """Validate and save Stripe keys to CMS ApplicationSetting."""
     from sqlalchemy import update
+
     from app.cms.models import ApplicationSetting
 
     form = await request.form()
@@ -264,10 +274,12 @@ async def connect_stripe_submit(
 
     # Validate Stripe secret key format
     if not stripe_secret.startswith("sk_"):
-        return HTMLResponse(content=render_stripe_connect_page(
-            prospect,
-            error="Stripe Secret Key must start with 'sk_'. Find it in your Stripe Dashboard > Developers > API Keys.",
-        ))
+        return HTMLResponse(
+            content=render_stripe_connect_page(
+                prospect,
+                error="Stripe Secret Key must start with 'sk_'. Find it in your Stripe Dashboard > Developers > API Keys.",
+            )
+        )
 
     # Save to CMS ApplicationSetting
     app_id = prospect["kliq_application_id"]
@@ -278,9 +290,11 @@ async def connect_stripe_submit(
         values["account_id"] = account_id
 
     await cms_db.execute(
-        update(ApplicationSetting).where(
+        update(ApplicationSetting)
+        .where(
             ApplicationSetting.application_id == app_id,
-        ).values(**values)
+        )
+        .values(**values)
     )
     await cms_db.commit()
 

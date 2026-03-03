@@ -12,7 +12,6 @@ platform_id = the full URL of the website (e.g., "https://fitcoach.com")
 
 import logging
 import re
-from typing import Optional
 from urllib.parse import urljoin, urlparse
 
 from bs4 import BeautifulSoup
@@ -25,7 +24,6 @@ from app.scrapers.base import (
     ScrapedPricing,
     ScrapedProfile,
 )
-from app.scrapers.color_extractor import extract_colors_from_url
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +46,9 @@ class WebsiteAdapter(PlatformAdapter):
         YouTube channel or Skool community links to a personal website,
         the discovery orchestrator chains to this adapter.
         """
-        logger.info("Website adapter doesn't support direct discovery — use cross-platform enrichment")
+        logger.info(
+            "Website adapter doesn't support direct discovery — use cross-platform enrichment"
+        )
         return []
 
     async def scrape_profile(self, platform_id: str) -> ScrapedProfile:
@@ -79,9 +79,7 @@ class WebsiteAdapter(PlatformAdapter):
 
                 # Extract bio/description
                 bio = (
-                    _og_content(soup, "og:description")
-                    or _meta_content(soup, "description")
-                    or ""
+                    _og_content(soup, "og:description") or _meta_content(soup, "description") or ""
                 )
 
                 # Try to find an about page for a richer bio
@@ -90,11 +88,7 @@ class WebsiteAdapter(PlatformAdapter):
                     bio = about_bio
 
                 # Extract profile image
-                profile_image = (
-                    _og_content(soup, "og:image")
-                    or _find_logo(soup, url)
-                    or ""
-                )
+                profile_image = _og_content(soup, "og:image") or ""
 
                 # Extract email
                 email = _extract_email(soup.get_text())
@@ -184,9 +178,7 @@ class WebsiteAdapter(PlatformAdapter):
                 soup = BeautifulSoup(html, "lxml")
 
                 # Look for pricing cards/tables
-                price_containers = soup.find_all(
-                    class_=re.compile(r"pric|tier|plan|package", re.I)
-                )
+                price_containers = soup.find_all(class_=re.compile(r"pric|tier|plan|package", re.I))
 
                 for container in price_containers:
                     name = _tag_text(container, "h3") or _tag_text(container, "h2") or "Plan"
@@ -248,7 +240,11 @@ class WebsiteAdapter(PlatformAdapter):
             await page.close()
 
             # Get the main content
-            main = soup.find("main") or soup.find("article") or soup.find(class_=re.compile(r"content|about", re.I))
+            main = (
+                soup.find("main")
+                or soup.find("article")
+                or soup.find(class_=re.compile(r"content|about", re.I))
+            )
             if main:
                 return main.get_text(separator=" ", strip=True)[:2000]
             return ""
@@ -295,7 +291,10 @@ class WebsiteAdapter(PlatformAdapter):
             for a in soup.find_all("a", href=True):
                 href = a["href"].lower()
                 text = a.get_text().lower()
-                if any(kw in href or kw in text for kw in ["pricing", "plans", "packages", "membership"]):
+                if any(
+                    kw in href or kw in text
+                    for kw in ["pricing", "plans", "packages", "membership"]
+                ):
                     return urljoin(base_url, a["href"])
 
         except Exception:
@@ -313,14 +312,14 @@ class WebsiteAdapter(PlatformAdapter):
             html = await page.content()
             soup = BeautifulSoup(html, "lxml")
 
-            title = (
-                _og_content(soup, "og:title")
-                or _tag_text(soup, "h1")
-                or ""
-            )
+            title = _og_content(soup, "og:title") or _tag_text(soup, "h1") or ""
 
             # Find main content area
-            article = soup.find("article") or soup.find("main") or soup.find(class_=re.compile(r"post|article|content|entry", re.I))
+            article = (
+                soup.find("article")
+                or soup.find("main")
+                or soup.find(class_=re.compile(r"post|article|content|entry", re.I))
+            )
             body = article.get_text(separator=" ", strip=True)[:5000] if article else ""
 
             if not title and not body:
@@ -335,7 +334,9 @@ class WebsiteAdapter(PlatformAdapter):
                 if time_el:
                     date = time_el.get("datetime", time_el.get_text(strip=True))
 
-            description = _og_content(soup, "og:description") or _meta_content(soup, "description") or ""
+            description = (
+                _og_content(soup, "og:description") or _meta_content(soup, "description") or ""
+            )
 
             return ScrapedContent(
                 platform=Platform.WEBSITE,
@@ -379,6 +380,7 @@ class WebsiteAdapter(PlatformAdapter):
         # Fall back to image extraction
         if not colors and image_url:
             from app.scrapers.color_extractor import extract_colors_from_url as ecfu
+
             brand = await ecfu(image_url)
             if brand:
                 colors = brand.palette
@@ -395,13 +397,51 @@ class WebsiteAdapter(PlatformAdapter):
             "strength": ["strength", "powerlifting", "weightlifting"],
             "wellness": ["wellness", "health", "self-care", "holistic"],
             "coaching": ["coaching", "coach", "mentor"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
         text_lower = (text or "").lower()
-        return [tag for tag, keywords in niche_keywords.items() if any(kw in text_lower for kw in keywords)]
+        return [
+            tag
+            for tag, keywords in niche_keywords.items()
+            if any(kw in text_lower for kw in keywords)
+        ]
 
 
 # --- Utility helpers ---
@@ -469,7 +509,9 @@ def _find_blog_post_links(soup: BeautifulSoup, base_url: str) -> list[str]:
     seen = set()
 
     # Look for article links
-    for article in soup.find_all(["article", "div"], class_=re.compile(r"post|article|entry|blog", re.I)):
+    for article in soup.find_all(
+        ["article", "div"], class_=re.compile(r"post|article|entry|blog", re.I)
+    ):
         a = article.find("a", href=True)
         if a:
             url = urljoin(base_url, a["href"])

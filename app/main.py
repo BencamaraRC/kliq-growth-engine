@@ -7,9 +7,8 @@ from app.api import campaigns, onboarding, pipeline, prospects, webhooks
 from app.api.health import router as health_router
 from app.api.scheduler import router as scheduler_router
 from app.claim import router as claim_router
-from app.preview import router as preview_router
-from app.config import settings
 from app.db.session import engine
+from app.preview import router as preview_router
 
 
 @asynccontextmanager

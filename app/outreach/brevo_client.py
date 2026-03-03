@@ -30,9 +30,7 @@ class BrevoClient:
     def __init__(self, api_key: str | None = None):
         config = sib_api_v3_sdk.Configuration()
         config.api_key["api-key"] = api_key or settings.brevo_api_key
-        self._api = sib_api_v3_sdk.TransactionalEmailsApi(
-            sib_api_v3_sdk.ApiClient(config)
-        )
+        self._api = sib_api_v3_sdk.TransactionalEmailsApi(sib_api_v3_sdk.ApiClient(config))
         self._sender_email = settings.brevo_sender_email
         self._sender_name = settings.brevo_sender_name
 

@@ -129,7 +129,9 @@ class Prospect(Base):
     generated_content: Mapped[list["GeneratedContent"]] = relationship(back_populates="prospect")
     campaign_events: Mapped[list["CampaignEvent"]] = relationship(back_populates="prospect")
     platform_profiles: Mapped[list["PlatformProfile"]] = relationship(back_populates="prospect")
-    onboarding_progress: Mapped["OnboardingProgress | None"] = relationship(back_populates="prospect", uselist=False)
+    onboarding_progress: Mapped["OnboardingProgress | None"] = relationship(
+        back_populates="prospect", uselist=False
+    )
 
 
 class PlatformProfile(Base):
@@ -241,7 +243,9 @@ class CampaignEvent(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     campaign_id: Mapped[int] = mapped_column(ForeignKey("campaigns.id"))
     prospect_id: Mapped[int] = mapped_column(ForeignKey("prospects.id"))
-    step: Mapped[int] = mapped_column(Integer)  # 1=store_ready, 2=reminder_1, 3=reminder_2, 4=claimed
+    step: Mapped[int] = mapped_column(
+        Integer
+    )  # 1=store_ready, 2=reminder_1, 3=reminder_2, 4=claimed
     email_status: Mapped[EmailStatus] = mapped_column(
         Enum(EmailStatus), default=EmailStatus.PENDING
     )

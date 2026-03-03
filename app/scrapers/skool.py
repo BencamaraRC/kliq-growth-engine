@@ -12,7 +12,6 @@ Skool communities are structured as:
 
 import logging
 import re
-from typing import Optional
 
 import httpx
 from playwright.async_api import async_playwright
@@ -88,19 +87,25 @@ class SkoolAdapter(PlatformAdapter):
 
                 # Extract community info
                 name = await _safe_text(page, "h1")
-                description = await _safe_text(page, '[data-testid="group-description"], .group-description, p.description')
+                description = await _safe_text(
+                    page, '[data-testid="group-description"], .group-description, p.description'
+                )
 
                 # Member count
                 member_text = await _safe_text(page, '[data-testid="member-count"], .member-count')
                 member_count = _parse_number(member_text)
 
                 # Profile image
-                profile_img = await _safe_attr(page, 'img[alt*="community"], img[alt*="group"], .group-avatar img', "src")
+                profile_img = await _safe_attr(
+                    page, 'img[alt*="community"], img[alt*="group"], .group-avatar img', "src"
+                )
 
                 # Extract email from description
                 email = None
                 if description:
-                    email_match = re.search(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", description)
+                    email_match = re.search(
+                        r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}", description
+                    )
                     if email_match:
                         email = email_match.group()
 
@@ -266,6 +271,7 @@ class SkoolAdapter(PlatformAdapter):
                 dataset_url = f"https://api.apify.com/v2/actor-runs/{run_id}/dataset/items"
                 for _ in range(30):  # Max 5 min wait
                     import asyncio
+
                     await asyncio.sleep(10)
 
                     items_resp = await client.get(
@@ -369,13 +375,51 @@ class SkoolAdapter(PlatformAdapter):
             "wellness": ["wellness", "health", "self-care", "holistic"],
             "coaching": ["coaching", "coach", "mentor", "transformation"],
             "weight_loss": ["weight loss", "fat loss", "lean", "shred"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
         text_lower = (text or "").lower()
-        return [tag for tag, keywords in niche_keywords.items() if any(kw in text_lower for kw in keywords)]
+        return [
+            tag
+            for tag, keywords in niche_keywords.items()
+            if any(kw in text_lower for kw in keywords)
+        ]
 
 
 # --- Playwright helpers ---

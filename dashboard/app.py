@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-from theme import inject_kliq_theme, sidebar_nav, apply_plotly_theme, CHART_COLORS
+from theme import CHART_COLORS, apply_plotly_theme, inject_kliq_theme, sidebar_nav  # noqa: E402
 
 inject_kliq_theme()
 sidebar_nav()
@@ -127,13 +127,13 @@ try:
         st.markdown(f"""
 | Stage | Count |
 |-------|------:|
-| Discovered | {kpis['discovered']:,} |
-| Scraped | {kpis['scraped']:,} |
-| Content Generated | {kpis['content_generated']:,} |
-| Stores Created | {kpis['stores_created']:,} |
-| Emails Sent | {kpis['emails_sent']:,} |
-| Claimed | {kpis['claimed']:,} |
-| Rejected | {kpis['rejected']:,} |
+| Discovered | {kpis["discovered"]:,} |
+| Scraped | {kpis["scraped"]:,} |
+| Content Generated | {kpis["content_generated"]:,} |
+| Stores Created | {kpis["stores_created"]:,} |
+| Emails Sent | {kpis["emails_sent"]:,} |
+| Claimed | {kpis["claimed"]:,} |
+| Rejected | {kpis["rejected"]:,} |
         """)
         st.markdown("")
         st.metric("Email Open Rate", f"{kpis['open_rate']}%")
@@ -141,4 +141,6 @@ try:
 
 except Exception as e:
     st.warning(f"Could not connect to database. Make sure PostgreSQL is running.\n\nError: {e}")
-    st.info("To set up the database, run:\n```\ndocker compose up -d postgres redis\nalembic upgrade head\n```")
+    st.info(
+        "To set up the database, run:\n```\ndocker compose up -d postgres redis\nalembic upgrade head\n```"
+    )

@@ -48,9 +48,9 @@ def fmt_money(val, currency="USD"):
 
 
 def print_header(title):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {title}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
 
 def main():
@@ -60,7 +60,9 @@ def main():
 
     # 1. Summary
     print_header("1. SUMMARY")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             COUNT(*) as total_disputes,
             ROUND(SUM(dispute_amount), 2) as total_amount,
@@ -69,17 +71,22 @@ def main():
             MIN(dispute_created_utc) as earliest,
             MAX(dispute_created_utc) as latest
         FROM {TABLE}
-    """)
+    """,
+    )
     r = rows[0]
     print(f"  Total disputes:     {r.total_disputes}")
     print(f"  Total $ at risk:    {fmt_money(r.total_amount)}")
     print(f"  Unique customers:   {r.unique_customers}")
     print(f"  Unique accounts:    {r.unique_accounts}")
-    print(f"  Date range:         {r.earliest.strftime('%Y-%m-%d')} to {r.latest.strftime('%Y-%m-%d')}")
+    print(
+        f"  Date range:         {r.earliest.strftime('%Y-%m-%d')} to {r.latest.strftime('%Y-%m-%d')}"
+    )
 
     # 2. By Status
     print_header("2. BY STATUS")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             status,
             COUNT(*) as count,
@@ -88,15 +95,20 @@ def main():
         FROM {TABLE}
         GROUP BY status
         ORDER BY count DESC
-    """)
+    """,
+    )
     print(f"  {'Status':<20} {'Count':>6} {'Total':>12} {'Avg':>10}")
-    print(f"  {'-'*48}")
+    print(f"  {'-' * 48}")
     for r in rows:
-        print(f"  {r.status:<20} {r.count:>6} {fmt_money(r.total_amount):>12} {fmt_money(r.avg_amount):>10}")
+        print(
+            f"  {r.status:<20} {r.count:>6} {fmt_money(r.total_amount):>12} {fmt_money(r.avg_amount):>10}"
+        )
 
     # 3. By Reason
     print_header("3. BY REASON")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             reason,
             COUNT(*) as count,
@@ -107,15 +119,20 @@ def main():
         FROM {TABLE}
         GROUP BY reason
         ORDER BY count DESC
-    """)
+    """,
+    )
     print(f"  {'Reason':<25} {'Count':>5} {'Total':>11} {'Won':>5} {'Lost':>5} {'Pend':>5}")
-    print(f"  {'-'*56}")
+    print(f"  {'-' * 56}")
     for r in rows:
-        print(f"  {r.reason:<25} {r.count:>5} {fmt_money(r.total_amount):>11} {r.won:>5} {r.lost:>5} {r.pending:>5}")
+        print(
+            f"  {r.reason:<25} {r.count:>5} {fmt_money(r.total_amount):>11} {r.won:>5} {r.lost:>5} {r.pending:>5}"
+        )
 
     # 4. By Account (Coach)
     print_header("4. BY ACCOUNT (Top 15)")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             account_id,
             COUNT(*) as count,
@@ -126,15 +143,20 @@ def main():
         GROUP BY account_id
         ORDER BY count DESC
         LIMIT 15
-    """)
+    """,
+    )
     print(f"  {'Account ID':<28} {'#':>4} {'Total':>11} {'Cust':>5} {'Reasons':>7}")
-    print(f"  {'-'*55}")
+    print(f"  {'-' * 55}")
     for r in rows:
-        print(f"  {r.account_id:<28} {r.count:>4} {fmt_money(r.total_amount):>11} {r.unique_customers:>5} {r.reason_types:>7}")
+        print(
+            f"  {r.account_id:<28} {r.count:>4} {fmt_money(r.total_amount):>11} {r.unique_customers:>5} {r.reason_types:>7}"
+        )
 
     # 5. Serial Disputers
     print_header("5. SERIAL DISPUTERS (3+ disputes from same card)")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             card_fingerprint,
             customer_email,
@@ -147,10 +169,11 @@ def main():
         GROUP BY card_fingerprint, customer_email
         HAVING COUNT(*) >= 3
         ORDER BY dispute_count DESC
-    """)
+    """,
+    )
     if rows:
         print(f"  {'Email':<35} {'#':>3} {'Total':>10} {'Reasons'}")
-        print(f"  {'-'*70}")
+        print(f"  {'-' * 70}")
         for r in rows:
             email = r.customer_email or "(unknown)"
             if len(email) > 33:
@@ -161,7 +184,9 @@ def main():
 
     # 6. Monthly Trends
     print_header("6. MONTHLY TRENDS")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             FORMAT_TIMESTAMP('%Y-%m', dispute_created_utc) as month,
             COUNT(*) as count,
@@ -169,16 +194,19 @@ def main():
         FROM {TABLE}
         GROUP BY month
         ORDER BY month
-    """)
+    """,
+    )
     print(f"  {'Month':<10} {'Count':>6} {'Total':>12}")
-    print(f"  {'-'*28}")
+    print(f"  {'-' * 28}")
     for r in rows:
         bar = "#" * r.count
         print(f"  {r.month:<10} {r.count:>6} {fmt_money(r.total_amount):>12}  {bar}")
 
     # 7. Win Rate
     print_header("7. WIN RATE")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             reason,
             COUNT(*) as total,
@@ -190,7 +218,8 @@ def main():
         WHERE status IN ('won', 'lost')
         GROUP BY reason
         ORDER BY total DESC
-    """)
+    """,
+    )
     # Overall
     total_decided = sum(r.total for r in rows)
     total_won = sum(r.won for r in rows)
@@ -198,14 +227,18 @@ def main():
     print(f"  Overall: {total_won}/{total_decided} ({overall_pct:.1f}%)")
     print()
     print(f"  {'Reason':<25} {'W/L':>7} {'Win%':>6} {'Evidence':>8} {'Submissions':>11}")
-    print(f"  {'-'*57}")
+    print(f"  {'-' * 57}")
     for r in rows:
         wl = f"{r.won}/{r.total}"
-        print(f"  {r.reason:<25} {wl:>7} {r.win_pct:>5.1f}% {r.with_evidence:>8} {r.with_submissions:>11}")
+        print(
+            f"  {r.reason:<25} {wl:>7} {r.win_pct:>5.1f}% {r.with_evidence:>8} {r.with_submissions:>11}"
+        )
 
     # 8. Currency Breakdown
     print_header("8. CURRENCY BREAKDOWN")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             UPPER(dispute_currency) as currency,
             COUNT(*) as count,
@@ -213,13 +246,16 @@ def main():
         FROM {TABLE}
         GROUP BY currency
         ORDER BY count DESC
-    """)
+    """,
+    )
     for r in rows:
         print(f"  {r.currency}: {r.count} disputes, {fmt_money(r.total_amount, r.currency)}")
 
     # 9. Evidence Gaps
     print_header("9. EVIDENCE GAPS (needs_response + no evidence)")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             dispute_id,
             customer_email,
@@ -230,13 +266,14 @@ def main():
         FROM {TABLE}
         WHERE status = 'needs_response' AND has_evidence = false
         ORDER BY due_by_utc ASC
-    """)
+    """,
+    )
     if rows:
         print(f"  {len(rows)} disputes need evidence submission:\n")
         print(f"  {'Dispute ID':<30} {'Amount':>8} {'Reason':<22} {'Due By':<12}")
-        print(f"  {'-'*72}")
+        print(f"  {'-' * 72}")
         for r in rows:
-            due = r.due_by_utc.strftime('%Y-%m-%d') if r.due_by_utc else "N/A"
+            due = r.due_by_utc.strftime("%Y-%m-%d") if r.due_by_utc else "N/A"
             amt = fmt_money(r.dispute_amount, r.dispute_currency)
             print(f"  {r.dispute_id:<30} {amt:>8} {r.reason:<22} {due:<12}")
     else:
@@ -244,7 +281,9 @@ def main():
 
     # 10. Urgent — needs_response with due dates
     print_header("10. URGENT — Approaching Deadlines")
-    rows = query(client, f"""
+    rows = query(
+        client,
+        f"""
         SELECT
             dispute_id,
             customer_email,
@@ -257,13 +296,14 @@ def main():
         WHERE status = 'needs_response'
             AND due_by_utc IS NOT NULL
         ORDER BY due_by_utc ASC
-    """)
+    """,
+    )
     if rows:
         print(f"  {len(rows)} disputes with needs_response status:\n")
         print(f"  {'Dispute ID':<30} {'Amount':>8} {'Days Left':>9} {'Due By':<12}")
-        print(f"  {'-'*59}")
+        print(f"  {'-' * 59}")
         for r in rows:
-            due = r.due_by_utc.strftime('%Y-%m-%d') if r.due_by_utc else "N/A"
+            due = r.due_by_utc.strftime("%Y-%m-%d") if r.due_by_utc else "N/A"
             amt = fmt_money(r.dispute_amount, r.dispute_currency)
             days = r.days_remaining if r.days_remaining is not None else "?"
             urgency = " ⚠️" if isinstance(days, int) and days <= 7 else ""
@@ -271,9 +311,9 @@ def main():
     else:
         print("  No pending disputes with deadlines.")
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("  Report complete.")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
 
 if __name__ == "__main__":

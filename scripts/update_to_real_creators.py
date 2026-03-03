@@ -1,6 +1,7 @@
 """Replace all fake test prospects with real creators across all platforms."""
 
 import json
+
 import psycopg2
 import psycopg2.extras
 
@@ -27,7 +28,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/chloe_t/",
             "tiktok": "https://www.tiktok.com/@chloe_t",
-            "youtube": "https://www.youtube.com/@ChloeTing"
+            "youtube": "https://www.youtube.com/@ChloeTing",
         },
         "niche_tags": ["hiit", "home workouts", "body sculpting", "weight loss"],
         "location": "New York, USA",
@@ -49,7 +50,7 @@ UPDATES = [
             "instagram": "https://www.instagram.com/thebodycoach/",
             "tiktok": "https://www.tiktok.com/@thebodycoach",
             "twitter": "https://x.com/thebodycoach",
-            "youtube": "https://www.youtube.com/@TheBodyCoachTV"
+            "youtube": "https://www.youtube.com/@TheBodyCoachTV",
         },
         "niche_tags": ["hiit", "nutrition", "home fitness", "lean in 15"],
         "location": "Surrey, England, UK",
@@ -71,7 +72,7 @@ UPDATES = [
             "instagram": "https://www.instagram.com/simeonpanda/",
             "tiktok": "https://www.tiktok.com/@simeon_panda",
             "twitter": "https://x.com/SimeonPanda",
-            "youtube": "https://www.youtube.com/@SimeonPanda"
+            "youtube": "https://www.youtube.com/@SimeonPanda",
         },
         "niche_tags": ["natural bodybuilding", "strength training", "physique"],
         "location": "Los Angeles, USA",
@@ -92,7 +93,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/growwithjo/",
             "tiktok": "https://www.tiktok.com/@growwithjo",
-            "youtube": "https://www.youtube.com/@growwithjo"
+            "youtube": "https://www.youtube.com/@growwithjo",
         },
         "niche_tags": ["walking workouts", "home cardio", "beginner fitness"],
         "location": "Miami, Florida, USA",
@@ -114,7 +115,7 @@ UPDATES = [
             "instagram": "https://www.instagram.com/sydneycummings_/",
             "tiktok": "https://www.tiktok.com/@sydneycummings_",
             "twitter": "https://x.com/sydneycummings_",
-            "youtube": "https://www.youtube.com/@SydneyCummings"
+            "youtube": "https://www.youtube.com/@SydneyCummings",
         },
         "niche_tags": ["strength training", "daily workouts", "home fitness"],
         "location": "Charlotte, North Carolina, USA",
@@ -135,7 +136,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/movewithnicole/",
             "tiktok": "https://www.tiktok.com/@movewithnicole",
-            "youtube": "https://www.youtube.com/@MoveWithNicole"
+            "youtube": "https://www.youtube.com/@MoveWithNicole",
         },
         "niche_tags": ["pilates", "yoga", "barre", "flexibility"],
         "location": "Koh Samui, Thailand",
@@ -156,7 +157,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/tiboinshape/",
             "tiktok": "https://www.tiktok.com/@tiboinshape",
-            "youtube": "https://www.youtube.com/@TiboInShape"
+            "youtube": "https://www.youtube.com/@TiboInShape",
         },
         "niche_tags": ["bodybuilding", "fitness entertainment", "challenges"],
         "location": "Toulouse, France",
@@ -165,7 +166,6 @@ UPDATES = [
         "brand_colors": ["#F44336", "#212121", "#FFEB3B"],
         "profile_image_url": "https://randomuser.me/api/portraits/men/40.jpg",
     },
-
     # ══════════════════════════════════════════════════
     # SKOOL — replace all 7
     # ══════════════════════════════════════════════════
@@ -181,7 +181,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/lenaliftsx/",
             "youtube": "https://www.youtube.com/@LenaLifts",
-            "tiktok": "https://www.tiktok.com/@lenalifts"
+            "tiktok": "https://www.tiktok.com/@lenalifts",
         },
         "niche_tags": ["wellness", "fitness", "lifestyle", "women's health"],
         "location": "New York, USA",
@@ -201,7 +201,7 @@ UPDATES = [
         "website_url": "https://fitgurlmel.com",
         "social_links": {
             "instagram": "https://www.instagram.com/fitgurlmel/",
-            "tiktok": "https://www.tiktok.com/@fitgurlmel"
+            "tiktok": "https://www.tiktok.com/@fitgurlmel",
         },
         "niche_tags": ["women's fitness", "body transformation", "celebrity training"],
         "location": "Los Angeles, California, USA",
@@ -221,7 +221,7 @@ UPDATES = [
         "website_url": "https://fulltimefitcoach.com",
         "social_links": {
             "instagram": "https://www.instagram.com/willgirone/",
-            "linkedin": "https://www.linkedin.com/in/willgirone"
+            "linkedin": "https://www.linkedin.com/in/willgirone",
         },
         "niche_tags": ["fitness business", "online coaching", "high-ticket sales"],
         "location": "USA",
@@ -239,9 +239,7 @@ UPDATES = [
         "primary_platform_id": "remote-fitness-ceos-3251",
         "primary_platform_url": "https://www.skool.com/remote-fitness-ceos-3251",
         "website_url": "https://remotefitnessceos.com",
-        "social_links": {
-            "instagram": "https://www.instagram.com/_kingfitness/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/_kingfitness/"},
         "niche_tags": ["fitness business", "online personal training", "entrepreneurship"],
         "location": "USA",
         "follower_count": 153000,
@@ -258,9 +256,7 @@ UPDATES = [
         "primary_platform_id": "endless-evolution-8560",
         "primary_platform_url": "https://www.skool.com/endless-evolution-8560/about",
         "website_url": "https://chrisduffin.com",
-        "social_links": {
-            "instagram": "https://www.instagram.com/mad_scientist_duffin/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/mad_scientist_duffin/"},
         "niche_tags": ["powerlifting", "strength training", "human performance", "longevity"],
         "location": "Portland, Oregon, USA",
         "follower_count": 341000,
@@ -279,7 +275,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/siimland/",
-            "youtube": "https://www.youtube.com/@SiimLand"
+            "youtube": "https://www.youtube.com/@SiimLand",
         },
         "niche_tags": ["anti-aging", "longevity", "biohacking", "wellness"],
         "location": "Chiang Mai, Thailand",
@@ -297,9 +293,7 @@ UPDATES = [
         "primary_platform_id": "fitness-coaching-community",
         "primary_platform_url": "https://www.skool.com/fitness-coaching-community/about",
         "website_url": None,
-        "social_links": {
-            "instagram": "https://www.instagram.com/jannis_neumann/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/jannis_neumann/"},
         "niche_tags": ["fitness business", "coaching", "german market"],
         "location": "Germany",
         "follower_count": 6400,
@@ -307,7 +301,6 @@ UPDATES = [
         "brand_colors": ["#FF9800", "#E65100", "#FFF3E0"],
         "profile_image_url": "https://randomuser.me/api/portraits/men/36.jpg",
     },
-
     # ══════════════════════════════════════════════════
     # PATREON — replace all 5
     # ══════════════════════════════════════════════════
@@ -322,7 +315,7 @@ UPDATES = [
         "website_url": "https://hasfit.com",
         "social_links": {
             "instagram": "https://www.instagram.com/hasfit_official/",
-            "youtube": "https://www.youtube.com/@HASfit"
+            "youtube": "https://www.youtube.com/@HASfit",
         },
         "niche_tags": ["home fitness", "workout programs", "personal training"],
         "location": "San Antonio, Texas, USA",
@@ -343,7 +336,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/fitnesswithpj/",
             "youtube": "https://www.youtube.com/@FitnesswithPJ",
-            "twitter": "https://x.com/fitnesswithpj"
+            "twitter": "https://x.com/fitnesswithpj",
         },
         "niche_tags": ["women over 40", "functional fitness", "low impact"],
         "location": "UK",
@@ -364,7 +357,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/carolinejordanfitness/",
             "youtube": "https://www.youtube.com/@carolinejordan",
-            "twitter": "https://x.com/carolinefitness"
+            "twitter": "https://x.com/carolinefitness",
         },
         "niche_tags": ["injury-friendly fitness", "movement as medicine", "wellness"],
         "location": "San Diego, California, USA",
@@ -382,9 +375,7 @@ UPDATES = [
         "primary_platform_id": "gains",
         "primary_platform_url": "https://www.patreon.com/gains",
         "website_url": "https://www.gains.af",
-        "social_links": {
-            "instagram": "https://www.instagram.com/gains_strength/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/gains_strength/"},
         "niche_tags": ["strength training", "powerlifting", "bodybuilding", "body-positive"],
         "location": "United Kingdom",
         "follower_count": 2850,
@@ -401,9 +392,7 @@ UPDATES = [
         "primary_platform_id": "Flexformation",
         "primary_platform_url": "https://www.patreon.com/Flexformation",
         "website_url": None,
-        "social_links": {
-            "instagram": "https://www.instagram.com/flexfit352/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/flexfit352/"},
         "niche_tags": ["home workouts", "nutrition", "budget fitness"],
         "location": "UK",
         "follower_count": 0,
@@ -411,7 +400,6 @@ UPDATES = [
         "brand_colors": ["#43A047", "#1B5E20", "#C8E6C9"],
         "profile_image_url": "https://randomuser.me/api/portraits/men/48.jpg",
     },
-
     # ══════════════════════════════════════════════════
     # WEBSITE — replace all 5
     # ══════════════════════════════════════════════════
@@ -426,7 +414,7 @@ UPDATES = [
         "website_url": "https://scottlaidler.com",
         "social_links": {
             "instagram": "https://www.instagram.com/scottlaidlercoaching/",
-            "linkedin": "https://www.linkedin.com/in/scottlaidler/"
+            "linkedin": "https://www.linkedin.com/in/scottlaidler/",
         },
         "niche_tags": ["online personal training", "busy professionals", "sustainable fitness"],
         "location": "United Kingdom",
@@ -444,9 +432,7 @@ UPDATES = [
         "primary_platform_id": "julielohre",
         "primary_platform_url": "https://julielohre.com",
         "website_url": "https://julielohre.com",
-        "social_links": {
-            "instagram": "https://www.instagram.com/julielohre/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/julielohre/"},
         "niche_tags": ["women's fitness", "online coaching", "nutrition", "over 40"],
         "location": "Ohio, USA",
         "follower_count": 5752,
@@ -465,7 +451,7 @@ UPDATES = [
         "website_url": "https://www.yogawithkassandra.com",
         "social_links": {
             "instagram": "https://www.instagram.com/yoga_with_kassandra/",
-            "youtube": "https://www.youtube.com/@yogawithkassandra"
+            "youtube": "https://www.youtube.com/@yogawithkassandra",
         },
         "niche_tags": ["yin yoga", "vinyasa", "yoga teacher training", "mindfulness"],
         "location": "Ottawa, Ontario, Canada",
@@ -486,7 +472,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/bengaborasong/",
             "youtube": "https://www.youtube.com/@BenGreenfieldLife",
-            "twitter": "https://x.com/bengreenfield"
+            "twitter": "https://x.com/bengreenfield",
         },
         "niche_tags": ["biohacking", "longevity", "performance optimization", "nutrition"],
         "location": "Spokane, Washington, USA",
@@ -507,7 +493,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/jillianmichaels/",
             "youtube": "https://www.youtube.com/@JillianMichaels",
-            "twitter": "https://x.com/JillianMichaels"
+            "twitter": "https://x.com/JillianMichaels",
         },
         "niche_tags": ["weight loss", "personal training", "fitness app", "nutrition"],
         "location": "Miami, Florida, USA",
@@ -516,7 +502,6 @@ UPDATES = [
         "brand_colors": ["#F44336", "#B71C1C", "#FFEBEE"],
         "profile_image_url": "https://randomuser.me/api/portraits/women/33.jpg",
     },
-
     # ══════════════════════════════════════════════════
     # ONLYFANS — replace all 13
     # ══════════════════════════════════════════════════
@@ -529,9 +514,7 @@ UPDATES = [
         "primary_platform_id": "jemwolfie",
         "primary_platform_url": "https://onlyfans.com/jemwolfie",
         "website_url": None,
-        "social_links": {
-            "instagram": "https://www.instagram.com/jemwolfie/"
-        },
+        "social_links": {"instagram": "https://www.instagram.com/jemwolfie/"},
         "niche_tags": ["fitness coaching", "meal prep", "lifestyle"],
         "location": "Perth, Australia",
         "follower_count": 2700000,
@@ -550,7 +533,7 @@ UPDATES = [
         "website_url": "https://www.cherifitactivewear.com",
         "social_links": {
             "instagram": "https://www.instagram.com/anacheri/",
-            "youtube": "https://www.youtube.com/@AnaCheriFit"
+            "youtube": "https://www.youtube.com/@AnaCheriFit",
         },
         "niche_tags": ["bodybuilding", "fitness programs", "activewear"],
         "location": "Santa Ana, California, USA",
@@ -570,7 +553,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/mikechabotfitness/",
-            "twitter": "https://x.com/officialbigman6"
+            "twitter": "https://x.com/officialbigman6",
         },
         "niche_tags": ["personal training", "nutrition", "workout plans"],
         "location": "USA",
@@ -591,7 +574,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/daisykeech/",
             "tiktok": "https://www.tiktok.com/@daisykeech",
-            "twitter": "https://x.com/DaisyKeech"
+            "twitter": "https://x.com/DaisyKeech",
         },
         "niche_tags": ["glute training", "body conditioning", "lifestyle"],
         "location": "Los Angeles, California, USA",
@@ -611,7 +594,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/eva_andressa/",
-            "twitter": "https://x.com/EvaAndressaOf"
+            "twitter": "https://x.com/EvaAndressaOf",
         },
         "niche_tags": ["bodybuilding", "body sculpting", "fitness modeling"],
         "location": "Brazil",
@@ -631,7 +614,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/anllela_sagra/",
-            "twitter": "https://x.com/anllelasagraa"
+            "twitter": "https://x.com/anllelasagraa",
         },
         "niche_tags": ["fitness modeling", "personal training", "body transformation"],
         "location": "Medellin, Colombia",
@@ -651,7 +634,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/danicooppss/",
-            "tiktok": "https://www.tiktok.com/@danicoopps"
+            "tiktok": "https://www.tiktok.com/@danicoopps",
         },
         "niche_tags": ["glute training", "weightlifting", "booty building"],
         "location": "New Jersey, USA",
@@ -672,7 +655,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/melgfit/",
             "tiktok": "https://www.tiktok.com/@melgfit",
-            "twitter": "https://x.com/melgfit"
+            "twitter": "https://x.com/melgfit",
         },
         "niche_tags": ["women's empowerment", "glute sculpting", "full-body fitness"],
         "location": "USA",
@@ -693,7 +676,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/kiera.bernier/",
             "tiktok": "https://www.tiktok.com/@kierabernier",
-            "twitter": "https://x.com/kiera_bernier"
+            "twitter": "https://x.com/kiera_bernier",
         },
         "niche_tags": ["home fitness", "equipment-free", "bodyweight training"],
         "location": "Amsterdam, Netherlands",
@@ -713,7 +696,7 @@ UPDATES = [
         "website_url": None,
         "social_links": {
             "instagram": "https://www.instagram.com/_yogawithtaz_/",
-            "twitter": "https://x.com/yogawithtaz"
+            "twitter": "https://x.com/yogawithtaz",
         },
         "niche_tags": ["yoga", "meditation", "wellness", "mindfulness"],
         "location": None,
@@ -734,7 +717,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/hollybarkerofficial/",
             "tiktok": "https://www.tiktok.com/@hollybarkerofficial",
-            "twitter": "https://x.com/hollsbarks"
+            "twitter": "https://x.com/hollsbarks",
         },
         "niche_tags": ["personal training", "NPC bikini", "fitness mentorship"],
         "location": "USA",
@@ -755,7 +738,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/alexxmara/",
             "tiktok": "https://www.tiktok.com/@alexxmara",
-            "twitter": "https://x.com/alexxmara"
+            "twitter": "https://x.com/alexxmara",
         },
         "niche_tags": ["personal training", "nutrition", "food photography"],
         "location": "Miami, Florida, USA",
@@ -777,7 +760,7 @@ UPDATES = [
             "instagram": "https://www.instagram.com/autumnblair_xo/",
             "youtube": "https://www.youtube.com/@autumnblairxo",
             "tiktok": "https://www.tiktok.com/@autumnblairxo",
-            "twitter": "https://x.com/AutumnBlair_xo"
+            "twitter": "https://x.com/AutumnBlair_xo",
         },
         "niche_tags": ["bikini bodybuilding", "yoga", "online coaching", "meal plans"],
         "location": "Miami, Florida, USA",
@@ -786,7 +769,6 @@ UPDATES = [
         "brand_colors": ["#EC407A", "#AD1457", "#FCE4EC"],
         "profile_image_url": "https://randomuser.me/api/portraits/women/91.jpg",
     },
-
     # ══════════════════════════════════════════════════
     # KAJABI — replace all 3
     # ══════════════════════════════════════════════════
@@ -801,7 +783,7 @@ UPDATES = [
         "website_url": "https://barredefinition.com",
         "social_links": {
             "instagram": "https://www.instagram.com/actionjacquelyn/",
-            "youtube": "https://www.youtube.com/@actionjacquelyn"
+            "youtube": "https://www.youtube.com/@actionjacquelyn",
         },
         "niche_tags": ["barre", "pilates", "dance fitness", "gut health"],
         "location": "San Diego, California, USA",
@@ -822,7 +804,7 @@ UPDATES = [
         "social_links": {
             "instagram": "https://www.instagram.com/ericaziel/",
             "youtube": "https://www.youtube.com/@EricaZiel",
-            "twitter": "https://x.com/ericaziel"
+            "twitter": "https://x.com/ericaziel",
         },
         "niche_tags": ["prenatal fitness", "postnatal", "pilates", "core rehab", "pelvic floor"],
         "location": "Ankeny, Iowa, USA",
@@ -844,7 +826,7 @@ UPDATES = [
             "instagram": "https://www.instagram.com/growyoungfitness/",
             "youtube": "https://www.youtube.com/@GrowYoungFitness",
             "tiktok": "https://www.tiktok.com/@growyoungfitness",
-            "twitter": "https://x.com/GrowYoungFit"
+            "twitter": "https://x.com/GrowYoungFit",
         },
         "niche_tags": ["senior fitness", "chair exercises", "low-impact", "arthritis-friendly"],
         "location": "Lahaina, Hawaii, USA",
@@ -862,7 +844,8 @@ def main():
 
     updated = 0
     for c in UPDATES:
-        cur.execute("""
+        cur.execute(
+            """
             UPDATE prospects SET
                 name = %s,
                 first_name = %s,
@@ -880,40 +863,68 @@ def main():
                 profile_image_url = %s,
                 email = NULL
             WHERE id = %s
-        """, (
-            c["name"], c["first_name"], c["last_name"], c["bio"],
-            c["primary_platform_id"], c["primary_platform_url"],
-            c["website_url"], c["social_links"], c["niche_tags"],
-            c["location"], c["follower_count"], c["subscriber_count"],
-            c["brand_colors"], c["profile_image_url"], c["id"]
-        ))
+        """,
+            (
+                c["name"],
+                c["first_name"],
+                c["last_name"],
+                c["bio"],
+                c["primary_platform_id"],
+                c["primary_platform_url"],
+                c["website_url"],
+                c["social_links"],
+                c["niche_tags"],
+                c["location"],
+                c["follower_count"],
+                c["subscriber_count"],
+                c["brand_colors"],
+                c["profile_image_url"],
+                c["id"],
+            ),
+        )
         updated += cur.rowcount
 
         # Update generated_content bio to match
-        bio_json = json.dumps({
-            "store_name": c["name"],
-            "short_bio": c["bio"],
-            "niche": c["niche_tags"][0] if c["niche_tags"] else ""
-        })
-        cur.execute("""
+        bio_json = json.dumps(
+            {
+                "store_name": c["name"],
+                "short_bio": c["bio"],
+                "niche": c["niche_tags"][0] if c["niche_tags"] else "",
+            }
+        )
+        cur.execute(
+            """
             UPDATE generated_content
             SET body = %s, title = %s
             WHERE prospect_id = %s AND content_type = 'bio'
-        """, (bio_json, f"{c['name']} Bio", c["id"]))
+        """,
+            (bio_json, f"{c['name']} Bio", c["id"]),
+        )
 
         # Update generated_content colors to match brand
         if c["brand_colors"]:
-            color_json = json.dumps({
-                "primary": c["brand_colors"][0],
-                "secondary": c["brand_colors"][1] if len(c["brand_colors"]) > 1 else c["brand_colors"][0],
-                "hero_bg": c["brand_colors"][1] if len(c["brand_colors"]) > 1 else c["brand_colors"][0],
-                "accent": c["brand_colors"][2] if len(c["brand_colors"]) > 2 else c["brand_colors"][0]
-            })
-            cur.execute("""
+            color_json = json.dumps(
+                {
+                    "primary": c["brand_colors"][0],
+                    "secondary": c["brand_colors"][1]
+                    if len(c["brand_colors"]) > 1
+                    else c["brand_colors"][0],
+                    "hero_bg": c["brand_colors"][1]
+                    if len(c["brand_colors"]) > 1
+                    else c["brand_colors"][0],
+                    "accent": c["brand_colors"][2]
+                    if len(c["brand_colors"]) > 2
+                    else c["brand_colors"][0],
+                }
+            )
+            cur.execute(
+                """
                 UPDATE generated_content
                 SET body = %s
                 WHERE prospect_id = %s AND content_type = 'colors'
-            """, (color_json, c["id"]))
+            """,
+                (color_json, c["id"]),
+            )
 
     conn.commit()
     print(f"Updated {updated} prospects with real creator data")

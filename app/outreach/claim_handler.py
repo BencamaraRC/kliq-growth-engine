@@ -16,7 +16,7 @@ import bcrypt
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cms.models import Application, ApplicationSetting, CMSUser, Page, Product
+from app.cms.models import Application, CMSUser, Page, Product
 from app.cms.store_builder import STATUS_ACTIVE, STATUS_INACTIVE
 from app.db.models import OnboardingProgress, Prospect, ProspectStatus
 
@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 class ClaimError(Exception):
     """Error during store claim process."""
+
     pass
 
 
@@ -34,9 +35,7 @@ async def validate_claim_token(growth_db: AsyncSession, token: str) -> Prospect:
     Raises:
         ClaimError: If token is invalid or store already claimed.
     """
-    result = await growth_db.execute(
-        select(Prospect).where(Prospect.claim_token == token)
-    )
+    result = await growth_db.execute(select(Prospect).where(Prospect.claim_token == token))
     prospect = result.scalar_one_or_none()
 
     if not prospect:
@@ -59,18 +58,22 @@ async def activate_store_content(cms_db: AsyncSession, application_id: int) -> i
     """
     try:
         pages_result = await cms_db.execute(
-            update(Page).where(
+            update(Page)
+            .where(
                 Page.application_id == application_id,
                 Page.status_id == STATUS_INACTIVE,
                 Page.deleted_at.is_(None),
-            ).values(status_id=STATUS_ACTIVE)
+            )
+            .values(status_id=STATUS_ACTIVE)
         )
         products_result = await cms_db.execute(
-            update(Product).where(
+            update(Product)
+            .where(
                 Product.application_id == application_id,
                 Product.status_id == STATUS_INACTIVE,
                 Product.deleted_at.is_(None),
-            ).values(status_id=STATUS_ACTIVE)
+            )
+            .values(status_id=STATUS_ACTIVE)
         )
         total = (pages_result.rowcount or 0) + (products_result.rowcount or 0)
         logger.info(f"Activated {total} pages/products for app {application_id}")
@@ -113,10 +116,12 @@ async def activate_store(
 
     # 1. Activate the CMS user
     await cms_db.execute(
-        update(CMSUser).where(
+        update(CMSUser)
+        .where(
             CMSUser.application_id == app_id,
             CMSUser.email == prospect.email,
-        ).values(
+        )
+        .values(
             password=hashed_password,
             status_id=STATUS_ACTIVE,
             is_email_verified=True,
@@ -127,9 +132,11 @@ async def activate_store(
 
     # 2. Activate the application
     await cms_db.execute(
-        update(Application).where(
+        update(Application)
+        .where(
             Application.id == app_id,
-        ).values(
+        )
+        .values(
             status_id=STATUS_ACTIVE,
         )
     )
@@ -158,6 +165,7 @@ async def activate_store(
     # Log events and notify
     from app.events.bigquery import log_event
     from app.events.slack import notify_store_claimed
+
     log_event(
         "store_claimed",
         prospect_id=prospect.id,

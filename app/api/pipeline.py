@@ -1,7 +1,7 @@
 """Pipeline API routes — trigger scraping, AI generation, store creation."""
 
-from pydantic import BaseModel
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 router = APIRouter()
 

@@ -22,6 +22,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 class CMSBase(DeclarativeBase):
     """Separate base for CMS models (connects to MySQL, not PostgreSQL)."""
+
     pass
 
 

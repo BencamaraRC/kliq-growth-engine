@@ -12,12 +12,10 @@ Discovery is limited — Patreon has no search API, so we rely on:
 
 import logging
 import re
-from typing import Optional
 
 import httpx
 from playwright.async_api import async_playwright
 
-from app.config import settings
 from app.scrapers.base import (
     Platform,
     PlatformAdapter,
@@ -88,7 +86,9 @@ class PatreonAdapter(PlatformAdapter):
                             continue
                         seen_ids.add(slug)
 
-                        name = await _el_text(card, "h3, h2, .creator-name, [data-tag='creator-name']")
+                        name = await _el_text(
+                            card, "h3, h2, .creator-name, [data-tag='creator-name']"
+                        )
                         desc = await _el_text(card, "p, .creator-description")
                         img = await _el_attr(card, "img", "src")
 
@@ -149,9 +149,7 @@ class PatreonAdapter(PlatformAdapter):
                     await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
                     await page.wait_for_timeout(1500)
 
-                posts = await page.query_selector_all(
-                    '[data-tag="post-card"], article, .post-card'
-                )
+                posts = await page.query_selector_all('[data-tag="post-card"], article, .post-card')
 
                 for post in posts[:max_items]:
                     title = await _el_text(post, "h2, h3, [data-tag='post-title']")
@@ -200,7 +198,9 @@ class PatreonAdapter(PlatformAdapter):
 
                 for tier in tiers:
                     name = await _el_text(tier, "h3, h2, [data-tag='tier-name']")
-                    price_text = await _el_text(tier, "[data-tag='tier-price'], .tier-price, .amount")
+                    price_text = await _el_text(
+                        tier, "[data-tag='tier-price'], .tier-price, .amount"
+                    )
                     desc = await _el_text(tier, "p, [data-tag='tier-description']")
 
                     # Parse benefits
@@ -278,7 +278,9 @@ class PatreonAdapter(PlatformAdapter):
 
                 name = await _safe_text(page, "h1, [data-tag='creator-name']")
                 bio = await _safe_text(page, "[data-tag='creator-about'], .about-section, .summary")
-                img = await _safe_attr(page, "img[alt*='profile'], img[alt*='creator'], .avatar img", "src")
+                img = await _safe_attr(
+                    page, "img[alt*='profile'], img[alt*='creator'], .avatar img", "src"
+                )
                 patron_text = await _safe_text(page, "[data-tag='patron-count'], .patron-count")
 
                 email = None
@@ -314,13 +316,51 @@ class PatreonAdapter(PlatformAdapter):
             "strength": ["strength", "powerlifting", "weightlifting"],
             "wellness": ["wellness", "health", "self-care"],
             "coaching": ["coaching", "coach", "mentor"],
-            "business": ["business coach", "entrepreneur", "startup", "business strategy", "consulting", "business mentor"],
-            "marketing": ["marketing", "digital marketing", "social media marketing", "content creator", "branding", "sales funnel", "copywriting", "email marketing"],
-            "money_online": ["make money online", "passive income", "affiliate marketing", "dropshipping", "ecommerce", "online business", "side hustle", "financial freedom"],
-            "life_coaching": ["life coach", "life coaching", "mindset coach", "personal development", "personal growth", "motivational speaker", "manifestation", "accountability coach"],
+            "business": [
+                "business coach",
+                "entrepreneur",
+                "startup",
+                "business strategy",
+                "consulting",
+                "business mentor",
+            ],
+            "marketing": [
+                "marketing",
+                "digital marketing",
+                "social media marketing",
+                "content creator",
+                "branding",
+                "sales funnel",
+                "copywriting",
+                "email marketing",
+            ],
+            "money_online": [
+                "make money online",
+                "passive income",
+                "affiliate marketing",
+                "dropshipping",
+                "ecommerce",
+                "online business",
+                "side hustle",
+                "financial freedom",
+            ],
+            "life_coaching": [
+                "life coach",
+                "life coaching",
+                "mindset coach",
+                "personal development",
+                "personal growth",
+                "motivational speaker",
+                "manifestation",
+                "accountability coach",
+            ],
         }
         text_lower = (text or "").lower()
-        return [tag for tag, keywords in niche_keywords.items() if any(kw in text_lower for kw in keywords)]
+        return [
+            tag
+            for tag, keywords in niche_keywords.items()
+            if any(kw in text_lower for kw in keywords)
+        ]
 
 
 # --- Helpers ---

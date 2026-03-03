@@ -7,9 +7,9 @@ from app.scrapers.website import (
     WebsiteAdapter,
     _extract_email,
     _extract_social_links_from_soup,
+    _meta_content,
     _normalize_url,
     _og_content,
-    _meta_content,
 )
 
 
@@ -38,7 +38,9 @@ class TestNormalizeUrl:
 
 class TestExtractEmail:
     def test_finds_email(self):
-        assert _extract_email("Contact me at coach@fitness.com for inquiries") == "coach@fitness.com"
+        assert (
+            _extract_email("Contact me at coach@fitness.com for inquiries") == "coach@fitness.com"
+        )
 
     def test_no_email(self):
         assert _extract_email("No contact info here") is None

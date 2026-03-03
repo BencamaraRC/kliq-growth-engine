@@ -9,13 +9,13 @@ import streamlit as st
 
 st.set_page_config(page_title="Profile Detail | KLIQ Growth Engine", layout="wide")
 
-from theme import (
+from theme import (  # noqa: E402
     inject_kliq_theme,
-    sidebar_nav,
     render_brand_colors,
     render_niche_tags,
     render_platform_badge,
     render_status_badge,
+    sidebar_nav,
 )
 
 inject_kliq_theme()
@@ -80,7 +80,10 @@ try:
         bio = detail.get("bio")
         if bio:
             st.markdown("**Bio:**")
-            st.markdown(f'<p style="color:#4D5761;font-size:14px;line-height:1.6;">{bio[:500]}{"..." if len(bio) > 500 else ""}</p>', unsafe_allow_html=True)
+            st.markdown(
+                f'<p style="color:#4D5761;font-size:14px;line-height:1.6;">{bio[:500]}{"..." if len(bio) > 500 else ""}</p>',
+                unsafe_allow_html=True,
+            )
 
         # Niche tags
         tags = detail.get("niche_tags")
@@ -135,13 +138,17 @@ try:
     st.markdown("---")
 
     # --- Tabbed content sections ---
-    tabs = st.tabs(["Scraped Content", "AI-Generated Content", "Pricing", "Cross-Platform", "Email History"])
+    tabs = st.tabs(
+        ["Scraped Content", "AI-Generated Content", "Pricing", "Cross-Platform", "Email History"]
+    )
 
     # Tab 1: Scraped Content
     with tabs[0]:
         content_items = detail.get("scraped_content", [])
         if content_items:
-            st.markdown(f"**{len(content_items)} content pieces** scraped from {detail.get('primary_platform', 'platform')}")
+            st.markdown(
+                f"**{len(content_items)} content pieces** scraped from {detail.get('primary_platform', 'platform')}"
+            )
             for item in content_items[:20]:
                 title = item.get("title") or "Untitled"
                 content_type = item.get("content_type", "content")
@@ -151,11 +158,15 @@ try:
                 with st.expander(f"{content_type.title()}: {title} ({views:,} views)"):
                     if item_url:
                         st.markdown(f"**URL:** [{item_url}]({item_url})")
-                    st.markdown(f"**Views:** {views:,} | **Engagement:** {item.get('engagement_count', 0):,}")
+                    st.markdown(
+                        f"**Views:** {views:,} | **Engagement:** {item.get('engagement_count', 0):,}"
+                    )
                     if item.get("published_at"):
                         st.markdown(f"**Published:** {str(item['published_at'])[:10]}")
                     if item.get("tags"):
-                        st.markdown(f"**Tags:** {', '.join(item['tags']) if isinstance(item['tags'], list) else item['tags']}")
+                        st.markdown(
+                            f"**Tags:** {', '.join(item['tags']) if isinstance(item['tags'], list) else item['tags']}"
+                        )
                     body = item.get("body")
                     if body:
                         st.text(str(body)[:800])
@@ -189,7 +200,9 @@ try:
                                 if isinstance(parsed, dict):
                                     for k, v in parsed.items():
                                         if isinstance(v, list):
-                                            st.markdown(f"**{k.replace('_', ' ').title()}:** {', '.join(str(x) for x in v)}")
+                                            st.markdown(
+                                                f"**{k.replace('_', ' ').title()}:** {', '.join(str(x) for x in v)}"
+                                            )
                                         elif isinstance(v, str) and len(v) > 200:
                                             st.markdown(f"**{k.replace('_', ' ').title()}:**")
                                             st.markdown(v[:500])
@@ -213,9 +226,9 @@ try:
                 interval = tier.get("interval", "")
                 platform = tier.get("platform", "")
 
-                with st.expander(f"{name} — ${price/100:.2f}/{interval}" if price else name):
+                with st.expander(f"{name} — ${price / 100:.2f}/{interval}" if price else name):
                     st.markdown(f"**Platform:** {platform}")
-                    st.markdown(f"**Price:** ${price/100:.2f}" if price else "**Price:** Free")
+                    st.markdown(f"**Price:** ${price / 100:.2f}" if price else "**Price:** Free")
                     if interval:
                         st.markdown(f"**Interval:** {interval}")
                     desc = tier.get("description")
@@ -251,7 +264,12 @@ try:
     with tabs[4]:
         events = detail.get("campaign_events", [])
         if events:
-            step_names = {1: "Store Ready", 2: "Reminder 1", 3: "Reminder 2", 4: "Claimed Confirmation"}
+            step_names = {
+                1: "Store Ready",
+                2: "Reminder 1",
+                3: "Reminder 2",
+                4: "Claimed Confirmation",
+            }
             st.markdown(f"**{len(events)} email events**")
             for event in events:
                 step = step_names.get(event.get("step"), f"Step {event.get('step')}")
@@ -260,9 +278,13 @@ try:
                 opened_at = event.get("opened_at")
                 clicked_at = event.get("clicked_at")
 
-                badge = render_status_badge(email_status) if email_status in ("claimed", "rejected") else (
-                    f'<span style="display:inline-block;padding:2px 10px;border-radius:9999px;'
-                    f'font-size:12px;font-weight:500;color:#344054;background:#F2F4F7;">{email_status}</span>'
+                badge = (
+                    render_status_badge(email_status)
+                    if email_status in ("claimed", "rejected")
+                    else (
+                        f'<span style="display:inline-block;padding:2px 10px;border-radius:9999px;'
+                        f'font-size:12px;font-weight:500;color:#344054;background:#F2F4F7;">{email_status}</span>'
+                    )
                 )
 
                 timeline = f"Sent: {str(sent_at)[:16]}" if sent_at else ""
