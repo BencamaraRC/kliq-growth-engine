@@ -116,7 +116,7 @@ async def _send_step(
             )
         )
     )
-    if existing.scalar_one_or_none():
+    if existing.scalars().first():
         logger.debug(f"Step {step} already sent for prospect {prospect.id}")
         return False
 
@@ -234,7 +234,7 @@ async def _find_due_for_step(
                 )
             )
         )
-        if not existing.scalar_one_or_none():
+        if not existing.scalars().first():
             due.append((prospect, event))
 
     return due
