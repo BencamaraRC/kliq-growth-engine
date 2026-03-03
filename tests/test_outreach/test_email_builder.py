@@ -6,10 +6,10 @@ from app.outreach.email_builder import STEPS, build_outreach_email
 
 
 class TestEmailSteps:
-    """Test that all 4 email steps are configured."""
+    """Test that all 7 email steps are configured."""
 
-    def test_all_four_steps_defined(self):
-        assert set(STEPS.keys()) == {1, 2, 3, 4}
+    def test_all_steps_defined(self):
+        assert set(STEPS.keys()) == {1, 2, 3, 4, 5, 6, 7}
 
     def test_step_1_is_store_ready(self):
         assert STEPS[1]["template"] == "store_ready.html"
