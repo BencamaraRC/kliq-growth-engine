@@ -5,69 +5,118 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your KLIQ Store is Ready</title>
   <style>
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #333; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #FFFDF9; color: #333; }
     .container { max-width: 600px; margin: 0 auto; background: #fff; }
-    .header { background: {{ primary_color | default('#1E81FF') }}; padding: 32px 24px; text-align: center; }
-    .header h1 { color: #fff; margin: 0; font-size: 24px; }
+    .header { background: #1C3838; padding: 28px 24px; text-align: center; }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; font-weight: 600; }
+    .header p { color: #FF9F88; margin: 6px 0 0; font-size: 13px; font-weight: 500; }
     .body { padding: 32px 24px; }
-    .body h2 { color: #1a1a1a; font-size: 20px; margin-top: 0; }
-    .body p { line-height: 1.6; color: #555; font-size: 16px; }
-    .preview-box { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; margin: 24px 0; text-align: center; }
-    .preview-box img { max-width: 100%; border-radius: 4px; }
-    .cta-button { display: inline-block; background: {{ primary_color | default('#1E81FF') }}; color: #fff !important; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; margin: 16px 0; }
-    .features { margin: 24px 0; }
-    .features li { padding: 4px 0; color: #555; }
-    .footer { background: #f8f9fa; padding: 24px; text-align: center; font-size: 13px; color: #999; }
+    .body h2 { color: #1C3838; font-size: 20px; margin-top: 0; }
+    .body p { line-height: 1.6; color: #555; font-size: 15px; }
+    .footer { background: #F9FAFB; padding: 24px; text-align: center; font-size: 12px; color: #999; }
     .footer a { color: #999; }
   </style>
 </head>
 <body>
   <div class="container">
+    <!-- Header -->
     <div class="header">
-      <h1>Your KLIQ Store is Ready!</h1>
+      <h1>Your KLIQ Store is Ready</h1>
+      <p>Built just for you, powered by AI</p>
     </div>
+
     <div class="body">
       <h2>Hi {{ first_name }},</h2>
       <p>
-        We've been following your work on {{ platform }} and love what you're doing.
-        We built you a <strong>free KLIQ webstore</strong> based on your content —
-        it's ready to go, personalized with your branding.
+        We've been following your work on {{ platform }} and love what you're building.
+        We created a <strong>free KLIQ webstore</strong> personalized with your content and branding — and it's ready to go.
       </p>
 
-      <div class="preview-box">
-        <p style="margin: 0 0 12px; font-weight: 600; color: #333;">Your Store Preview</p>
-        <p style="font-size: 18px; color: {{ primary_color | default('#1E81FF') }}; margin: 0;">{{ store_name }}</p>
-        <p style="color: #777; margin: 4px 0 0;">{{ tagline }}</p>
+      <!-- Store Preview Card -->
+      <a href="{{ store_url }}" style="text-decoration: none; display: block;">
+        <div style="border: 1px solid #EAECF0; border-radius: 12px; overflow: hidden; margin: 24px 0; background: #FFFDF9;">
+          <!-- Phone frame mockup -->
+          <div style="background: #1C3838; padding: 16px 20px; display: flex; align-items: center; gap: 12px;">
+            {% if profile_image_url %}
+            <img src="{{ profile_image_url }}" width="48" height="48" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid #FF9F88;" />
+            {% else %}
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #FF9F88; display: flex; align-items: center; justify-content: center;">
+              <span style="color: #fff; font-size: 20px; font-weight: 600;">{{ first_name[0] | upper }}</span>
+            </div>
+            {% endif %}
+            <div>
+              <div style="color: #fff; font-size: 16px; font-weight: 600; line-height: 1.3;">{{ store_name }}</div>
+              {% if tagline %}
+              <div style="color: #FF9F88; font-size: 12px; margin-top: 2px;">{{ tagline }}</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Content summary -->
+          <div style="padding: 16px 20px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+              {% if product_count %}
+              <span style="display: inline-block; background: #FFECE7; color: #1C3838; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">{{ product_count }} Product{{ 's' if product_count > 1 }}</span>
+              {% endif %}
+              {% if blog_count %}
+              <span style="display: inline-block; background: #FFECE7; color: #1C3838; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">{{ blog_count }} Blog Post{{ 's' if blog_count > 1 }}</span>
+              {% endif %}
+              <span style="display: inline-block; background: #FFECE7; color: #1C3838; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;">About Page</span>
+            </div>
+            <div style="color: #667085; font-size: 12px; line-height: 1.5;">
+              Your store includes a branded profile, AI-generated content, and product tiers — all customized from your {{ platform }} presence.
+            </div>
+          </div>
+
+          <!-- Preview CTA -->
+          <div style="padding: 0 20px 16px; text-align: center;">
+            <span style="display: inline-block; background: #1C3838; color: #fff; padding: 10px 28px; border-radius: 8px; font-size: 14px; font-weight: 600;">See Your Store Preview</span>
+          </div>
+        </div>
+      </a>
+
+      <p>Here's what we set up for you:</p>
+      <table width="100%" cellpadding="0" cellspacing="0" style="margin: 16px 0;">
+        {% if blog_count %}
+        <tr>
+          <td width="28" style="padding: 6px 0; vertical-align: top; color: #FF9F88; font-size: 16px;">&#10003;</td>
+          <td style="padding: 6px 0; color: #555; font-size: 14px;">{{ blog_count }} blog post{{ 's' if blog_count > 1 }} converted from your best videos</td>
+        </tr>
+        {% endif %}
+        {% if product_count %}
+        <tr>
+          <td width="28" style="padding: 6px 0; vertical-align: top; color: #FF9F88; font-size: 16px;">&#10003;</td>
+          <td style="padding: 6px 0; color: #555; font-size: 14px;">{{ product_count }} product{{ 's' if product_count > 1 }} with competitive pricing</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td width="28" style="padding: 6px 0; vertical-align: top; color: #FF9F88; font-size: 16px;">&#10003;</td>
+          <td style="padding: 6px 0; color: #555; font-size: 14px;">Professional coach bio and About page</td>
+        </tr>
+        <tr>
+          <td width="28" style="padding: 6px 0; vertical-align: top; color: #FF9F88; font-size: 16px;">&#10003;</td>
+          <td style="padding: 6px 0; color: #555; font-size: 14px;">Custom branding with your colors</td>
+        </tr>
+        <tr>
+          <td width="28" style="padding: 6px 0; vertical-align: top; color: #FF9F88; font-size: 16px;">&#10003;</td>
+          <td style="padding: 6px 0; color: #555; font-size: 14px;">SEO metadata for discoverability</td>
+        </tr>
+      </table>
+
+      <!-- Claim CTA -->
+      <div style="text-align: center; margin: 28px 0 16px;">
+        <a href="{{ claim_url }}" style="display: inline-block; background: #FF9F88; color: #1C3838 !important; text-decoration: none; padding: 14px 40px; border-radius: 8px; font-size: 16px; font-weight: 700;">Claim Your Store</a>
       </div>
 
-      {% if store_url %}
-      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin: 24px 0; text-align: center;">
-        <p style="margin: 0 0 8px; font-weight: 600; color: #166534; font-size: 14px;">See your store in action</p>
-        <a href="{{ store_url }}" style="display: inline-block; background: #1C3838; color: #fff !important; text-decoration: none; padding: 10px 24px; border-radius: 6px; font-size: 14px; font-weight: 600;">Preview Your Store</a>
-      </div>
-      {% endif %}
-
-      <p>Here's what we've already set up for you:</p>
-      <ul class="features">
-        {% if blog_count %}<li>{{ blog_count }} blog post{{ 's' if blog_count > 1 }} from your video content</li>{% endif %}
-        {% if product_count %}<li>{{ product_count }} product tier{{ 's' if product_count > 1 }} ready to customize</li>{% endif %}
-        <li>Your About page with a professional coach bio</li>
-        <li>Custom branding with your colors</li>
-        <li>SEO metadata for discoverability</li>
-      </ul>
-
-      <p style="text-align: center;">
-        <a href="{{ claim_url }}" class="cta-button">Claim Your Store</a>
-      </p>
-
-      <p style="font-size: 14px; color: #777;">
-        Just set your password and your store goes live. You can then turn it into
-        a branded mobile app for your clients.
+      <p style="font-size: 13px; color: #999; text-align: center;">
+        Set your password in 30 seconds and your store goes live.<br>
+        Then turn it into a branded mobile app for your clients.
       </p>
     </div>
+
     <div class="footer">
       <p>
-        KLIQ — Empowering fitness &amp; wellness creators<br>
+        KLIQ &mdash; Empowering fitness &amp; wellness creators<br>
         <a href="{{ unsubscribe_url }}">Unsubscribe</a>
       </p>
     </div>

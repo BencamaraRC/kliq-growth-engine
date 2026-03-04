@@ -126,6 +126,27 @@ async def _send_step(
 
     preview_url = f"{settings.app_base_url}/preview/{prospect.id}"
 
+    # Load generated content counts and tagline
+    from app.db.models import GeneratedContent
+
+    gen_result = await session.execute(
+        select(GeneratedContent).where(GeneratedContent.prospect_id == prospect.id)
+    )
+    gen_records = gen_result.scalars().all()
+    blog_count = sum(1 for g in gen_records if g.content_type == "blog")
+    product_count = sum(1 for g in gen_records if g.content_type == "product")
+    tagline = ""
+    for g in gen_records:
+        if g.content_type == "bio":
+            import json as _json
+
+            try:
+                bio_data = _json.loads(g.body)
+                tagline = bio_data.get("tagline", "")
+            except (ValueError, TypeError):
+                pass
+            break
+
     email = build_outreach_email(
         step=step,
         email=prospect.email,
@@ -134,8 +155,12 @@ async def _send_step(
         platform=prospect.primary_platform.value if prospect.primary_platform else "YouTube",
         claim_token=prospect.claim_token or "",
         primary_color=primary_color,
+        tagline=tagline,
+        blog_count=blog_count,
+        product_count=product_count,
         store_url=preview_url,
         application_id=prospect.kliq_application_id,
+        profile_image_url=prospect.profile_image_url or "",
     )
 
     # Send via Brevo

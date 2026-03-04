@@ -86,6 +86,7 @@ def build_outreach_email(
     product_count: int = 0,
     store_url: str = "",
     application_id: int | None = None,
+    profile_image_url: str = "",
 ) -> BuiltEmail:
     """Build a personalized email for a specific campaign step.
 
@@ -128,6 +129,7 @@ def build_outreach_email(
         "blog_count": blog_count,
         "product_count": product_count,
         "store_url": store_url,
+        "profile_image_url": profile_image_url,
     }
 
     # Render HTML
