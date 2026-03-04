@@ -154,7 +154,7 @@ class DiscoveryOrchestrator:
         # Accept both Platform enum and string
         adapter = None
         for p, a in self.adapters.items():
-            if p == platform or p.value == platform:
+            if p == platform or p.value.upper() == str(platform).upper():
                 adapter = a
                 break
 
