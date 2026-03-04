@@ -339,8 +339,9 @@ class PermissionReference(CMSBase):
     __tablename__ = "permission_references"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    permission_module_id: Mapped[int] = mapped_column(Integer, index=True)
-    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    permission_modules_id: Mapped[int] = mapped_column(Integer, index=True)
+    code: Mapped[str] = mapped_column(String(50), default="0")
+    description: Mapped[str] = mapped_column(Text, default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 

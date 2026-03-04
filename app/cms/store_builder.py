@@ -409,7 +409,7 @@ async def _create_permission_groups(session: AsyncSession, role_id: int):
 
     for module in modules:
         refs_result = await session.execute(
-            select(PermissionReference).where(PermissionReference.permission_module_id == module.id)
+            select(PermissionReference).where(PermissionReference.permission_modules_id == module.id)
         )
         references = refs_result.scalars().all()
 
