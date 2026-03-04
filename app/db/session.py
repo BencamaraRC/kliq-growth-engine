@@ -8,7 +8,8 @@ engine = create_async_engine(
     echo=settings.app_debug and settings.app_env == "development",
     pool_size=settings.database_pool_size,
     max_overflow=settings.database_max_overflow,
-    pool_recycle=1800,
+    pool_recycle=300,
+    pool_pre_ping=True,
 )
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
@@ -17,7 +18,8 @@ cms_engine = create_async_engine(
     settings.cms_database_url,
     echo=settings.app_debug and settings.app_env == "development",
     pool_size=5,
-    pool_recycle=1800,
+    pool_recycle=300,
+    pool_pre_ping=True,
 )
 cms_session = async_sessionmaker(cms_engine, class_=AsyncSession, expire_on_commit=False)
 
