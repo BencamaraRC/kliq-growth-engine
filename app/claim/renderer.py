@@ -201,11 +201,13 @@ def render_welcome_page(
     token = prospect.get("claim_token", "")
     app_id = prospect.get("kliq_application_id")
 
-    # Use auto-login URL if token is available, otherwise fall back to regular dashboard
+    # Link to CMS dashboard — auto-login if available, otherwise login page
     if auto_login_token and app_id:
         dashboard_url = f"{settings.cms_admin_url}/auto-login?token={auto_login_token}"
+    elif app_id:
+        dashboard_url = f"{settings.cms_admin_url}"
     else:
-        dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else store_url
+        dashboard_url = store_url
     blog_count = content_counts.get("blog_count", 0)
     product_count = content_counts.get("product_count", 0)
 
