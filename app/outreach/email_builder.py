@@ -47,15 +47,9 @@ STEPS = {
         "skip_if": "content_reviewed",
     },
     6: {
-        "template": "onboarding_connect_stripe.html",
-        "subject": "{{ first_name }}, start earning with Stripe",
-        "delay_days": 3,  # +3 days after claim
-        "skip_if": "stripe_connected",
-    },
-    7: {
         "template": "onboarding_first_share.html",
         "subject": "{{ first_name }}, share with your first client",
-        "delay_days": 7,  # +7 days after claim
+        "delay_days": 3,  # +3 days after claim
         "skip_if": "first_share",
     },
 }

@@ -244,13 +244,11 @@ def render_welcome_page(
         </div>"""
 
     review_url = f"/review-content?token={token}"
-    stripe_url = f"/connect-stripe?token={token}"
 
     steps_html = f"""
     {_step(1, "Explore Your Store", "See what we've built. Review your products, blog posts, and branding.", "View Store", store_url or dashboard_url, "store_explored", 'id="view-store-btn"')}
     {_step(2, "Review Your Content", "Check your blog posts, programs, and about page. Make sure everything looks right.", "Review Content", review_url, "content_reviewed")}
-    {_step(3, "Connect Stripe", "Start accepting payments by connecting your Stripe account.", "Set Up Payments", stripe_url, "stripe_connected")}
-    {_step(4, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#", "first_share")}
+    {_step(3, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#", "first_share")}
     """
 
     # Progress bar HTML
@@ -521,97 +519,6 @@ def render_review_content_page(prospect: dict, pages: list[dict], products: list
 
     <p style="text-align:center;font-size:12px;color:{TEXT_TERTIARY};margin-top:12px;">
         You can always edit your content later from the dashboard.
-    </p>
-
-    {_FOOTER_HTML}
-</div>
-</body>
-</html>"""
-
-
-def render_stripe_connect_page(
-    prospect: dict,
-    already_connected: bool = False,
-    error: str | None = None,
-) -> str:
-    """Render the Stripe key entry form."""
-    token = prospect.get("claim_token", "")
-    store_name = prospect.get("name", "Your Store")
-
-    if already_connected:
-        return f"""{_HEAD}
-<title>Stripe Connected | KLIQ</title>
-</head>
-<body>
-<div class="card" style="text-align:center;">
-    <div class="logo"><span>KLIQ</span></div>
-    <div style="width:56px;height:56px;border-radius:50%;background:#ECFDF3;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="{POSITIVE}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-    </div>
-    <h1 style="font-size:22px;font-weight:700;color:{TEXT_PRIMARY};margin-bottom:8px;">Stripe Already Connected</h1>
-    <p style="font-size:14px;color:{TEXT_SECONDARY};line-height:150%;margin-bottom:20px;">Your Stripe account is set up for {store_name}. You're ready to accept payments.</p>
-    <a href="/welcome?token={token}" class="btn" style="display:inline-block;width:auto;">Back to Welcome</a>
-    {_FOOTER_HTML}
-</div>
-</body>
-</html>"""
-
-    error_html = ""
-    if error:
-        error_html = f'<div class="error-box">{error}</div>'
-
-    return f"""{_HEAD}
-<title>Connect Stripe | KLIQ</title>
-</head>
-<body>
-<div class="card">
-    <div class="logo"><span>KLIQ</span></div>
-
-    <div style="margin-bottom:24px;">
-        <a href="/welcome?token={token}" style="font-size:13px;color:{KLIQ_GREEN};text-decoration:none;font-weight:600;">&larr; Back to Welcome</a>
-    </div>
-
-    <h1 style="font-size:22px;font-weight:700;color:{KLIQ_GREEN};margin-bottom:4px;">Connect Stripe</h1>
-    <p style="font-size:14px;color:{TEXT_SECONDARY};margin-bottom:20px;">Enter your Stripe API keys to start accepting payments on {store_name}.</p>
-
-    <!-- Instructions -->
-    <div style="background:{SURFACE};border-radius:10px;padding:16px;margin-bottom:20px;">
-        <div style="font-weight:600;font-size:13px;color:{TEXT_PRIMARY};margin-bottom:8px;">How to find your API keys:</div>
-        <ol style="font-size:13px;color:{TEXT_SECONDARY};line-height:180%;margin:0;padding-left:18px;">
-            <li>Go to <a href="https://dashboard.stripe.com/apikeys" target="_blank" style="color:{KLIQ_GREEN};font-weight:600;text-decoration:none;">Stripe Dashboard &rarr; Developers &rarr; API Keys</a></li>
-            <li>Copy your <strong>Secret key</strong> (starts with <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px;">sk_</code>)</li>
-            <li>Paste it below</li>
-        </ol>
-    </div>
-
-    {error_html}
-
-    <form method="POST" action="/connect-stripe">
-        <input type="hidden" name="token" value="{token}" />
-
-        <div class="field">
-            <label>Stripe Secret Key *</label>
-            <input type="password" name="stripe_secret" id="sk" placeholder="sk_live_..." required />
-            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Required. Starts with sk_live_ or sk_test_</div>
-        </div>
-
-        <div class="field">
-            <label>Webhook Secret</label>
-            <input type="password" name="webhook_secret" placeholder="whsec_..." />
-            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Optional. For automatic payment confirmations.</div>
-        </div>
-
-        <div class="field">
-            <label>Account ID</label>
-            <input type="email" name="account_id" placeholder="acct_..." style="border:1px solid {BORDER};border-radius:8px;" />
-            <div style="font-size:11px;color:{TEXT_TERTIARY};margin-top:4px;">Optional. Found in Settings &rarr; Account details.</div>
-        </div>
-
-        <button type="submit" class="btn">Connect Stripe</button>
-    </form>
-
-    <p style="text-align:center;font-size:11px;color:{TEXT_TERTIARY};margin-top:12px;">
-        Your keys are encrypted and stored securely. We never share them.
     </p>
 
     {_FOOTER_HTML}

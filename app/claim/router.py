@@ -20,7 +20,6 @@ from app.claim.renderer import (
     render_claim_page,
     render_error_page,
     render_review_content_page,
-    render_stripe_connect_page,
     render_welcome_page,
 )
 from app.db.session import get_cms_db, get_db
@@ -213,93 +212,3 @@ async def review_content_submit(
     await complete_onboarding_step(growth_db, prospect["id"], "content_reviewed")
     return RedirectResponse(url=f"/welcome?token={token}", status_code=303)
 
-
-# ─── Connect Stripe ───────────────────────────────────────────────────────────
-
-
-@router.get("/connect-stripe", response_class=HTMLResponse)
-async def connect_stripe_page(
-    token: str = Query(...),
-    session: AsyncSession = Depends(get_db),
-):
-    """Serve the Stripe key entry form."""
-    prospect = await get_prospect_by_token(session, token)
-    if not prospect or prospect["status"] != "CLAIMED":
-        return HTMLResponse(
-            content=render_error_page(
-                title="Access Denied",
-                message="Please claim your store first.",
-                cta_url="https://joinkliq.io",
-                cta_text="Visit KLIQ",
-            ),
-            status_code=403,
-        )
-
-    onboarding = await get_onboarding_dict(session, prospect["id"])
-    return HTMLResponse(
-        content=render_stripe_connect_page(
-            prospect, already_connected=onboarding.get("stripe_connected", False)
-        )
-    )
-
-
-@router.post("/connect-stripe", response_class=HTMLResponse)
-async def connect_stripe_submit(
-    request: Request,
-    growth_db: AsyncSession = Depends(get_db),
-    cms_db: AsyncSession = Depends(get_cms_db),
-):
-    """Validate and save Stripe keys to CMS ApplicationSetting."""
-    from sqlalchemy import update
-
-    from app.cms.models import ApplicationSetting
-
-    form = await request.form()
-    token = form.get("token", "")
-    stripe_secret = form.get("stripe_secret", "").strip()
-    webhook_secret = form.get("webhook_secret", "").strip()
-    account_id = form.get("account_id", "").strip()
-
-    prospect = await get_prospect_by_token(growth_db, token)
-    if not prospect:
-        return HTMLResponse(
-            content=render_error_page(
-                title="Invalid Link",
-                message="This link is invalid.",
-                cta_url="https://joinkliq.io",
-                cta_text="Visit KLIQ",
-            ),
-            status_code=404,
-        )
-
-    # Validate Stripe secret key format
-    if not stripe_secret.startswith("sk_"):
-        return HTMLResponse(
-            content=render_stripe_connect_page(
-                prospect,
-                error="Stripe Secret Key must start with 'sk_'. Find it in your Stripe Dashboard > Developers > API Keys.",
-            )
-        )
-
-    # Save to CMS ApplicationSetting
-    app_id = prospect["kliq_application_id"]
-    values = {"live_api": stripe_secret}
-    if webhook_secret:
-        values["webhook_secret"] = webhook_secret
-    if account_id:
-        values["account_id"] = account_id
-
-    await cms_db.execute(
-        update(ApplicationSetting)
-        .where(
-            ApplicationSetting.application_id == app_id,
-        )
-        .values(**values)
-    )
-    await cms_db.commit()
-
-    # Mark onboarding step complete
-    await complete_onboarding_step(growth_db, prospect["id"], "stripe_connected")
-
-    logger.info(f"Stripe connected for app {app_id}")
-    return RedirectResponse(url=f"/welcome?token={token}", status_code=303)

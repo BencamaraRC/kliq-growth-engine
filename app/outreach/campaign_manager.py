@@ -269,7 +269,7 @@ async def _find_due_for_step(
 
 
 async def process_onboarding_emails(session: AsyncSession) -> dict:
-    """Send follow-up onboarding emails (steps 5-7) to claimed coaches.
+    """Send follow-up onboarding emails (steps 5-6) to claimed coaches.
 
     For each step:
     - Find claimed prospects past the delay cutoff (from claimed_at)
@@ -281,7 +281,7 @@ async def process_onboarding_emails(session: AsyncSession) -> dict:
     results = {"sent": 0, "skipped": 0, "errors": 0}
     brevo = BrevoClient()
 
-    for step_num in [5, 6, 7]:
+    for step_num in [5, 6]:
         step_config = STEPS[step_num]
         delay_days = step_config["delay_days"]
         skip_field = step_config.get("skip_if")

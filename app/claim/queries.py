@@ -65,7 +65,6 @@ ONBOARDING_STEPS = [
     "password_set",
     "store_explored",
     "content_reviewed",
-    "stripe_connected",
     "first_share",
 ]
 
@@ -91,7 +90,6 @@ async def get_onboarding_dict(session: AsyncSession, prospect_id: int) -> dict:
         "password_set": progress.password_set,
         "store_explored": progress.store_explored,
         "content_reviewed": progress.content_reviewed,
-        "stripe_connected": progress.stripe_connected,
         "first_share": progress.first_share,
         "progress_pct": progress.progress_pct,
         "started_at": progress.started_at.isoformat() if progress.started_at else None,
