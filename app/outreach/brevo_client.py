@@ -56,17 +56,20 @@ class BrevoClient:
         Returns:
             EmailResult with success status and message_id.
         """
-        email = sib_api_v3_sdk.SendSmtpEmail(
-            sender={"email": self._sender_email, "name": self._sender_name},
-            to=[{"email": to_email, "name": to_name}],
-            subject=subject,
-            html_content=html_content,
-            tags=tags or ["growth-engine"],
-            params=params or {},
-            headers={
+        kwargs = {
+            "sender": {"email": self._sender_email, "name": self._sender_name},
+            "to": [{"email": to_email, "name": to_name}],
+            "subject": subject,
+            "html_content": html_content,
+            "tags": tags or ["growth-engine"],
+            "headers": {
                 "List-Unsubscribe": f"<mailto:unsubscribe@joinkliq.io?subject=unsubscribe-{to_email}>",
             },
-        )
+        }
+        if params:
+            kwargs["params"] = params
+
+        email = sib_api_v3_sdk.SendSmtpEmail(**kwargs)
 
         try:
             response = self._api.send_transac_email(email)
