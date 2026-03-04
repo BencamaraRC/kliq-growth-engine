@@ -32,8 +32,6 @@ def _fetch_image_b64(url: str) -> str:
 def render_store_preview(
     prospect: dict,
     generated_content: list[dict],
-    *,
-    claim_cta_url: str | None = None,
 ) -> str:
     """Return complete HTML string for the animated store preview.
 
@@ -41,8 +39,6 @@ def render_store_preview(
         prospect: Dict of prospect fields (from the prospects table).
         generated_content: List of dicts from generated_content table rows.
             Each must have at least 'content_type', 'title', and 'body' keys.
-        claim_cta_url: If provided, a sticky "Claim Your Store" CTA bar is
-            appended at the bottom of the page (used for public preview route).
 
     Returns:
         Full HTML document string.
@@ -446,18 +442,7 @@ def render_store_preview(
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{text_tertiary}" stroke-width="2" style="flex-shrink:0;"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
             </div>"""
 
-    # --- Claim CTA bar (for public preview route) ---
-    claim_cta_html = ""
-    if claim_cta_url:
-        claim_cta_html = f"""
-        <div style="position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid {border_color};padding:12px 24px;display:flex;align-items:center;justify-content:center;gap:12px;z-index:100;box-shadow:0 -2px 8px rgba(0,0,0,0.08);">
-            <span style="font-size:14px;color:{text_primary};font-weight:500;">This could be your store.</span>
-            <a href="{claim_cta_url}" style="background:{kliq_green};color:#fff;border-radius:8px;padding:10px 24px;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;">Claim Your Store</a>
-        </div>
-        """
-
-    # Bottom padding if CTA is present
-    bottom_pad = "padding-bottom:70px;" if claim_cta_url else ""
+    bottom_pad = ""
 
     # --- CSS ---
     css_reset = """
@@ -890,8 +875,6 @@ def render_store_preview(
     </div>
 
 </div>
-
-{claim_cta_html}
 
 <script>
 (function(){{

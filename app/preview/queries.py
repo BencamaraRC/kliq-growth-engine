@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models import GeneratedContent, Prospect
 
 
-async def get_prospect_by_id(session: AsyncSession, prospect_id: int) -> dict | None:
-    """Fetch a prospect by ID and return as a dict, or None if not found."""
-    result = await session.execute(select(Prospect).where(Prospect.id == prospect_id))
+async def get_prospect_by_token(session: AsyncSession, token: str) -> dict | None:
+    """Fetch a prospect by claim_token and return as a dict, or None."""
+    result = await session.execute(select(Prospect).where(Prospect.claim_token == token))
     prospect = result.scalar_one_or_none()
     if not prospect:
         return None

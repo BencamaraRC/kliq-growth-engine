@@ -124,7 +124,7 @@ async def _send_step(
     colors = prospect.brand_colors or []
     primary_color = f"#{colors[0]}" if colors else "#1E81FF"
 
-    preview_url = f"{settings.app_base_url}/preview/{prospect.id}"
+    preview_url = f"{settings.app_base_url}/preview?token={prospect.claim_token}"
 
     # Load generated content counts and tagline
     from app.db.models import GeneratedContent
