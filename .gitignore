@@ -27,3 +27,5 @@ service-account.json
 .DS_Store
 
 output/
+test_cms.db
+.mcp.json

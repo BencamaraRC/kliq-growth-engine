@@ -265,8 +265,10 @@ class YouTubeAdapter(PlatformAdapter):
     async def _get_transcript(self, video_id: str) -> str:
         """Extract transcript using youtube-transcript-api (free, no quota)."""
         try:
-            transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
-            return " ".join(entry["text"] for entry in transcript_list)
+            # v1.x API: instance method fetch() returns FetchedTranscript
+            ytt = YouTubeTranscriptApi()
+            transcript = ytt.fetch(video_id)
+            return " ".join(snippet.text for snippet in transcript)
         except (TranscriptsDisabled, NoTranscriptFound, VideoUnavailable):
             logger.debug(f"No transcript available for video {video_id}")
             return ""

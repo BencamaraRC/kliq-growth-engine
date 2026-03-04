@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+from datetime import datetime
 
 from app.workers.celery_app import celery_app
 
@@ -10,8 +11,13 @@ logger = logging.getLogger(__name__)
 
 def _run_async(coro):
     """Run async code in Celery worker (sync context)."""
+    from app.db.session import cms_engine, engine
+
     loop = asyncio.new_event_loop()
     try:
+        # Dispose stale pools bound to previous event loops
+        loop.run_until_complete(engine.dispose())
+        loop.run_until_complete(cms_engine.dispose())
         return loop.run_until_complete(coro)
     finally:
         loop.close()
@@ -163,7 +169,7 @@ async def _scrape_single(platform: str, platform_id: str):
                 body=content.body,
                 url=content.url,
                 thumbnail_url=content.thumbnail_url,
-                published_at=content.published_at,
+                published_at=_parse_datetime(content.published_at),
                 view_count=content.view_count,
                 engagement_count=content.engagement_count,
                 tags=content.tags,
@@ -174,3 +180,16 @@ async def _scrape_single(platform: str, platform_id: str):
         await db.commit()
 
     return {"prospect_id": db_prospect.id, "content_count": len(prospect.all_content)}
+
+
+def _parse_datetime(value) -> datetime | None:
+    """Parse an ISO datetime string to a naive datetime object."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.replace(tzinfo=None)
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return dt.replace(tzinfo=None)
+    except (ValueError, AttributeError):
+        return None

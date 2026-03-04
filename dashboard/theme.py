@@ -355,6 +355,9 @@ def sidebar_nav():
     st.sidebar.page_link(
         "pages/store_preview.py", label="Store Preview", icon=":material/storefront:"
     )
+    st.sidebar.page_link(
+        "pages/cms_admin.py", label="CMS Admin", icon=":material/admin_panel_settings:"
+    )
     st.sidebar.markdown("---")
     st.sidebar.caption("v0.2.0 | Growth Engine")
 

@@ -31,8 +31,12 @@ logger = logging.getLogger(__name__)
 
 def _run_async(coro):
     """Bridge sync Celery tasks with async code."""
+    from app.db.session import cms_engine, engine
+
     loop = asyncio.new_event_loop()
     try:
+        loop.run_until_complete(engine.dispose())
+        loop.run_until_complete(cms_engine.dispose())
         return loop.run_until_complete(coro)
     finally:
         loop.close()

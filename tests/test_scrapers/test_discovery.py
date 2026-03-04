@@ -50,8 +50,8 @@ class TestEnrichedProspect:
         primary = self._make_profile()
         secondary = self._make_profile(platform=Platform.SKOOL)
         prospect = EnrichedProspect(primary_profile=primary, platform_profiles=[secondary])
-        assert "youtube" in prospect.platforms_found_on
-        assert "skool" in prospect.platforms_found_on
+        assert "YOUTUBE" in prospect.platforms_found_on
+        assert "SKOOL" in prospect.platforms_found_on
 
     def test_split_name(self):
         assert DiscoveryOrchestrator._split_name("John Smith") == ("John", "Smith")

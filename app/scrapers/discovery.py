@@ -117,7 +117,7 @@ class DiscoveryOrchestrator:
             List of deduplicated, enriched prospects sorted by quality.
         """
         target_adapters = (
-            {k: v for k, v in self.adapters.items() if k.value in platforms}
+            {k: v for k, v in self.adapters.items() if k.value.upper() in [p.upper() for p in platforms]}
             if platforms
             else self.adapters
         )
@@ -275,7 +275,7 @@ class DiscoveryOrchestrator:
             # Find adapter by platform name string
             adapter = None
             for p, a in self.adapters.items():
-                if p.value == platform_name:
+                if p.value.upper() == platform_name.upper():
                     adapter = a
                     break
 

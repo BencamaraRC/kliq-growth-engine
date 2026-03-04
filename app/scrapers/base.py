@@ -12,15 +12,15 @@ from typing import Optional
 
 
 class Platform(str, Enum):
-    YOUTUBE = "youtube"
-    SKOOL = "skool"
-    PATREON = "patreon"
-    WEBSITE = "website"
-    TIKTOK = "tiktok"
-    INSTAGRAM = "instagram"
-    ONLYFANS = "onlyfans"
-    KAJABI = "kajabi"
-    STAN = "stan"
+    YOUTUBE = "YOUTUBE"
+    SKOOL = "SKOOL"
+    PATREON = "PATREON"
+    WEBSITE = "WEBSITE"
+    TIKTOK = "TIKTOK"
+    INSTAGRAM = "INSTAGRAM"
+    ONLYFANS = "ONLYFANS"
+    KAJABI = "KAJABI"
+    STAN = "STAN"
 
 
 @dataclass
