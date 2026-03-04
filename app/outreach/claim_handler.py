@@ -114,20 +114,20 @@ async def activate_store(
     auto_login_token = secrets.token_hex(64)
     auto_login_expires = datetime.utcnow() + timedelta(minutes=30)
 
-    # 1. Activate the CMS user
+    # 1. Activate the CMS user (match by application_id; email may be a placeholder)
+    user_updates = {
+        "password": hashed_password,
+        "status_id": STATUS_ACTIVE,
+        "is_email_verified": True,
+        "auto_login_token": auto_login_token,
+        "auto_login_token_expires_at": auto_login_expires,
+    }
+    if prospect.email:
+        user_updates["email"] = prospect.email
     await cms_db.execute(
         update(CMSUser)
-        .where(
-            CMSUser.application_id == app_id,
-            CMSUser.email == prospect.email,
-        )
-        .values(
-            password=hashed_password,
-            status_id=STATUS_ACTIVE,
-            is_email_verified=True,
-            auto_login_token=auto_login_token,
-            auto_login_token_expires_at=auto_login_expires,
-        )
+        .where(CMSUser.application_id == app_id)
+        .values(**user_updates)
     )
 
     # 2. Activate the application
@@ -154,7 +154,7 @@ async def activate_store(
     onboarding = OnboardingProgress(
         prospect_id=prospect.id,
         password_set=True,
-        progress_pct=20,
+        progress_pct=25,
     )
     growth_db.add(onboarding)
 
