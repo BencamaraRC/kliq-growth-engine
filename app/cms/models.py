@@ -233,7 +233,7 @@ class Role(CMSBase):
 class ApplicationRole(CMSBase):
     """Links roles to applications (pivot table)."""
 
-    __tablename__ = "application_roles"
+    __tablename__ = "role_applications"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     application_id: Mapped[int] = mapped_column(Integer, index=True)
