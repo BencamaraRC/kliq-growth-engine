@@ -361,6 +361,165 @@ def get_recent_claims(limit: int = 20) -> pd.DataFrame:
     )
 
 
+def get_prospects_for_operations(
+    status: str | None = None,
+    platform: str | None = None,
+    search: str | None = None,
+    limit: int = 100,
+) -> pd.DataFrame:
+    """Prospects list for the operations page, includes claim_token for preview URLs."""
+    where, params = _build_prospect_filters(status=status, platform=platform, search=search)
+    params["limit"] = limit
+
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(f"""
+                SELECT id, name, email, status, primary_platform,
+                       follower_count, claim_token, kliq_store_url, discovered_at
+                FROM prospects
+                {where}
+                ORDER BY discovered_at DESC
+                LIMIT :limit
+            """),
+            params,
+        ).fetchall()
+
+    return pd.DataFrame(
+        result,
+        columns=[
+            "id", "name", "email", "status", "platform",
+            "followers", "claim_token", "store_url", "discovered",
+        ],
+    )
+
+
+def get_status_counts() -> dict[str, int]:
+    """Count of prospects per status (for batch operation buttons)."""
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("SELECT status, COUNT(*) as cnt FROM prospects GROUP BY status")
+        ).fetchall()
+    return {row[0]: row[1] for row in rows}
+
+
+def get_recent_task_prospects(limit: int = 10) -> pd.DataFrame:
+    """Most recently updated prospects for the activity feed."""
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("""
+                SELECT id, name, status, primary_platform, updated_at
+                FROM prospects
+                ORDER BY updated_at DESC
+                LIMIT :limit
+            """),
+            {"limit": limit},
+        ).fetchall()
+    return pd.DataFrame(
+        result,
+        columns=["id", "name", "status", "platform", "updated_at"],
+    )
+
+
+def get_linkedin_queue(
+    status: str | None = None,
+    search: str | None = None,
+    limit: int = 100,
+) -> pd.DataFrame:
+    """Prospects with LinkedIn URLs and their outreach status."""
+    conditions = ["p.linkedin_found = TRUE"]
+    params: dict = {"limit": limit}
+
+    if status:
+        if status.upper() == "QUEUED":
+            conditions.append("lo.id IS NULL")
+        else:
+            conditions.append("lo.status = :status")
+            params["status"] = status.upper()
+    if search:
+        conditions.append("(p.name ILIKE :search OR p.email ILIKE :search)")
+        params["search"] = f"%{search}%"
+
+    where = "WHERE " + " AND ".join(conditions)
+
+    with engine.connect() as conn:
+        result = conn.execute(
+            text(f"""
+                SELECT
+                    p.id, p.name, p.email, p.niche_tags, p.linkedin_url,
+                    p.follower_count,
+                    COALESCE(lo.status, 'QUEUED') as outreach_status,
+                    lo.connection_note, lo.sent_at, lo.accepted_at
+                FROM prospects p
+                LEFT JOIN linkedin_outreach lo ON lo.prospect_id = p.id
+                {where}
+                ORDER BY p.discovered_at DESC
+                LIMIT :limit
+            """),
+            params,
+        ).fetchall()
+
+    return pd.DataFrame(
+        result,
+        columns=[
+            "id", "name", "email", "niches", "linkedin_url",
+            "followers", "outreach_status", "connection_note",
+            "sent_at", "accepted_at",
+        ],
+    )
+
+
+def get_linkedin_stats() -> dict:
+    """LinkedIn outreach aggregate statistics."""
+    with engine.connect() as conn:
+        total = conn.execute(
+            text("SELECT COUNT(*) FROM prospects WHERE linkedin_found = TRUE")
+        ).scalar() or 0
+
+        status_rows = conn.execute(
+            text("SELECT status, COUNT(*) FROM linkedin_outreach GROUP BY status")
+        ).fetchall()
+
+    status_counts = {row[0]: row[1] for row in status_rows}
+    outreach_total = sum(status_counts.values())
+
+    sent = (
+        status_counts.get("SENT", 0)
+        + status_counts.get("ACCEPTED", 0)
+        + status_counts.get("DECLINED", 0)
+        + status_counts.get("NO_RESPONSE", 0)
+    )
+    accepted = status_counts.get("ACCEPTED", 0)
+
+    return {
+        "total_with_linkedin": total,
+        "queued": total - outreach_total,
+        "copied": status_counts.get("COPIED", 0),
+        "sent": status_counts.get("SENT", 0),
+        "accepted": accepted,
+        "declined": status_counts.get("DECLINED", 0),
+        "no_response": status_counts.get("NO_RESPONSE", 0),
+        "accept_rate": round(accepted / sent * 100, 1) if sent > 0 else 0.0,
+    }
+
+
+def get_linkedin_outreach_detail(prospect_id: int) -> dict | None:
+    """Single prospect LinkedIn outreach record."""
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT lo.*, p.name, p.email, p.linkedin_url, p.niche_tags
+                FROM linkedin_outreach lo
+                JOIN prospects p ON p.id = lo.prospect_id
+                WHERE lo.prospect_id = :id
+            """),
+            {"id": prospect_id},
+        ).fetchone()
+
+    if not row:
+        return None
+    return dict(row._mapping)
+
+
 def get_prospect_detail(prospect_id: int) -> dict | None:
     """Full prospect detail for the intel page."""
     with engine.connect() as conn:

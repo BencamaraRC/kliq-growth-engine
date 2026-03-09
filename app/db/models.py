@@ -68,6 +68,15 @@ class EmailStatus(str, enum.Enum):
     UNSUBSCRIBED = "UNSUBSCRIBED"
 
 
+class LinkedInOutreachStatus(str, enum.Enum):
+    QUEUED = "QUEUED"
+    COPIED = "COPIED"
+    SENT = "SENT"
+    ACCEPTED = "ACCEPTED"
+    DECLINED = "DECLINED"
+    NO_RESPONSE = "NO_RESPONSE"
+
+
 # --- Models ---
 
 
@@ -98,6 +107,8 @@ class Prospect(Base):
     banner_image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     website_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     social_links: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    linkedin_found: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     niche_tags: Mapped[list | None] = mapped_column(JSON, nullable=True)
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
@@ -130,6 +141,9 @@ class Prospect(Base):
     campaign_events: Mapped[list["CampaignEvent"]] = relationship(back_populates="prospect")
     platform_profiles: Mapped[list["PlatformProfile"]] = relationship(back_populates="prospect")
     onboarding_progress: Mapped["OnboardingProgress | None"] = relationship(
+        back_populates="prospect", uselist=False
+    )
+    linkedin_outreach: Mapped["LinkedInOutreach | None"] = relationship(
         back_populates="prospect", uselist=False
     )
 
@@ -285,3 +299,30 @@ class OnboardingProgress(Base):
     )
 
     prospect: Mapped["Prospect"] = relationship(back_populates="onboarding_progress")
+
+
+class LinkedInOutreach(Base):
+    """Tracks LinkedIn connection outreach for a prospect."""
+
+    __tablename__ = "linkedin_outreach"
+    __table_args__ = (UniqueConstraint("prospect_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    prospect_id: Mapped[int] = mapped_column(ForeignKey("prospects.id"), unique=True)
+    status: Mapped[LinkedInOutreachStatus] = mapped_column(
+        Enum(LinkedInOutreachStatus), default=LinkedInOutreachStatus.QUEUED
+    )
+    connection_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    linkedin_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # Timestamps for each stage
+    copied_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    prospect: Mapped["Prospect"] = relationship(back_populates="linkedin_outreach")

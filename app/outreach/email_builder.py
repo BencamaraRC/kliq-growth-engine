@@ -26,6 +26,8 @@ PLATFORM_INITIAL_TEMPLATES = {
     "PATREON": "initial_patreon.html",
     "YOUTUBE": "initial_youtube.html",
     "KAJABI": "initial_kajabi.html",
+    # ICF-certified coaches (LinkedIn outreach)
+    "ICF": "initial_icf.html",
     # Subscription platforms (OnlyFans, Stan, Fansly, etc.)
     "ONLYFANS": "initial_subscription.html",
     "STAN": "initial_subscription.html",
@@ -40,12 +42,14 @@ PLATFORM_INITIAL_SUBJECTS = {
     "PATREON": "Your Patreon supporters deserve your own platform, {{ first_name }}",
     "YOUTUBE": "Your YouTube content is worth more than ad revenue, {{ first_name }}",
     "KAJABI": "Same features, plus a branded app, for a fraction of the cost, {{ first_name }}",
+    # ICF-certified coaches (LinkedIn outreach)
+    "ICF": "Great connecting on LinkedIn, {{ first_name }} — your coaching deserves its own app",
     # Subscription platforms — niche-driven subject
-    "ONLYFANS": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
-    "STAN": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
-    "TIKTOK": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
-    "INSTAGRAM": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
-    "WEBSITE": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+    "ONLYFANS": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
+    "STAN": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
+    "TIKTOK": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
+    "INSTAGRAM": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
+    "WEBSITE": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
 }
 
 # Email step configuration: 7 pre-claim + 1 claim + 2 onboarding = 10 total
@@ -189,6 +193,7 @@ def build_outreach_email(
     profile_image_url: str = "",
     niche: str = "",
     view_count: int = 0,
+    is_icf: bool = False,
 ) -> BuiltEmail:
     """Build a personalized email for a specific campaign step.
 
@@ -262,13 +267,17 @@ def build_outreach_email(
         "ai_niche_hook": ai_niche_hook,
     }
 
-    # Resolve template — Step 1 is platform-specific
+    # Resolve template — Step 1 is platform-specific (ICF overrides platform)
     if step == 1:
-        template_name = PLATFORM_INITIAL_TEMPLATES.get(platform_key, "initial_youtube.html")
-        subject_template_str = PLATFORM_INITIAL_SUBJECTS.get(
-            platform_key,
-            "Your {{ niche }} content deserves its own platform, {{ first_name }}",
-        )
+        if is_icf:
+            template_name = PLATFORM_INITIAL_TEMPLATES["ICF"]
+            subject_template_str = PLATFORM_INITIAL_SUBJECTS["ICF"]
+        else:
+            template_name = PLATFORM_INITIAL_TEMPLATES.get(platform_key, "initial_youtube.html")
+            subject_template_str = PLATFORM_INITIAL_SUBJECTS.get(
+                platform_key,
+                "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+            )
     else:
         template_name = step_config["template"]
         subject_template_str = step_config["subject"]

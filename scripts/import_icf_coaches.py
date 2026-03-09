@@ -123,6 +123,19 @@ def extract_platform_id(profile_url: str) -> str:
     return match.group(1) if match else ""
 
 
+def build_linkedin_search_url(first_name: str, last_name: str) -> str:
+    """Build a LinkedIn search URL from the coach's name.
+
+    Since we don't have their exact profile URL, we link to a LinkedIn
+    search that will typically surface them as the top result.
+    """
+    if not first_name or not last_name:
+        return ""
+    query = f"{first_name} {last_name}".strip()
+    from urllib.parse import quote_plus
+    return f"https://www.linkedin.com/search/results/people/?keywords={quote_plus(query)}"
+
+
 async def import_coaches(csv_path: str, db_url: str):
     """Read CSV and insert prospects."""
     engine = create_async_engine(db_url)
@@ -206,6 +219,9 @@ async def import_coaches(csv_path: str, db_url: str):
             if profile_url:
                 extra_data["icf_profile_url"] = profile_url
 
+            # Build LinkedIn search URL from name
+            linkedin_url = build_linkedin_search_url(first_name, last_name)
+
             try:
                 await session.execute(
                     text("""
@@ -214,6 +230,7 @@ async def import_coaches(csv_path: str, db_url: str):
                             primary_platform, primary_platform_id, primary_platform_url,
                             website_url, location, niche_tags, bio,
                             social_links,
+                            linkedin_url, linkedin_found,
                             follower_count, subscriber_count, content_count,
                             status
                         ) VALUES (
@@ -221,6 +238,7 @@ async def import_coaches(csv_path: str, db_url: str):
                             CAST('WEBSITE' AS platform), :pid, :purl,
                             :website, :location, CAST(:niche AS jsonb), :bio,
                             CAST(:social AS json),
+                            :linkedin_url, :linkedin_found,
                             0, 0, 0,
                             CAST('DISCOVERED' AS prospectstatus)
                         )
@@ -237,6 +255,8 @@ async def import_coaches(csv_path: str, db_url: str):
                         "niche": json.dumps(niche_tags),
                         "bio": bio or None,
                         "social": json.dumps(extra_data) if extra_data else None,
+                        "linkedin_url": linkedin_url or None,
+                        "linkedin_found": bool(linkedin_url),
                     },
                 )
                 existing_emails.add(email.lower())

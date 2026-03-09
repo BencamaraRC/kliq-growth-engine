@@ -358,6 +358,12 @@ def sidebar_nav():
     st.sidebar.page_link(
         "pages/cms_admin.py", label="CMS Admin", icon=":material/admin_panel_settings:"
     )
+    st.sidebar.page_link("pages/operations.py", label="Operations", icon=":material/terminal:")
+    st.sidebar.page_link(
+        "pages/linkedin_outreach.py",
+        label="LinkedIn Outreach",
+        icon=":material/share:",
+    )
     st.sidebar.markdown("---")
     st.sidebar.caption("v0.2.0 | Growth Engine")
 

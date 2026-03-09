@@ -232,6 +232,11 @@ async def _send_step(
             )
             return False
 
+    # Detect ICF coaches via social_links credentials
+    is_icf = False
+    if prospect.social_links and isinstance(prospect.social_links, dict):
+        is_icf = bool(prospect.social_links.get("icf_credentials"))
+
     email = build_outreach_email(
         step=step,
         email=prospect.email,
@@ -248,6 +253,7 @@ async def _send_step(
         profile_image_url=prospect.profile_image_url or "",
         niche=niche,
         view_count=view_count,
+        is_icf=is_icf,
     )
 
     # Send via Brevo
