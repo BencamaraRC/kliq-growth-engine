@@ -20,19 +20,76 @@ def _fetch_image_b64(url: str) -> str:
         req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = resp.read()
-            mime = resp.headers.get("Content-Type", "image/jpeg")
+            # Guard against empty responses or non-image content
+            content_type = resp.headers.get("Content-Type", "")
+            if not data or "image" not in content_type:
+                return ""
+            mime = content_type.split(";")[0].strip() or "image/jpeg"
             result = f"data:{mime};base64,{base64.b64encode(data).decode()}"
             _img_cache[url] = result
             return result
     except Exception:
-        _img_cache[url] = ""
+        # Don't cache failures — allow retry on next render
         return ""
+
+
+def _find_banner_from_profiles(platform_profiles: list[dict], social_links: dict) -> str:
+    """Search platform profiles and social links for a usable banner image.
+
+    Checks raw_data in platform_profiles for banner/cover/header image keys,
+    then tries well-known banner URL patterns for YouTube channels.
+    """
+    # 1. Check raw_data in platform_profiles for image keys
+    banner_keys = [
+        "banner_image_url", "cover_image_url", "header_image_url",
+        "banner_url", "cover_url", "header_url", "cover_image",
+        "banner_image", "header_image", "bannerExternalUrl",
+        "brandingSettings.image.bannerExternalUrl",
+    ]
+    for profile in platform_profiles:
+        raw = profile.get("raw_data")
+        if not raw:
+            continue
+        if isinstance(raw, str):
+            try:
+                raw = json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                continue
+        if isinstance(raw, dict):
+            for key in banner_keys:
+                val = raw.get(key)
+                if val and isinstance(val, str) and val.startswith("http"):
+                    img = _fetch_image_b64(val)
+                    if img:
+                        return img
+            # Check nested branding (YouTube API format)
+            branding = raw.get("brandingSettings", {})
+            if isinstance(branding, dict):
+                banner = branding.get("image", {}).get("bannerExternalUrl", "")
+                if banner:
+                    img = _fetch_image_b64(banner)
+                    if img:
+                        return img
+
+    # 2. Try YouTube channel banner via platform_url or social links
+    yt_url = None
+    for profile in platform_profiles:
+        if profile.get("platform", "").upper() == "YOUTUBE" and profile.get("platform_url"):
+            yt_url = profile["platform_url"]
+            break
+    if not yt_url and social_links:
+        yt_url = social_links.get("youtube", "")
+
+    # 3. Try fetching banner from platform profile pages isn't reliable without API,
+    #    but we can try the profile image as a last resort for a background
+    return ""
 
 
 def render_store_preview(
     prospect: dict,
     generated_content: list[dict],
     claim_url: str | None = None,
+    platform_profiles: list[dict] | None = None,
 ) -> str:
     """Return complete HTML string for the animated store preview.
 
@@ -42,6 +99,8 @@ def render_store_preview(
             Each must have at least 'content_type', 'title', and 'body' keys.
         claim_url: Optional URL to the claim page. When provided, a floating
             "Claim Your Store for FREE" banner is shown at the bottom.
+        platform_profiles: Optional list of platform profile dicts (from
+            platform_profiles table) to search for banner images.
 
     Returns:
         Full HTML document string.
@@ -106,8 +165,18 @@ def render_store_preview(
     profile_img = prospect.get("profile_image_url", "")
     banner_img_url = prospect.get("banner_image_url", "")
 
-    # Build hero banner
+    # Build hero banner — try primary URL first, then search other platforms
     banner_b64 = _fetch_image_b64(banner_img_url) if banner_img_url else ""
+    if not banner_b64:
+        social_links = prospect.get("social_links", {})
+        if isinstance(social_links, str):
+            try:
+                social_links = json.loads(social_links)
+            except (json.JSONDecodeError, TypeError):
+                social_links = {}
+        banner_b64 = _find_banner_from_profiles(
+            platform_profiles or [], social_links or {}
+        )
     has_banner = bool(banner_b64)
 
     # Niche tags
@@ -426,6 +495,18 @@ def render_store_preview(
             background:{kliq_green}; display:flex; align-items:center; justify-content:center;
             margin-top:-40px; position:relative; z-index:2;
         }}
+        .profile-avatar-no-banner {{
+            width:80px; height:80px; border-radius:50%; flex-shrink:0;
+            border:3px solid #fff; box-shadow:{shadow_sm};
+            object-fit:cover; display:block;
+            margin-top:0; position:relative; z-index:2;
+        }}
+        .profile-avatar-placeholder-no-banner {{
+            width:80px; height:80px; border-radius:50%; flex-shrink:0;
+            border:3px solid #fff; box-shadow:{shadow_sm};
+            background:{kliq_green}; display:flex; align-items:center; justify-content:center;
+            margin-top:0; position:relative; z-index:2;
+        }}
         .profile-name {{
             display:flex; flex-direction:column; gap:4px; padding:8px 0;
         }}
@@ -550,27 +631,23 @@ def render_store_preview(
         </div>
     </div>
 
-    <!-- HERO BANNER (full-width, edge-to-edge) -->
-    <div class="hero-banner">
-        {
-        f'<img src="{banner_b64}" />'
-        if has_banner
-        else f'<div style="width:100%;height:100%;background:linear-gradient(135deg,{kliq_green} 0%,#2a5555 50%,{kliq_green} 100%);"></div>'
-    }
+    <!-- HERO BANNER (only if image is available) -->
+    {
+        f"""<div class="hero-banner">
+        <img src="{banner_b64}" />
         <div class="hero-gradient"></div>
-        {
-        ""
-        if not niche_pills_html
-        else f'<div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:2;">{niche_pills_html}</div>'
+        {f'<div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:2;">{niche_pills_html}</div>' if niche_pills_html else ''}
+    </div>"""
+        if has_banner
+        else (f'<div style="padding:8px 12px;display:flex;flex-wrap:wrap;gap:6px;">{niche_pills_html}</div>' if niche_pills_html else '')
     }
-    </div>
 
-    <!-- PROFILE (avatar overlaps banner bottom-left) -->
-    <div class="profile-section">
+    <!-- PROFILE -->
+    <div class="profile-section" {"" if has_banner else 'style="padding-top:12px;"'}>
         {
-        f'<img class="profile-avatar" src="{profile_b64}" />'
+        f'<img class="{"profile-avatar" if has_banner else "profile-avatar-no-banner"}" src="{profile_b64}" />'
         if profile_b64
-        else f'<div class="profile-avatar-placeholder"><span style="font-size:28px;font-weight:600;color:#fff;line-height:1;">{initial}</span></div>'
+        else f'<div class="{"profile-avatar-placeholder" if has_banner else "profile-avatar-placeholder-no-banner"}"><span style="font-size:28px;font-weight:600;color:#fff;line-height:1;">{initial}</span></div>'
     }
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div class="profile-name">

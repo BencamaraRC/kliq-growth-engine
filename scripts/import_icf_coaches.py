@@ -133,6 +133,7 @@ def build_linkedin_search_url(first_name: str, last_name: str) -> str:
         return ""
     query = f"{first_name} {last_name}".strip()
     from urllib.parse import quote_plus
+
     return f"https://www.linkedin.com/search/results/people/?keywords={quote_plus(query)}"
 
 

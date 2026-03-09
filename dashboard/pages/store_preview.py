@@ -78,6 +78,11 @@ try:
             {"id": prospect_id},
         ).fetchall()
 
+        profiles = conn.execute(
+            text("SELECT * FROM platform_profiles WHERE prospect_id = :id"),
+            {"id": prospect_id},
+        ).fetchall()
+
     # Convert rows to list of dicts for the renderer
     generated_content = []
     for row in generated:
@@ -90,8 +95,14 @@ try:
             }
         )
 
+    platform_profiles = [dict(row._mapping) for row in profiles]
+
     # Render the store preview HTML using the shared renderer
-    full_html = render_store_preview(prospect=prospect, generated_content=generated_content)
+    full_html = render_store_preview(
+        prospect=prospect,
+        generated_content=generated_content,
+        platform_profiles=platform_profiles,
+    )
 
     # Render as a full-screen iframe component
     components.html(full_html, height=3200, scrolling=True)

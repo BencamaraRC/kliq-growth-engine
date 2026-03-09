@@ -69,16 +69,12 @@ def _build_connection_note(prospect: Prospect) -> str:
     return note
 
 
-async def generate_connection_note(
-    session: AsyncSession, prospect_id: int
-) -> dict:
+async def generate_connection_note(session: AsyncSession, prospect_id: int) -> dict:
     """Generate a connection note for a prospect and create/update the outreach record.
 
     Returns dict with connection_note, linkedin_url, and status.
     """
-    result = await session.execute(
-        select(Prospect).where(Prospect.id == prospect_id)
-    )
+    result = await session.execute(select(Prospect).where(Prospect.id == prospect_id))
     prospect = result.scalar_one_or_none()
     if not prospect:
         raise ValueError(f"Prospect {prospect_id} not found")
@@ -121,9 +117,7 @@ async def generate_connection_note(
     }
 
 
-async def update_outreach_status(
-    session: AsyncSession, prospect_id: int, new_status: str
-) -> dict:
+async def update_outreach_status(session: AsyncSession, prospect_id: int, new_status: str) -> dict:
     """Update the outreach status for a prospect.
 
     When status is ACCEPTED, triggers the ICF email sequence.
@@ -166,9 +160,7 @@ async def _trigger_icf_email(session: AsyncSession, prospect_id: int) -> bool:
     from app.outreach.brevo_client import BrevoClient
     from app.outreach.campaign_manager import _send_step
 
-    result = await session.execute(
-        select(Prospect).where(Prospect.id == prospect_id)
-    )
+    result = await session.execute(select(Prospect).where(Prospect.id == prospect_id))
     prospect = result.scalar_one_or_none()
     if not prospect or not prospect.email:
         logger.warning(
@@ -216,20 +208,22 @@ async def get_linkedin_queue(
         if prospect.niche_tags and isinstance(prospect.niche_tags, list):
             niche = prospect.niche_tags[0] if prospect.niche_tags else ""
 
-        queue.append({
-            "id": prospect.id,
-            "name": prospect.name,
-            "email": prospect.email,
-            "niche": niche,
-            "linkedin_url": prospect.linkedin_url,
-            "follower_count": prospect.follower_count,
-            "status": outreach.status.value if outreach else "QUEUED",
-            "connection_note": outreach.connection_note if outreach else None,
-            "sent_at": outreach.sent_at.isoformat() if outreach and outreach.sent_at else None,
-            "accepted_at": (
-                outreach.accepted_at.isoformat() if outreach and outreach.accepted_at else None
-            ),
-        })
+        queue.append(
+            {
+                "id": prospect.id,
+                "name": prospect.name,
+                "email": prospect.email,
+                "niche": niche,
+                "linkedin_url": prospect.linkedin_url,
+                "follower_count": prospect.follower_count,
+                "status": outreach.status.value if outreach else "QUEUED",
+                "connection_note": outreach.connection_note if outreach else None,
+                "sent_at": outreach.sent_at.isoformat() if outreach and outreach.sent_at else None,
+                "accepted_at": (
+                    outreach.accepted_at.isoformat() if outreach and outreach.accepted_at else None
+                ),
+            }
+        )
 
     return queue
 
@@ -254,7 +248,12 @@ async def get_linkedin_stats(session: AsyncSession) -> dict:
     outreach_total = sum(status_counts.values())
     queued = total_with_linkedin - outreach_total
 
-    sent = status_counts.get("SENT", 0) + status_counts.get("ACCEPTED", 0) + status_counts.get("DECLINED", 0) + status_counts.get("NO_RESPONSE", 0)
+    sent = (
+        status_counts.get("SENT", 0)
+        + status_counts.get("ACCEPTED", 0)
+        + status_counts.get("DECLINED", 0)
+        + status_counts.get("NO_RESPONSE", 0)
+    )
     accepted = status_counts.get("ACCEPTED", 0)
     accept_rate = round(accepted / sent * 100, 1) if sent > 0 else 0.0
 

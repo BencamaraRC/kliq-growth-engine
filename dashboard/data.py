@@ -387,8 +387,15 @@ def get_prospects_for_operations(
     return pd.DataFrame(
         result,
         columns=[
-            "id", "name", "email", "status", "platform",
-            "followers", "claim_token", "store_url", "discovered",
+            "id",
+            "name",
+            "email",
+            "status",
+            "platform",
+            "followers",
+            "claim_token",
+            "store_url",
+            "discovered",
         ],
     )
 
@@ -461,9 +468,16 @@ def get_linkedin_queue(
     return pd.DataFrame(
         result,
         columns=[
-            "id", "name", "email", "niches", "linkedin_url",
-            "followers", "outreach_status", "connection_note",
-            "sent_at", "accepted_at",
+            "id",
+            "name",
+            "email",
+            "niches",
+            "linkedin_url",
+            "followers",
+            "outreach_status",
+            "connection_note",
+            "sent_at",
+            "accepted_at",
         ],
     )
 
@@ -471,9 +485,12 @@ def get_linkedin_queue(
 def get_linkedin_stats() -> dict:
     """LinkedIn outreach aggregate statistics."""
     with engine.connect() as conn:
-        total = conn.execute(
-            text("SELECT COUNT(*) FROM prospects WHERE linkedin_found = TRUE")
-        ).scalar() or 0
+        total = (
+            conn.execute(
+                text("SELECT COUNT(*) FROM prospects WHERE linkedin_found = TRUE")
+            ).scalar()
+            or 0
+        )
 
         status_rows = conn.execute(
             text("SELECT status, COUNT(*) FROM linkedin_outreach GROUP BY status")

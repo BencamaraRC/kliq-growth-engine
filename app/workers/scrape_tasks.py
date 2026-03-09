@@ -79,6 +79,16 @@ async def _discover_coaches(
             existing = result.scalar_one_or_none()
             if existing:
                 continue
+            # Also skip if previously rejected (different platform_id but same email)
+            if prospect.email:
+                rejected_check = await db.execute(
+                    select(Prospect).where(
+                        Prospect.email == prospect.email,
+                        Prospect.status == ProspectStatus.REJECTED,
+                    )
+                )
+                if rejected_check.scalar_one_or_none():
+                    continue
 
             db_prospect = Prospect(
                 status=ProspectStatus.DISCOVERED,
@@ -203,6 +213,9 @@ async def _scrape_existing_prospect(prospect_id: int):
         prospect = await db.get(Prospect, prospect_id)
         if not prospect:
             raise ValueError(f"Prospect {prospect_id} not found")
+        if prospect.status == ProspectStatus.REJECTED:
+            logger.info(f"Prospect {prospect_id} is REJECTED, skipping scrape")
+            return {"prospect_id": prospect_id, "content_count": 0, "skipped": True}
         if prospect.status not in (ProspectStatus.DISCOVERED,):
             logger.info(f"Prospect {prospect_id} already {prospect.status.value}, skipping scrape")
             return {"prospect_id": prospect_id, "content_count": 0, "skipped": True}
