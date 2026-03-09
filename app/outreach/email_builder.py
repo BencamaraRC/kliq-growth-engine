@@ -45,11 +45,11 @@ PLATFORM_INITIAL_SUBJECTS = {
     # ICF-certified coaches (LinkedIn outreach)
     "ICF": "Great connecting on LinkedIn, {{ first_name }} — your coaching deserves its own app",
     # Subscription platforms — niche-driven subject
-    "ONLYFANS": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
-    "STAN": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
-    "TIKTOK": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
-    "INSTAGRAM": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
-    "WEBSITE": "Your {{ ai_niche }} content deserves its own platform, {{ first_name }}",
+    "ONLYFANS": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+    "STAN": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+    "TIKTOK": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+    "INSTAGRAM": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
+    "WEBSITE": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
 }
 
 # Email step configuration: 7 pre-claim + 1 claim + 2 onboarding = 10 total
