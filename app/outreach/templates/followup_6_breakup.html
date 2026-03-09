@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#FFFDF9; color:#333; }
+    .container { max-width:600px; margin:0 auto; background:#fff; padding:32px 24px; }
+    p { line-height:1.7; font-size:15px; color:#333; margin:0 0 16px; }
+    a { color:#1C3838; }
+    .preview-link { display:block; color:#FF9F88; font-weight:600; font-size:15px; text-decoration:none; margin:20px 0; }
+    .sig { margin-top:24px; font-size:14px; color:#555; line-height:1.6; }
+    .sig strong { color:#1C3838; }
+    .footer { max-width:600px; margin:0 auto; padding:16px 24px; text-align:center; font-size:12px; color:#999; border-top:1px solid #f0f0f0; }
+    .footer a { color:#999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi {{ first_name }},</p>
+
+    <p>I've reached out a few times and I completely understand if the timing isn't right or KLIQ isn't what you need right now. No hard feelings at all.</p>
+
+    <p>I'll leave your store preview live for a while longer in case you ever want to take a look. <a href="{{ preview_url }}">Preview Your {{ store_name }} here</a></p>
+
+    <p>If anything changes, or if you'd ever like to chat about where your coaching business is heading, my inbox is always open.</p>
+
+    <p>Wishing you all the best with everything you're building. It's impressive.</p>
+
+    <div class="sig">
+      Many thanks,<br>
+      <strong>Ben</strong>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#FFFDF9; color:#333; }
+    .container { max-width:600px; margin:0 auto; background:#fff; padding:32px 24px; }
+    p { line-height:1.7; font-size:15px; color:#333; margin:0 0 16px; }
+    a { color:#1C3838; }
+    .preview-link { display:block; color:#FF9F88; font-weight:600; font-size:15px; text-decoration:none; margin:20px 0; }
+    .sig { margin-top:24px; font-size:14px; color:#555; line-height:1.6; }
+    .sig strong { color:#1C3838; }
+    .footer { max-width:600px; margin:0 auto; padding:16px 24px; text-align:center; font-size:12px; color:#999; border-top:1px solid #f0f0f0; }
+    .footer a { color:#999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi {{ first_name }},</p>
+
+    <p>Good afternoon. Hope this email finds you well, and more importantly sparks enough interest that we can jump on a quick call.</p>
+
+    <p>I came across your Skool community and was really impressed by what you've built. The engagement you're getting from your members is clearly the result of great content and real expertise.</p>
+
+    <p>I'd love to connect about a potential partnership with you and your coaching business. I'm the founder of KLIQ, a platform that gives coaches their own branded mobile app to house content, courses, community, live streaming, and more.</p>
+
+    <p>Here's why I'm reaching out to you specifically. We've been looking at coaches on Skool who have strong communities but are limited by the platform. No mobile app, no push notifications, no live streaming, and every community ends up looking the same because there's no way to white-label it.</p>
+
+    <p>We've actually gone ahead and built a preview of what your own branded app and store could look like:</p>
+
+    <p><a href="{{ preview_url }}">Preview Your {{ store_name }} here</a></p>
+
+    <p>Your branding, your content, your community. But in your own app, with your name in the App Store.</p>
+
+    <p>We're looking for coaches who fit a specific profile, where we sponsor part or all of the app build. In return, we'd love feedback and the opportunity to use the project as a case study.</p>
+
+    <p>If this sounds interesting, or you're curious to learn more, let me know if a quick call could work in the coming days. Or feel free to book straight into my diary: <a href="{{ booking_link }}">{{ booking_link }}</a></p>
+
+    <div class="sig">
+      Many thanks,<br>
+      <strong>Ben Camara</strong><br>
+      Founder, KLIQ
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+  </div>
+</body>
+</html>

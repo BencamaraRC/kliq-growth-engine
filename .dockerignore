@@ -22,3 +22,7 @@ service-account.json
 *.pem
 docker-compose.yml
 .mcp.json
+QA Database/
+*.sql
+scripts/
+test_cms.db

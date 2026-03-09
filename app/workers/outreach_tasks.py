@@ -111,7 +111,7 @@ async def _process_queue() -> dict:
 def process_onboarding_emails_task():
     """Process onboarding follow-up emails for claimed coaches.
 
-    Called every 6 hours by Celery Beat. Sends steps 5-7 based on
+    Called every 6 hours by Celery Beat. Sends steps 9-10 based on
     time since claim and onboarding completion status.
     """
     return _run_async(_process_onboarding_emails())

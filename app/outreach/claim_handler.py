@@ -150,13 +150,21 @@ async def activate_store(
     prospect.status = ProspectStatus.CLAIMED
     prospect.claimed_at = datetime.utcnow()
 
-    # 5. Create onboarding progress with password_set=True
-    onboarding = OnboardingProgress(
-        prospect_id=prospect.id,
-        password_set=True,
-        progress_pct=25,
+    # 5. Create or update onboarding progress with password_set=True
+    existing_onboarding = await growth_db.execute(
+        select(OnboardingProgress).where(OnboardingProgress.prospect_id == prospect.id)
     )
-    growth_db.add(onboarding)
+    onboarding = existing_onboarding.scalar_one_or_none()
+    if onboarding:
+        onboarding.password_set = True
+        onboarding.progress_pct = 25
+    else:
+        onboarding = OnboardingProgress(
+            prospect_id=prospect.id,
+            password_set=True,
+            progress_pct=25,
+        )
+        growth_db.add(onboarding)
 
     await growth_db.commit()
 

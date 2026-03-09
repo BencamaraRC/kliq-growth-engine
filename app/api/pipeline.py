@@ -70,6 +70,19 @@ async def trigger_full_pipeline(prospect_id: int):
     return PipelineStatusResponse(task_id=task.id, status="queued")
 
 
+@router.post("/batch", response_model=PipelineStatusResponse)
+async def trigger_batch_pipeline(status_filter: str = "DISCOVERED"):
+    """Run the full pipeline for ALL prospects with the given status.
+
+    For DISCOVERED prospects: scrape → AI generate → store create.
+    For SCRAPED prospects: AI generate → store create.
+    """
+    from app.workers.pipeline_task import batch_pipeline_task
+
+    task = batch_pipeline_task.delay(status_filter=status_filter)
+    return PipelineStatusResponse(task_id=task.id, status="queued")
+
+
 @router.get("/status/{task_id}", response_model=PipelineStatusResponse)
 async def get_task_status(task_id: str):
     """Check the status of an async pipeline task."""

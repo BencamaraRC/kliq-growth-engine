@@ -3,56 +3,146 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to KLIQ!</title>
+  <title>Welcome to KLIQ, {{ first_name }}!</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f4f7; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; background: #fff; }
-    .header { background: {{ primary_color | default('#1E81FF') }}; padding: 32px 24px; text-align: center; }
-    .header h1 { color: #fff; margin: 0; font-size: 24px; }
-    .body { padding: 32px 24px; }
-    .body h2 { color: #1a1a1a; font-size: 20px; margin-top: 0; }
-    .body p { line-height: 1.6; color: #555; font-size: 16px; }
-    .cta-button { display: inline-block; background: {{ primary_color | default('#1E81FF') }}; color: #fff !important; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: 600; margin: 16px 0; }
-    .steps { background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 24px 0; }
-    .steps li { padding: 6px 0; color: #555; }
-    .footer { background: #f8f9fa; padding: 24px; text-align: center; font-size: 13px; color: #999; }
+    body {
+      margin: 0; padding: 0;
+      font-family: 'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #FFFDF9; color: #101828;
+    }
+    .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; }
+    .header {
+      background: linear-gradient(135deg, #1C3838 0%, #0E2325 100%);
+      padding: 40px 32px; text-align: center;
+    }
+    .header .logo {
+      font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -0.02em; margin-bottom: 16px;
+    }
+    .header h1 { color: #fff; margin: 0; font-size: 22px; font-weight: 600; line-height: 140%; }
+    .header p { color: rgba(255,255,255,0.8); font-size: 14px; margin: 8px 0 0; }
+    .body { padding: 32px; }
+    .body p { line-height: 170%; color: #1D2939; font-size: 15px; margin: 0 0 16px; }
+    .highlight-box {
+      background: #F9FAFB; border-radius: 12px; padding: 24px; margin: 24px 0;
+      border: 1px solid #F3F4F6;
+    }
+    .step-table { width: 100%; border-collapse: collapse; }
+    .step-table td { padding: 12px 0; border-bottom: 1px solid #F3F4F6; vertical-align: top; }
+    .step-table tr:last-child td { border-bottom: none; }
+    .step-num-td { width: 42px; }
+    .step-num {
+      width: 28px; height: 28px; border-radius: 50%; background: #FF9F88;
+      color: #fff; font-weight: 700; font-size: 13px;
+      text-align: center; line-height: 28px;
+    }
+    .step-text strong { color: #101828; font-size: 14px; display: block; margin-bottom: 2px; }
+    .step-text span { color: #667085; font-size: 13px; line-height: 150%; }
+    .cta-button {
+      display: inline-block; background: #1C3838; color: #fff !important;
+      text-decoration: none; padding: 14px 32px; border-radius: 10px;
+      font-size: 15px; font-weight: 600; font-family: 'Sora', sans-serif;
+      transition: background 0.15s;
+    }
+    .cta-button:hover { background: #0E2325; }
+    .cta-secondary {
+      display: inline-block; border: 1px solid #1C3838; color: #1C3838 !important;
+      text-decoration: none; padding: 12px 24px; border-radius: 10px;
+      font-size: 14px; font-weight: 600; font-family: 'Sora', sans-serif;
+      margin-left: 12px;
+    }
+    .footer {
+      background: #F9FAFB; padding: 24px 32px; text-align: center;
+      border-top: 1px solid #F3F4F6;
+    }
+    .footer p { font-size: 12px; color: #667085; margin: 0; line-height: 160%; }
+    .footer strong { color: #1C3838; }
   </style>
 </head>
 <body>
+  <div style="padding: 24px 16px; background: #FFFDF9;">
   <div class="container">
+
+    <!-- Header -->
     <div class="header">
-      <h1>Welcome to KLIQ!</h1>
+      <div class="logo">KLIQ</div>
+      <h1>Welcome aboard, {{ first_name }}!</h1>
+      <p>{{ store_name }} is now live</p>
     </div>
+
+    <!-- Body -->
     <div class="body">
-      <h2>Congratulations {{ first_name }}!</h2>
       <p>
-        You've successfully claimed <strong>{{ store_name }}</strong>. Your store is
-        now live and ready to start earning.
+        Congrats on claiming your store! Everything is set up and ready for you
+        — your programs, blog posts, branding, and bio are all live.
       </p>
 
-      <div class="steps">
-        <p style="font-weight: 600; color: #333; margin-top: 0;">Next Steps:</p>
-        <ol>
-          <li>Log into your <a href="{{ dashboard_url }}">KLIQ dashboard</a></li>
-          <li>Review and publish your products</li>
-          <li>Customize your store content and branding</li>
-          <li>Connect your Stripe account to start receiving payments</li>
-          <li>Turn your store into a branded mobile app</li>
-        </ol>
+      <p>
+        Here's what to do next to start earning:
+      </p>
+
+      <!-- Next Steps -->
+      <div class="highlight-box">
+        <table class="step-table">
+          <tr>
+            <td class="step-num-td"><div class="step-num">1</div></td>
+            <td class="step-text">
+              <strong>Open your dashboard</strong>
+              <span>Explore your store, edit products, and customise your branding.</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="step-num-td"><div class="step-num">2</div></td>
+            <td class="step-text">
+              <strong>Connect Stripe</strong>
+              <span>Link your payment account so you can start receiving money from clients.</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="step-num-td"><div class="step-num">3</div></td>
+            <td class="step-text">
+              <strong>Share your store</strong>
+              <span>Send your link to clients and post it on social media to get your first sign-ups.</span>
+            </td>
+          </tr>
+          <tr>
+            <td class="step-num-td"><div class="step-num">4</div></td>
+            <td class="step-text">
+              <strong>Go mobile</strong>
+              <span>Turn your store into a branded iOS and Android app — your clients will love it.</span>
+            </td>
+          </tr>
+        </table>
       </div>
 
-      <p style="text-align: center;">
+      <!-- CTA -->
+      <p style="text-align: center; margin: 28px 0;">
         <a href="{{ dashboard_url }}" class="cta-button">Go to Dashboard</a>
       </p>
 
-      <p style="font-size: 14px; color: #777;">
-        Need help getting started? Reply to this email and our team will
-        guide you through everything.
+      <!-- Booking -->
+      <div style="background: #FFECE7; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0;">
+        <p style="font-weight: 600; color: #1C3838; font-size: 15px; margin: 0 0 6px;">
+          Want a personal walkthrough?
+        </p>
+        <p style="font-size: 13px; color: #667085; margin: 0 0 12px;">
+          Book a free 15-min onboarding call with our team.
+        </p>
+        <a href="{{ booking_link }}" class="cta-secondary" style="border-color: #1C3838;">Book a Call</a>
+      </div>
+
+      <p style="font-size: 14px; color: #667085;">
+        Questions? Just reply to this email — we're here to help you succeed.
       </p>
     </div>
+
+    <!-- Footer -->
     <div class="footer">
-      <p>KLIQ — Empowering fitness &amp; wellness creators</p>
+      <p>Powered by <strong>KLIQ</strong></p>
+      <p style="margin-top: 8px;">Empowering fitness & wellness creators to build, grow, and earn.</p>
     </div>
+
+  </div>
   </div>
 </body>
 </html>

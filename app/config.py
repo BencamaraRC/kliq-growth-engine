@@ -27,12 +27,13 @@ class Settings(BaseSettings):
     brevo_api_key: str = ""
     brevo_sender_email: str = "growth@joinkliq.io"
     brevo_sender_name: str = "KLIQ Growth Team"
+    booking_link: str = "https://calendly.com/bencamara/kliq"
 
     # AWS S3
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    aws_s3_bucket: str = "dev-rcwl-assets"
-    aws_s3_region: str = "eu-west-1"
+    aws_s3_bucket: str = "rcwl-dev"
+    aws_s3_region: str = "eu-west-2"
 
     # Google BigQuery
     gcp_project_id: str = "rcwl-development"
@@ -71,6 +72,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # Rate Limits
+    daily_email_send_limit: int = 20
     youtube_max_daily_units: int = 10000
     scrape_delay_seconds: int = 2
     max_concurrent_scrapes: int = 5

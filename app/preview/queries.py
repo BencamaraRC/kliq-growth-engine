@@ -3,7 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import GeneratedContent, Prospect
+from app.db.models import GeneratedContent, Prospect, ScrapedContentRecord
 
 
 async def get_prospect_by_token(session: AsyncSession, token: str) -> dict | None:
@@ -45,3 +45,18 @@ async def get_generated_content(session: AsyncSession, prospect_id: int) -> list
         }
         for row in rows
     ]
+
+
+async def get_scraped_thumbnails(session: AsyncSession, prospect_id: int) -> list[str]:
+    """Fetch unique thumbnail URLs from scraped content for a prospect."""
+    result = await session.execute(
+        select(ScrapedContentRecord.thumbnail_url)
+        .where(
+            ScrapedContentRecord.prospect_id == prospect_id,
+            ScrapedContentRecord.thumbnail_url.isnot(None),
+            ScrapedContentRecord.thumbnail_url != "",
+        )
+        .order_by(ScrapedContentRecord.view_count.desc())
+        .limit(10)
+    )
+    return [row[0] for row in result.all()]

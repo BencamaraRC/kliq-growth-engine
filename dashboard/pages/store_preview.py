@@ -93,8 +93,8 @@ try:
     # Render the store preview HTML using the shared renderer
     full_html = render_store_preview(prospect=prospect, generated_content=generated_content)
 
-    # Render as a single iframe component
-    components.html(full_html, height=2400, scrolling=True)
+    # Render as a full-screen iframe component
+    components.html(full_html, height=3200, scrolling=True)
 
     # --- Debug Info ---
     # Parse generated content for debug display

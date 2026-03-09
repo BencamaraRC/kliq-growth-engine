@@ -71,6 +71,14 @@ async def _generate_all_content(prospect_id: int) -> dict:
         if not prospect:
             raise ValueError(f"Prospect {prospect_id} not found")
 
+        # Skip if already generated (idempotency guard)
+        existing_result = await session.execute(
+            select(GeneratedContent).where(GeneratedContent.prospect_id == prospect_id)
+        )
+        if existing_result.scalars().first():
+            logger.info(f"Prospect {prospect_id} already has generated content, skipping")
+            return {"prospect_id": prospect_id, "generated": [], "skipped": True}
+
         # Load scraped content
         content_result = await session.execute(
             select(ScrapedContentRecord).where(ScrapedContentRecord.prospect_id == prospect_id)

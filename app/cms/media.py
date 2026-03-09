@@ -1,14 +1,41 @@
-"""S3 media upload for store images (profile photos, logos, blog thumbnails)."""
+"""S3 media upload and CMS media record creation for store images."""
 
 import logging
 from io import BytesIO
 
 import boto3
 import httpx
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+async def create_media_record(
+    session: AsyncSession,
+    application_id: int,
+    url: str,
+    name: str = "image",
+    created_by: int = 1,
+) -> int | None:
+    """Create a media record in the CMS medias table. Returns media ID."""
+    result = await session.execute(
+        text(
+            "INSERT INTO medias (application_id, url, thumbnail_url, name, alt, meta, created_by, updated_by) "
+            "VALUES (:app_id, :url, :url, :name, :name, :meta, :cb, :ub)"
+        ),
+        {
+            "app_id": application_id,
+            "url": url,
+            "name": name,
+            "meta": '{"type":"image/jpeg","extension":"jpg"}',
+            "cb": created_by,
+            "ub": created_by,
+        },
+    )
+    return result.lastrowid
 
 
 def get_s3_client():
@@ -92,13 +119,13 @@ async def upload_store_images(
     if profile_image_url:
         results["profile"] = await upload_image_from_url(
             image_url=profile_image_url,
-            s3_key=f"applications/{application_id}/profile.jpg",
+            s3_key=f"files/remote-coach-white-label/{application_id}_profile.jpg",
         )
 
     if banner_image_url:
         results["banner"] = await upload_image_from_url(
             image_url=banner_image_url,
-            s3_key=f"applications/{application_id}/banner.jpg",
+            s3_key=f"files/remote-coach-white-label/{application_id}_banner.jpg",
         )
 
     return results

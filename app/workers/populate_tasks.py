@@ -18,8 +18,9 @@ from sqlalchemy import select
 from app.ai.blog_generator import GeneratedBlog
 from app.ai.pricing_analyzer import SuggestedProduct
 from app.cms.content import create_about_page, create_blog_pages
-from app.cms.media import upload_store_images
+from app.cms.media import create_media_record, upload_store_images
 from app.cms.products import create_products
+from app.cms.models import ApplicationSetting
 from app.cms.store_builder import build_store
 from app.db.models import GeneratedContent, Prospect, ProspectStatus
 from app.db.session import async_session
@@ -70,6 +71,16 @@ async def _create_store(prospect_id: int) -> dict:
         prospect = await growth_db.get(Prospect, prospect_id)
         if not prospect:
             raise ValueError(f"Prospect {prospect_id} not found")
+
+        # Skip if store already exists (idempotency guard)
+        if prospect.kliq_application_id:
+            logger.info(f"Prospect {prospect_id} already has store {prospect.kliq_application_id}, skipping")
+            return {
+                "prospect_id": prospect_id,
+                "application_id": prospect.kliq_application_id,
+                "store_url": prospect.kliq_store_url,
+                "skipped": True,
+            }
 
         gen_result = await growth_db.execute(
             select(GeneratedContent).where(GeneratedContent.prospect_id == prospect_id)
@@ -123,6 +134,8 @@ async def _create_store(prospect_id: int) -> dict:
             seo_keywords=", ".join(seo.get("seo_keywords", [])),
             store_slug=seo.get("store_slug"),
             profile_image_url=prospect.profile_image_url,
+            banner_image_url=prospect.banner_image_url,
+            short_bio=bio.get("short_bio", ""),
             support_email=prospect.email,
         )
 
@@ -190,6 +203,66 @@ async def _create_store(prospect_id: int) -> dict:
         profile_image_url=prospect.profile_image_url,
         banner_image_url=prospect.banner_image_url,
     )
+
+    # 5b. Create media records, write S3 URLs + FK refs back, enable features
+    async with cms_async_session() as cms_db:
+        from sqlalchemy import text
+
+        # Create media records for FK resolution
+        profile_media_id = None
+        banner_media_id = None
+        if media.get("profile"):
+            profile_media_id = await create_media_record(
+                cms_db, store.application_id, media["profile"], "profile"
+            )
+        if media.get("banner"):
+            banner_media_id = await create_media_record(
+                cms_db, store.application_id, media["banner"], "banner"
+            )
+
+        # Update ApplicationSetting with FK refs + all legacy URL fields
+        if media.get("profile") or media.get("banner"):
+            await cms_db.execute(
+                text(
+                    "UPDATE application_settings SET "
+                    "profile_placeholder = COALESCE(:profile_url, profile_placeholder), "
+                    "default_image = COALESCE(:banner_url, default_image), "
+                    "profile_image = COALESCE(:profile_url, profile_image), "
+                    "hero_image = COALESCE(:banner_url, hero_image), "
+                    "light_home_logo = COALESCE(:profile_url, light_home_logo), "
+                    "dark_home_logo = COALESCE(:profile_url, dark_home_logo), "
+                    "light_login_logo = COALESCE(:profile_url, light_login_logo), "
+                    "dark_login_logo = COALESCE(:profile_url, dark_login_logo), "
+                    "shop_image = COALESCE(:profile_url, shop_image), "
+                    "favicon = COALESCE(:profile_url, favicon), "
+                    "profile_id = COALESCE(:profile_media_id, profile_id), "
+                    "hero_id = COALESCE(:banner_media_id, hero_id), "
+                    "default_image_id = COALESCE(:banner_media_id, default_image_id) "
+                    "WHERE application_id = :app_id"
+                ),
+                {
+                    "profile_url": media.get("profile"),
+                    "banner_url": media.get("banner"),
+                    "profile_media_id": profile_media_id,
+                    "banner_media_id": banner_media_id,
+                    "app_id": store.application_id,
+                },
+            )
+
+        # Enable features (AMA, programs, courses, etc.)
+        await cms_db.execute(
+            text(
+                "UPDATE application_feature_setups SET "
+                "enable_ama = 1, enable_ecourse = 1, has_program = 1, "
+                "has_one_to_one = 1, enable_session = 1, "
+                "enable_movement_library = 1, enable_community_post_user = 1, "
+                "enable_premium_content_platform = 1, enable_subscription_web = 1 "
+                "WHERE application_id = :app_id"
+            ),
+            {"app_id": store.application_id},
+        )
+
+        await cms_db.commit()
 
     # 6. Update prospect in Growth DB
     claim_token = secrets.token_urlsafe(32)

@@ -21,6 +21,7 @@ from app.cms.models import (
     ApplicationColor,
     ApplicationFeatureSetup,
     ApplicationRole,
+    ApplicationSection,
     ApplicationSetting,
     AudioSetting,
     CMSUser,
@@ -81,9 +82,17 @@ async def build_store(
     seo_keywords: str | None = None,
     store_slug: str | None = None,
     profile_image_url: str | None = None,
+    banner_image_url: str | None = None,
+    short_bio: str | None = None,
     support_email: str | None = None,
     currency_id: int = CURRENCY_USD,
 ) -> StoreCreationResult:
+    # Default placeholder image if none provided (required for NOT NULL CMS columns)
+    DEFAULT_PLACEHOLDER = "https://rcwl-dev.s3.eu-west-2.amazonaws.com/files/remote-coach-white-label/1212121220_profile.jpg"
+    if not profile_image_url:
+        profile_image_url = DEFAULT_PLACEHOLDER
+    if not banner_image_url:
+        banner_image_url = profile_image_url
     """Create a complete KLIQ webstore.
 
     Replicates ApplicationController::store flow:
@@ -131,53 +140,75 @@ async def build_store(
 
     logger.info(f"Creating store '{name}' with application_id={app_id}")
 
-    # 2. Create Application
+    # 2. Create Application (name column is VARCHAR(45))
     application = Application(
         id=app_id,
         guid=guid,
-        name=name,
+        name=name[:45],
         email=email,
         status_id=STATUS_INACTIVE,
         currency_id=currency_id,
+        enable_new_home=True,
         created_by=SUPER_ADMIN_ID,
         updated_by=SUPER_ADMIN_ID,
     )
     session.add(application)
     await session.flush()
 
-    # 3. Create ApplicationSetting
-    web_url = f"https://{store_slug}.joinkliq.io" if store_slug else None
-    setting = ApplicationSetting(
-        application_id=app_id,
-        setting_version=1,
-        app_version=1,
-        app_name=name,
-        coach_name=coach_name,
-        tab_wellness_text="Wellness",
-        tab_account_text="Account",
-        tab_shop_text="Shop",
-        tab_community_text="Community",
-        tab_library_text="Library",
-        tab_home_text="Home",
-        nutrition_text="Nutrition",
-        support_email=support_email or email,
-        profile_placeholder=profile_image_url,
-        meta_title=seo_title,
-        meta_description=seo_description,
-        meta_keywords=seo_keywords,
-        web_url=web_url,
-        created_by=SUPER_ADMIN_ID,
-        updated_by=SUPER_ADMIN_ID,
-    )
-    session.add(setting)
+    # 3. Create ApplicationSetting (raw SQL — production has many NOT NULL columns with defaults)
+    from datetime import datetime as dt
+    from sqlalchemy import text
 
-    # 4. Create ApplicationFeatureSetup
-    feature_setup = ApplicationFeatureSetup(
-        application_id=app_id,
-        created_by=SUPER_ADMIN_ID,
-        updated_by=SUPER_ADMIN_ID,
+    web_url = f"https://{store_slug}.joinkliq.io" if store_slug else None
+    copyright_text = f"\u00a9 {dt.now().year} {coach_name}. All rights reserved."
+    await session.execute(
+        text(
+            "INSERT INTO application_settings ("
+            "application_id, setting_version, app_version, app_name, coach_name, "
+            "tab_wellness_text, tab_account_text, tab_shop_text, tab_community_text, "
+            "tab_library_text, tab_home_text, nutrition_text, support_email, "
+            "profile_placeholder, default_image, light_home_logo, dark_home_logo, "
+            "light_login_logo, dark_login_logo, shop_description, shop_image, "
+            "enable_shop, favicon, meta_title, meta_description, meta_keywords, "
+            "web_url, copyright_text, profile_image, hero_image, created_by, updated_by"
+            ") VALUES ("
+            ":app_id, 1, 1, :app_name, :coach_name, "
+            "'Wellness', 'Account', 'Shop', 'Community', "
+            "'Library', 'Home', 'Nutrition', :support_email, "
+            ":profile_img, :banner_img, :profile_img, :profile_img, "
+            ":profile_img, :profile_img, :shop_desc, :shop_img, "
+            "1, :favicon, :meta_title, :meta_desc, :meta_keywords, "
+            ":web_url, :copyright_text, :profile_img, :banner_img, :cb, :ub"
+            ")"
+        ),
+        {
+            "app_id": app_id,
+            "app_name": name,
+            "coach_name": coach_name,
+            "support_email": support_email or email,
+            "profile_img": profile_image_url,
+            "banner_img": banner_image_url or profile_image_url,
+            "shop_desc": short_bio,
+            "shop_img": profile_image_url,
+            "favicon": profile_image_url,
+            "meta_title": seo_title,
+            "meta_desc": seo_description,
+            "meta_keywords": seo_keywords,
+            "web_url": web_url,
+            "copyright_text": copyright_text,
+            "cb": SUPER_ADMIN_ID,
+            "ub": SUPER_ADMIN_ID,
+        },
     )
-    session.add(feature_setup)
+
+    # 4. Create ApplicationFeatureSetup (raw SQL — production has 100+ NOT NULL columns)
+    await session.execute(
+        text(
+            "INSERT INTO application_feature_setups (application_id, created_by, updated_by) "
+            "VALUES (:app_id, :created_by, :updated_by)"
+        ),
+        {"app_id": app_id, "created_by": SUPER_ADMIN_ID, "updated_by": SUPER_ADMIN_ID},
+    )
 
     # 5. Create ApplicationColor
     colors = _build_colors(app_id, brand_colors)
@@ -264,16 +295,33 @@ async def build_store(
     # 15. Email templates — one per EmailTemplateType
     await _create_email_templates(session, app_id)
 
-    # 16. Referral point
-    referral = ReferralPoint(
-        application_id=app_id,
-        referral_point=DEFAULT_REFERRAL_POINTS,
-        is_default=True,
-        status_id=STATUS_ACTIVE,
-        created_by=SUPER_ADMIN_ID,
-        updated_by=SUPER_ADMIN_ID,
+    # 16. Application sections (store page layout)
+    default_sections = [
+        ("ama", 0),
+        ("consultant-link", 1),
+        ("live-stream", 2),
+        ("library", 3),
+        ("recipes", 4),
+        ("shop", 5),
+        ("courses", 6),
+        ("blogs", 7),
+    ]
+    for section_name, sort_order in default_sections:
+        section = ApplicationSection(
+            application_id=app_id,
+            name=section_name,
+            sort=sort_order,
+        )
+        session.add(section)
+
+    # 17. Referral point (raw SQL to avoid NOT NULL mismatches)
+    await session.execute(
+        text(
+            "INSERT INTO referral_points (application_id, referral_point, is_default, status_id, created_by, updated_by) "
+            "VALUES (:app_id, :points, 1, :status, :cb, :ub)"
+        ),
+        {"app_id": app_id, "points": DEFAULT_REFERRAL_POINTS, "status": STATUS_ACTIVE, "cb": SUPER_ADMIN_ID, "ub": SUPER_ADMIN_ID},
     )
-    session.add(referral)
 
     await session.flush()
 
@@ -331,15 +379,10 @@ def _build_colors(app_id: int, brand_colors: BrandColors | None) -> ApplicationC
 
     return ApplicationColor(
         application_id=app_id,
-        # Core
-        primary=primary,
-        on_primary=on_primary,
-        secondary=secondary,
-        on_secondary=on_secondary,
+        # Core (production schema has no 'primary'/'secondary'/'progress' columns)
         button_primary=primary,
         button_secondary=secondary,
         on_button=on_primary,
-        progress=primary,
         tab_dark_active=primary,
         tab_light_active=primary,
         # Theme

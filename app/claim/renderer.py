@@ -245,12 +245,9 @@ def render_welcome_page(
             </div>
         </div>"""
 
-    review_url = f"/review-content?token={token}"
-
     steps_html = f"""
     {_step(1, "Edit Your Store", "Open your dashboard to customise products, content, and branding.", "Open Dashboard", dashboard_url, "store_explored", 'id="view-store-btn"')}
-    {_step(2, "Review Your Content", "Check your blog posts, programs, and about page. Make sure everything looks right.", "Review Content", review_url, "content_reviewed")}
-    {_step(3, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#", "first_share")}
+    {_step(2, "Share Your Store", "Send your store link to clients and share on social media.", "Copy Link", "#", "first_share")}
     """
 
     # Progress bar HTML

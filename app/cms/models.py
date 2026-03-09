@@ -16,6 +16,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -42,6 +43,7 @@ class Application(CMSBase):
     email: Mapped[str] = mapped_column(String(50))
     status_id: Mapped[int] = mapped_column(Integer)
     currency_id: Mapped[int] = mapped_column(Integer, default=2)  # 2=USD
+    enable_new_home: Mapped[bool] = mapped_column(Boolean, default=False)
     created_by: Mapped[int] = mapped_column(Integer, default=1)
     updated_by: Mapped[int] = mapped_column(Integer, default=1)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -76,11 +78,11 @@ class ApplicationSetting(CMSBase):
     copyright_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
     cookie_privacy: Mapped[str | None] = mapped_column(String(255), nullable=True)
     terms_and_condtion_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    feedback_interval_days: Mapped[int] = mapped_column(Integer, default=0)
-    first_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0)
-    second_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0)
-    monthly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0)
-    quarterly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0)
+    feedback_interval_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    first_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    second_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    monthly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    quarterly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
     referral_point: Mapped[int | None] = mapped_column(Integer, nullable=True)
     google_analytics_code: Mapped[str | None] = mapped_column(String(255), nullable=True)
     live_api: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -92,8 +94,17 @@ class ApplicationSetting(CMSBase):
     meta_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     meta_keywords: Mapped[str | None] = mapped_column(Text, nullable=True)
     web_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    created_by: Mapped[int] = mapped_column(Integer, default=1)
-    updated_by: Mapped[int] = mapped_column(Integer, default=1)
+    shop_description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    shop_image: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    enable_shop: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("1"))
+    favicon: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    profile_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    hero_image: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    profile_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    hero_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    default_image_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_by: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))
+    updated_by: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -103,15 +114,10 @@ class ApplicationColor(CMSBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     application_id: Mapped[int] = mapped_column(Integer, index=True)
-    # Core colors
-    primary: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    on_primary: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    secondary: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    on_secondary: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Core colors (production schema — no 'primary'/'secondary' columns)
     button_primary: Mapped[str | None] = mapped_column(String(20), nullable=True)
     button_secondary: Mapped[str | None] = mapped_column(String(20), nullable=True)
     on_button: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    progress: Mapped[str | None] = mapped_column(String(20), nullable=True)
     tab_dark_active: Mapped[str | None] = mapped_column(String(20), nullable=True)
     tab_light_active: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # Theme
@@ -159,14 +165,27 @@ class ApplicationColor(CMSBase):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class ApplicationSection(CMSBase):
+    """Store sections displayed on the /your-store page."""
+
+    __tablename__ = "application_sections"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    application_id: Mapped[int] = mapped_column(Integer, index=True)
+    name: Mapped[str] = mapped_column(String(255))
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class ApplicationFeatureSetup(CMSBase):
     __tablename__ = "application_feature_setups"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     application_id: Mapped[int] = mapped_column(Integer, index=True)
-    enable_google_signin: Mapped[bool] = mapped_column(Boolean, default=False)
-    enable_apple_login: Mapped[bool] = mapped_column(Boolean, default=False)
-    enable_fb_login: Mapped[bool] = mapped_column(Boolean, default=False)
+    enable_google_signin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_apple_login: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_fb_login: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     unsub_nutrition_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     unsub_wellness_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     unsub_community_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -179,17 +198,17 @@ class ApplicationFeatureSetup(CMSBase):
     sub_home_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sub_library_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sub_shop_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    enable_switch_theme: Mapped[bool] = mapped_column(Boolean, default=False)
-    enable_referral: Mapped[bool] = mapped_column(Boolean, default=False)
-    hide_signup: Mapped[bool] = mapped_column(Boolean, default=False)
-    has_one_to_one: Mapped[bool] = mapped_column(Boolean, default=False)
-    enable_in_app_purchase: Mapped[bool] = mapped_column(Boolean, default=False)
-    enable_engagement_email: Mapped[bool] = mapped_column(Boolean, default=True)
-    show_nutrition_filter: Mapped[bool] = mapped_column(Boolean, default=False)
-    has_light_bg: Mapped[bool] = mapped_column(Boolean, default=False)
-    has_program: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_by: Mapped[int] = mapped_column(Integer, default=1)
-    updated_by: Mapped[int] = mapped_column(Integer, default=1)
+    enable_switch_theme: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_referral: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    hide_signup: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    has_one_to_one: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_in_app_purchase: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_engagement_email: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("1"))
+    show_nutrition_filter: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    has_light_bg: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    has_program: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    created_by: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))
+    updated_by: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -425,7 +444,7 @@ class Product(CMSBase):
     stripe_product_id: Mapped[str | None] = mapped_column(String(28), nullable=True)
     price_id: Mapped[str | None] = mapped_column(String(28), nullable=True)
     in_app_product_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    product_type_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    product_type_id: Mapped[int] = mapped_column(Integer, default=1)
     currency_id: Mapped[int] = mapped_column(Integer, index=True, default=2)
     unit_amount: Mapped[int] = mapped_column(Integer, default=0)  # In cents
     interval: Mapped[str] = mapped_column(String(255), default="month")
@@ -447,6 +466,22 @@ class Product(CMSBase):
 # ---------------------------------------------------------------------------
 # Pages (used for About page, blog content)
 # ---------------------------------------------------------------------------
+
+
+class Media(CMSBase):
+    """Media records in the CMS. Images are referenced by FK from application_settings."""
+
+    __tablename__ = "medias"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    application_id: Mapped[int] = mapped_column(Integer, index=True)
+    url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    name: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    alt: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    meta: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 class Page(CMSBase):

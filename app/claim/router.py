@@ -12,14 +12,11 @@ from app.claim.queries import (
     get_content_counts,
     get_onboarding_dict,
     get_prospect_by_token,
-    get_store_pages,
-    get_store_products,
 )
 from app.claim.renderer import (
     render_already_claimed_page,
     render_claim_page,
     render_error_page,
-    render_review_content_page,
     render_welcome_page,
 )
 from app.db.session import get_cms_db, get_db
@@ -160,55 +157,4 @@ async def welcome_page(
     )
 
 
-# ─── Review Content ───────────────────────────────────────────────────────────
-
-
-@router.get("/review-content", response_class=HTMLResponse)
-async def review_content_page(
-    token: str = Query(...),
-    session: AsyncSession = Depends(get_db),
-    cms_db: AsyncSession = Depends(get_cms_db),
-):
-    """Serve the content review page showing all pages and products."""
-    prospect = await get_prospect_by_token(session, token)
-    if not prospect or prospect["status"] != "CLAIMED":
-        return HTMLResponse(
-            content=render_error_page(
-                title="Access Denied",
-                message="Please claim your store first.",
-                cta_url="https://joinkliq.io",
-                cta_text="Visit KLIQ",
-            ),
-            status_code=403,
-        )
-
-    app_id = prospect["kliq_application_id"]
-    pages = await get_store_pages(cms_db, app_id)
-    products = await get_store_products(cms_db, app_id)
-    return HTMLResponse(content=render_review_content_page(prospect, pages, products))
-
-
-@router.post("/review-content", response_class=HTMLResponse)
-async def review_content_submit(
-    request: Request,
-    growth_db: AsyncSession = Depends(get_db),
-):
-    """Handle 'Looks Good' confirmation on content review."""
-    form = await request.form()
-    token = form.get("token", "")
-
-    prospect = await get_prospect_by_token(growth_db, token)
-    if not prospect:
-        return HTMLResponse(
-            content=render_error_page(
-                title="Invalid Link",
-                message="This link is invalid.",
-                cta_url="https://joinkliq.io",
-                cta_text="Visit KLIQ",
-            ),
-            status_code=404,
-        )
-
-    await complete_onboarding_step(growth_db, prospect["id"], "content_reviewed")
-    return RedirectResponse(url=f"/welcome?token={token}", status_code=303)
 

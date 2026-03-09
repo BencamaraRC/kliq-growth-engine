@@ -49,6 +49,7 @@ async def create_products(
             application_id=application_id,
             name=suggested.name,
             description=suggested.description[:255] if suggested.description else "",
+            product_type_id=1,  # 1=Stripe Product
             unit_amount=suggested.price_cents,
             currency_id=cur_id,
             interval=interval,

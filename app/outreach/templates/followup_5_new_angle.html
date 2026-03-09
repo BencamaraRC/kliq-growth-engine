@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#FFFDF9; color:#333; }
+    .container { max-width:600px; margin:0 auto; background:#fff; padding:32px 24px; }
+    p { line-height:1.7; font-size:15px; color:#333; margin:0 0 16px; }
+    a { color:#1C3838; }
+    .preview-link { display:block; color:#FF9F88; font-weight:600; font-size:15px; text-decoration:none; margin:20px 0; }
+    .sig { margin-top:24px; font-size:14px; color:#555; line-height:1.6; }
+    .sig strong { color:#1C3838; }
+    .footer { max-width:600px; margin:0 auto; padding:16px 24px; text-align:center; font-size:12px; color:#999; border-top:1px solid #f0f0f0; }
+    .footer a { color:#999; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>Hi {{ first_name }},</p>
+
+    <p>I realised I may have buried the lead in my earlier emails, so I wanted to come back with something specific.</p>
+
+    <p>The biggest thing that separates KLIQ from {{ source_platform }} and every other platform out there is this: we give you your own branded mobile app. iOS and Android. Your name in the App Store. Your logo on your fans' home screens.</p>
+
+    <p>No other platform does this. Not Kajabi, not Skool, not Patreon, not Stan. Nobody.</p>
+
+    <p>Why does it matter? Push notifications drive 3x the re-engagement of email. An app icon on someone's phone keeps you top-of-mind every single day. And your subscribers see YOUR brand, not someone else's.</p>
+
+    <p><a href="{{ preview_url }}">Preview Your {{ store_name }} here</a></p>
+
+    <p>Genuinely believe this could be a game-changer for what you're building. Happy to chat anytime: <a href="{{ booking_link }}">{{ booking_link }}</a></p>
+
+    <div class="sig">
+      Many thanks,<br>
+      <strong>Ben</strong>
+    </div>
+  </div>
+
+  <div class="footer">
+    <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+  </div>
+</body>
+</html>

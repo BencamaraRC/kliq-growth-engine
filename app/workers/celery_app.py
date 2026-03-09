@@ -33,39 +33,37 @@ celery_app.conf.update(
     result_expires=3600,
 )
 
-# Periodic tasks (Celery Beat) — only for local dev.
-# In production, Cloud Scheduler hits /api/scheduler/* endpoints instead.
-if settings.app_env != "production":
-    celery_app.conf.beat_schedule = {
-        # Run discovery every day at 6 AM UTC
-        "daily-discovery": {
-            "task": "app.workers.scrape_tasks.discover_coaches_task",
-            "schedule": crontab(hour=6, minute=0),
-            "kwargs": {
-                "platforms": ["youtube"],
-                "search_queries": [
-                    "fitness coach",
-                    "personal trainer",
-                    "wellness coach",
-                    "yoga instructor",
-                    "nutrition coach",
-                    "business coach",
-                    "life coach",
-                    "marketing coach",
-                    "make money online coach",
-                    "online business mentor",
-                ],
-                "max_per_platform": 50,
-            },
+# Periodic tasks (Celery Beat)
+celery_app.conf.beat_schedule = {
+    # Run discovery every day at 6 AM UTC
+    "daily-discovery": {
+        "task": "app.workers.scrape_tasks.discover_coaches_task",
+        "schedule": crontab(hour=6, minute=0),
+        "kwargs": {
+            "platforms": ["youtube"],
+            "search_queries": [
+                "fitness coach",
+                "personal trainer",
+                "wellness coach",
+                "yoga instructor",
+                "nutrition coach",
+                "business coach",
+                "life coach",
+                "marketing coach",
+                "make money online coach",
+                "online business mentor",
+            ],
+            "max_per_platform": 50,
         },
-        # Process outreach queue every 30 minutes
-        "outreach-processor": {
-            "task": "app.workers.outreach_tasks.process_outreach_queue",
-            "schedule": crontab(minute="*/30"),
-        },
-        # Process onboarding follow-up emails every 6 hours
-        "onboarding-emails": {
-            "task": "app.workers.outreach_tasks.process_onboarding_emails_task",
-            "schedule": crontab(hour="*/6", minute=15),
-        },
-    }
+    },
+    # Process outreach queue every 30 minutes
+    "outreach-processor": {
+        "task": "app.workers.outreach_tasks.process_outreach_queue",
+        "schedule": crontab(minute="*/30"),
+    },
+    # Process onboarding follow-up emails every 6 hours
+    "onboarding-emails": {
+        "task": "app.workers.outreach_tasks.process_onboarding_emails_task",
+        "schedule": crontab(hour="*/6", minute=15),
+    },
+}

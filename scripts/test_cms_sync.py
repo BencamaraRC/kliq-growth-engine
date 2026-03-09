@@ -41,6 +41,7 @@ from app.cms.models import (
     CMSUser,
     EmailTemplate,
     EmailTemplateType,
+    Media,
     Page,
     PermissionGroup,
     PermissionModule,
@@ -109,53 +110,53 @@ SEED_PERMISSION_MODULES = [
 
 SEED_PERMISSION_REFERENCES = [
     # Module 1: Utility
-    {"id": 1, "permission_module_id": 1, "name": "View"},
+    {"id": 1, "permission_modules_id": 1, "description": "View"},
     # Module 2: Role
-    {"id": 2, "permission_module_id": 2, "name": "Add"},
-    {"id": 3, "permission_module_id": 2, "name": "Edit"},
-    {"id": 4, "permission_module_id": 2, "name": "Delete"},
-    {"id": 5, "permission_module_id": 2, "name": "Configure"},
+    {"id": 2, "permission_modules_id": 2, "description": "Add"},
+    {"id": 3, "permission_modules_id": 2, "description": "Edit"},
+    {"id": 4, "permission_modules_id": 2, "description": "Delete"},
+    {"id": 5, "permission_modules_id": 2, "description": "Configure"},
     # Module 3: Admin
-    {"id": 6, "permission_module_id": 3, "name": "Add"},
-    {"id": 7, "permission_module_id": 3, "name": "Edit"},
-    {"id": 8, "permission_module_id": 3, "name": "Delete"},
+    {"id": 6, "permission_modules_id": 3, "description": "Add"},
+    {"id": 7, "permission_modules_id": 3, "description": "Edit"},
+    {"id": 8, "permission_modules_id": 3, "description": "Delete"},
     # Module 4: Coach
-    {"id": 9, "permission_module_id": 4, "name": "View"},
+    {"id": 9, "permission_modules_id": 4, "description": "View"},
     # Module 5: Application
-    {"id": 10, "permission_module_id": 5, "name": "Add"},
-    {"id": 11, "permission_module_id": 5, "name": "Edit"},
-    {"id": 12, "permission_module_id": 5, "name": "Delete"},
+    {"id": 10, "permission_modules_id": 5, "description": "Add"},
+    {"id": 11, "permission_modules_id": 5, "description": "Edit"},
+    {"id": 12, "permission_modules_id": 5, "description": "Delete"},
     # Module 6: Application Settings
-    {"id": 13, "permission_module_id": 6, "name": "View"},
-    {"id": 14, "permission_module_id": 6, "name": "Update"},
+    {"id": 13, "permission_modules_id": 6, "description": "View"},
+    {"id": 14, "permission_modules_id": 6, "description": "Update"},
     # Module 7-15: Nutrition, Wellness, Category, Video, Pages, Links, Questions, Fitness Level, Products
-    {"id": 15, "permission_module_id": 7, "name": "Add"},
-    {"id": 16, "permission_module_id": 7, "name": "Edit"},
-    {"id": 17, "permission_module_id": 7, "name": "Delete"},
-    {"id": 18, "permission_module_id": 8, "name": "Add"},
-    {"id": 19, "permission_module_id": 8, "name": "Edit"},
-    {"id": 20, "permission_module_id": 8, "name": "Delete"},
-    {"id": 21, "permission_module_id": 9, "name": "Add"},
-    {"id": 22, "permission_module_id": 9, "name": "Edit"},
-    {"id": 23, "permission_module_id": 9, "name": "Delete"},
-    {"id": 24, "permission_module_id": 10, "name": "Add"},
-    {"id": 25, "permission_module_id": 10, "name": "Edit"},
-    {"id": 26, "permission_module_id": 10, "name": "Delete"},
-    {"id": 27, "permission_module_id": 11, "name": "Add"},
-    {"id": 28, "permission_module_id": 11, "name": "Edit"},
-    {"id": 29, "permission_module_id": 11, "name": "Delete"},
-    {"id": 30, "permission_module_id": 12, "name": "Add"},
-    {"id": 31, "permission_module_id": 12, "name": "Edit"},
-    {"id": 32, "permission_module_id": 12, "name": "Delete"},
-    {"id": 33, "permission_module_id": 13, "name": "Add"},
-    {"id": 34, "permission_module_id": 13, "name": "Edit"},
-    {"id": 35, "permission_module_id": 13, "name": "Delete"},
-    {"id": 36, "permission_module_id": 14, "name": "Add"},
-    {"id": 37, "permission_module_id": 14, "name": "Edit"},
-    {"id": 38, "permission_module_id": 14, "name": "Delete"},
-    {"id": 39, "permission_module_id": 15, "name": "Add"},
-    {"id": 40, "permission_module_id": 15, "name": "Edit"},
-    {"id": 41, "permission_module_id": 15, "name": "Delete"},
+    {"id": 15, "permission_modules_id": 7, "description": "Add"},
+    {"id": 16, "permission_modules_id": 7, "description": "Edit"},
+    {"id": 17, "permission_modules_id": 7, "description": "Delete"},
+    {"id": 18, "permission_modules_id": 8, "description": "Add"},
+    {"id": 19, "permission_modules_id": 8, "description": "Edit"},
+    {"id": 20, "permission_modules_id": 8, "description": "Delete"},
+    {"id": 21, "permission_modules_id": 9, "description": "Add"},
+    {"id": 22, "permission_modules_id": 9, "description": "Edit"},
+    {"id": 23, "permission_modules_id": 9, "description": "Delete"},
+    {"id": 24, "permission_modules_id": 10, "description": "Add"},
+    {"id": 25, "permission_modules_id": 10, "description": "Edit"},
+    {"id": 26, "permission_modules_id": 10, "description": "Delete"},
+    {"id": 27, "permission_modules_id": 11, "description": "Add"},
+    {"id": 28, "permission_modules_id": 11, "description": "Edit"},
+    {"id": 29, "permission_modules_id": 11, "description": "Delete"},
+    {"id": 30, "permission_modules_id": 12, "description": "Add"},
+    {"id": 31, "permission_modules_id": 12, "description": "Edit"},
+    {"id": 32, "permission_modules_id": 12, "description": "Delete"},
+    {"id": 33, "permission_modules_id": 13, "description": "Add"},
+    {"id": 34, "permission_modules_id": 13, "description": "Edit"},
+    {"id": 35, "permission_modules_id": 13, "description": "Delete"},
+    {"id": 36, "permission_modules_id": 14, "description": "Add"},
+    {"id": 37, "permission_modules_id": 14, "description": "Edit"},
+    {"id": 38, "permission_modules_id": 14, "description": "Delete"},
+    {"id": 39, "permission_modules_id": 15, "description": "Add"},
+    {"id": 40, "permission_modules_id": 15, "description": "Edit"},
+    {"id": 41, "permission_modules_id": 15, "description": "Delete"},
 ]
 
 # The super admin user (must exist for created_by/updated_by FKs)
@@ -357,10 +358,10 @@ async def test_verify_records(async_engine, store_result):
             )
         ).scalar_one_or_none()
         check("ApplicationColor exists", color is not None)
-        check("Primary color set", color.primary == "1C3838" if color else False, f"got {color.primary if color else 'None'}")
-        check("Secondary color set", color.secondary == "FF9F88" if color else False)
+        check("Primary color set", color.button_primary == "1C3838" if color else False, f"got {color.button_primary if color else 'None'}")
+        check("Secondary color set", color.button_secondary == "FF9F88" if color else False)
         check("Background set", color.background == "FFFFFF" if color else False)
-        check("on_primary auto-calculated", color.on_primary == "FFFFFF" if color else False, "dark primary should get white text")
+        check("on_button auto-calculated", color.on_button == "FFFFFF" if color else False, "dark primary should get white text")
 
         # ApplicationFeatureSetup
         feature = (
@@ -652,7 +653,7 @@ async def test_schema_compatibility():
     check("ApplicationSetting has all required columns", len(missing) == 0, f"missing: {missing}")
 
     color_cols = set(ApplicationColor.__table__.columns.keys())
-    required_colors = {"primary", "secondary", "background", "on_primary", "button_primary", "appbar"}
+    required_colors = {"button_primary", "button_secondary", "background", "on_button", "appbar"}
     missing_colors = required_colors - color_cols
     check("ApplicationColor has all required columns", len(missing_colors) == 0, f"missing: {missing_colors}")
 
