@@ -53,13 +53,15 @@ try:
             st.switch_page("pages/profiles.py")
     with top_right:
         if detail.get("status", "").upper() != "REJECTED":
-            if st.button("Delete", icon=":material/close:", type="secondary", key="delete_prospect"):
+            if st.button(
+                "Delete", icon=":material/close:", type="secondary", key="delete_prospect"
+            ):
                 st.session_state["confirm_delete_prospect"] = True
 
     # Confirmation dialog
     if st.session_state.get("confirm_delete_prospect"):
         st.warning(
-            f'Are you sure you want to remove **{detail.get("name")}**? '
+            f"Are you sure you want to remove **{detail.get('name')}**? "
             "This will set their status to REJECTED, stop all email sequences, "
             "and exclude them from future scraping."
         )
@@ -68,9 +70,12 @@ try:
             if st.button("Yes, remove", key="confirm_delete_yes"):
                 from data import engine
                 from sqlalchemy import text as sql_text
+
                 with engine.connect() as conn:
                     conn.execute(
-                        sql_text("UPDATE prospects SET status = 'REJECTED', updated_at = NOW() WHERE id = :id"),
+                        sql_text(
+                            "UPDATE prospects SET status = 'REJECTED', updated_at = NOW() WHERE id = :id"
+                        ),
                         {"id": int(prospect_id)},
                     )
                     conn.commit()
