@@ -65,6 +65,31 @@ async def list_prospects(
     )
 
 
+class ProspectUpdate(BaseModel):
+    profile_image_url: str | None = None
+    banner_image_url: str | None = None
+
+
+@router.patch("/{prospect_id}", response_model=ProspectResponse)
+async def update_prospect(
+    prospect_id: int,
+    body: ProspectUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update specific fields on a prospect."""
+    result = await db.execute(select(Prospect).where(Prospect.id == prospect_id))
+    prospect = result.scalar_one_or_none()
+    if not prospect:
+        raise HTTPException(status_code=404, detail="Prospect not found")
+
+    for field, value in body.model_dump(exclude_unset=True).items():
+        setattr(prospect, field, value)
+
+    await db.commit()
+    await db.refresh(prospect)
+    return ProspectResponse.model_validate(prospect)
+
+
 @router.get("/{prospect_id}", response_model=ProspectResponse)
 async def get_prospect(prospect_id: int, db: AsyncSession = Depends(get_db)):
     """Get a single prospect by ID."""
