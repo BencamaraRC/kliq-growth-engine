@@ -124,11 +124,21 @@ def render_app_preview(
     if profile_b64:
         image_pool.append(profile_b64)
 
+    # Varied gradient fallbacks when no images available
+    _gradient_fallbacks = [
+        f"linear-gradient(135deg,{kliq_green} 0%,#2a5555 100%)",
+        f"linear-gradient(135deg,#2a5555 0%,{kliq_green} 100%)",
+        f"linear-gradient(135deg,{kliq_green} 0%,#3d6b6b 50%,#1a4040 100%)",
+        f"linear-gradient(135deg,#0E2325 0%,{kliq_green} 60%,#2a5555 100%)",
+        f"linear-gradient(135deg,#1a4040 0%,#2a5555 50%,{kliq_green} 100%)",
+        f"linear-gradient(135deg,#2a5555 0%,#3d7a7a 50%,{kliq_green} 100%)",
+    ]
+
     def _get_card_bg(index: int) -> str:
         """Return a CSS background value cycling through the image pool."""
         if image_pool:
             return f"url({image_pool[index % len(image_pool)]}) center/cover"
-        return f"linear-gradient(135deg,{kliq_green},{tangerine})"
+        return _gradient_fallbacks[index % len(_gradient_fallbacks)]
 
     # Date for greeting
     now = datetime.now()
@@ -180,29 +190,45 @@ def render_app_preview(
     if len(stream_titles) < 2:
         stream_titles = ["Live Coaching Session", "Q&A with Community", "Beginner Workout"]
 
+    from datetime import timedelta
+
     live_cards_html = ""
     for i, stitle in enumerate(stream_titles[:3]):
-        days = i + 1
-        time_pill = f"Live in {days} day{'s' if days > 1 else ''}" if i == 0 else f"{days} days ago"
+        if i == 0:
+            time_pill = "Live tomorrow"
+            pill_bg = "#FFECE7"
+            pill_color = tangerine
+        else:
+            days = i * 3 + 2
+            time_pill = f"{days} days ago"
+            pill_bg = "rgba(0,0,0,0.5)"
+            pill_color = "#fff"
         _live_bg = _get_card_bg(i)
+        card_date = now - timedelta(days=i * 3 + 2)
+        date_label = card_date.strftime("%-d %b, %Y")
         live_cards_html += f"""
             <div class="fade-in" style="flex-shrink:0;width:240px;height:340px;border-radius:12px;overflow:hidden;position:relative;scroll-snap-align:start;">
                 <div style="width:100%;height:100%;background:{_live_bg};"></div>
                 <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.65) 100%);"></div>
                 <div style="position:absolute;top:12px;left:12px;">
-                    <span style="background:{"#FFECE7" if i == 0 else "rgba(0,0,0,0.5)"};color:{tangerine if i == 0 else "#fff"};font-size:11px;font-weight:600;padding:5px 12px;border-radius:10px;">{time_pill}</span>
+                    <span style="background:{pill_bg};color:{pill_color};font-size:11px;font-weight:600;padding:5px 12px;border-radius:10px;">{time_pill}</span>
                 </div>
                 <div style="position:absolute;bottom:14px;left:14px;right:14px;">
                     <h4 style="font-weight:600;font-size:15px;color:#fff;margin:0 0 4px;line-height:130%;text-shadow:0 1px 3px rgba(0,0,0,0.3);">{stitle[:40]}</h4>
-                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin:0;">8th August 2025</p>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin:0;">{date_label}</p>
                 </div>
             </div>"""
 
     # --- Course cards (horizontal scroll, large image cards with overlay) ---
+    _module_counts = [4, 6, 3, 8, 5, 7]
+    _lesson_counts = [12, 18, 8, 24, 15, 21]
+
     course_cards_html = ""
     for idx, product in enumerate(products):
         title = product.get("title", "")
         display_title = title if len(title) <= 35 else title[:32] + "..."
+        modules = _module_counts[idx % len(_module_counts)]
+        lessons = _lesson_counts[idx % len(_lesson_counts)]
 
         # Offset by 3 so courses use different images than live streams
         _course_bg = _get_card_bg(idx + 3)
@@ -214,8 +240,8 @@ def render_app_preview(
                 <div style="position:absolute;bottom:14px;left:14px;right:14px;">
                     <h4 style="font-weight:600;font-size:15px;color:#fff;margin:0 0 8px;line-height:130%;text-shadow:0 1px 3px rgba(0,0,0,0.3);">{display_title}</h4>
                     <div style="display:flex;gap:6px;">
-                        <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;">1 Module</span>
-                        <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;">1 Lesson</span>
+                        <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;">{modules} Modules</span>
+                        <span style="background:rgba(255,255,255,0.2);backdrop-filter:blur(4px);color:#fff;font-size:11px;font-weight:500;padding:4px 10px;border-radius:6px;">{lessons} Lessons</span>
                     </div>
                 </div>
             </div>"""
@@ -229,8 +255,8 @@ def render_app_preview(
                 <p style="font-size:14px;color:{text_secondary};line-height:170%;margin:0;">{post_text}</p>
                 <div style="display:flex;align-items:center;gap:16px;padding-top:4px;">
                     <span style="color:{text_tertiary};font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{text_tertiary}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                        1 like
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="{tangerine}" stroke="{tangerine}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        24 likes
                     </span>
                     <span style="color:{text_tertiary};font-size:13px;cursor:pointer;">Reply</span>
                 </div>
@@ -254,13 +280,16 @@ def render_app_preview(
             # Offset by 6 so blogs use different images than live/courses
             bg_style = _get_card_bg(blog_idx + 6)
 
+        blog_date = now - timedelta(days=blog_idx * 7 + 3)
+        blog_date_label = blog_date.strftime("%-d %b, %Y")
+
         blog_cards_html += f"""
             <div class="fade-in" style="width:100%;height:220px;border-radius:16px;overflow:hidden;position:relative;">
                 <div style="width:100%;height:100%;background:{bg_style};"></div>
                 <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,0.6) 100%);"></div>
                 <div style="position:absolute;bottom:16px;left:16px;right:16px;">
                     <h4 style="font-weight:600;font-size:16px;color:#fff;margin:0 0 4px;line-height:130%;text-shadow:0 1px 3px rgba(0,0,0,0.3);">{display_title}</h4>
-                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin:0;">29 Sep, 2025</p>
+                    <p style="font-size:12px;color:rgba(255,255,255,0.8);margin:0;">{blog_date_label}</p>
                 </div>
             </div>"""
 
@@ -285,6 +314,7 @@ def render_app_preview(
         .device-screen {{
             background:{page_bg}; border-radius:36px; overflow:hidden; overflow-y:auto;
             display:flex; flex-direction:column; position:relative;
+            max-height:852px;
         }}
 
         .content-feed {{
@@ -458,7 +488,7 @@ def render_app_preview(
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">Courses</h2>
-                        <a class="see-all" href="#">View all ({len(products) * 4 + 8})</a>
+                        <a class="see-all" href="#">View all</a>
                     </div>
                     <div class="hscroll">
                         {course_cards_html}
@@ -474,7 +504,7 @@ def render_app_preview(
         else f'''
                 <section>
                     <div class="section-header">
-                        <h2 class="section-title">{coach_first} post</h2>
+                        <h2 class="section-title">{coach_first}'s post</h2>
                         <div style="width:32px;height:32px;border-radius:50%;background:{surface_primary};display:flex;align-items:center;justify-content:center;cursor:pointer;">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{text_tertiary}" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                         </div>
@@ -492,7 +522,7 @@ def render_app_preview(
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">Recent blog</h2>
-                        <a class="see-all" href="#">View all ({len(blogs) * 4 + 8})</a>
+                        <a class="see-all" href="#">View all</a>
                     </div>
                     <div style="display:flex;flex-direction:column;gap:14px;">
                         {blog_cards_html}
