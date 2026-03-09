@@ -1,13 +1,13 @@
 """Private store preview route — serves animated preview, gated by claim token."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db.session import get_db
-from app.preview.queries import get_generated_content, get_prospect_by_token, get_scraped_thumbnails
 from app.preview.app_renderer import render_app_preview
+from app.preview.queries import get_generated_content, get_prospect_by_token, get_scraped_thumbnails
 from app.preview.renderer import render_store_preview
 
 router = APIRouter()

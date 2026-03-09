@@ -66,7 +66,7 @@ def render_store_preview(
         elif ct == "seo":
             _seo_data = parsed
         elif ct == "colors":
-            color_data = parsed
+            color_data = parsed  # noqa: F841
         elif ct == "product":
             parsed["title"] = r.get("title", "")
             products.append(parsed)
@@ -87,14 +87,12 @@ def render_store_preview(
     # --- KLIQ Design Tokens ---
     tangerine = "#FF9F88"
     kliq_green = "#1C3838"
-    page_bg = "#FFFDF9"
     card_bg = "#FFFFFF"
     text_primary = "#101828"
     text_secondary = "#1D2939"
     text_tertiary = "#667085"
     border_color = "#F3F4F6"
     surface_primary = "#F9FAFB"
-    creator_primary = color_data.get("primary", kliq_green)
 
     shadow_sm = "0 1px 3px rgba(16,24,40,0.1), 0 1px 2px rgba(16,24,40,0.06)"
     shadow_md = "0 4px 8px -2px rgba(16,24,40,0.1), 0 2px 4px -2px rgba(16,24,40,0.06)"

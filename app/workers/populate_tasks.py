@@ -20,7 +20,6 @@ from app.ai.pricing_analyzer import SuggestedProduct
 from app.cms.content import create_about_page, create_blog_pages
 from app.cms.media import create_media_record, upload_store_images
 from app.cms.products import create_products
-from app.cms.models import ApplicationSetting
 from app.cms.store_builder import build_store
 from app.db.models import GeneratedContent, Prospect, ProspectStatus
 from app.db.session import async_session

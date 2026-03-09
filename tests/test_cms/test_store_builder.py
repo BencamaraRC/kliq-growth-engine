@@ -57,6 +57,7 @@ class TestStoreBuilderSQL:
     def test_profile_image_and_hero_image_in_insert(self):
         """store_builder SQL should include profile_image and hero_image columns."""
         import inspect
+
         from app.cms.store_builder import build_store
 
         source = inspect.getsource(build_store)

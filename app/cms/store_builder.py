@@ -19,10 +19,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.cms.models import (
     Application,
     ApplicationColor,
-    ApplicationFeatureSetup,
     ApplicationRole,
     ApplicationSection,
-    ApplicationSetting,
     AudioSetting,
     CMSUser,
     EmailTemplate,
@@ -30,7 +28,6 @@ from app.cms.models import (
     PermissionGroup,
     PermissionModule,
     PermissionReference,
-    ReferralPoint,
     Role,
     UserApplication,
     UserDetail,
@@ -88,9 +85,9 @@ async def build_store(
     currency_id: int = CURRENCY_USD,
 ) -> StoreCreationResult:
     # Default placeholder image if none provided (required for NOT NULL CMS columns)
-    DEFAULT_PLACEHOLDER = "https://rcwl-dev.s3.eu-west-2.amazonaws.com/files/remote-coach-white-label/1212121220_profile.jpg"
+    default_placeholder = "https://rcwl-dev.s3.eu-west-2.amazonaws.com/files/remote-coach-white-label/1212121220_profile.jpg"
     if not profile_image_url:
-        profile_image_url = DEFAULT_PLACEHOLDER
+        profile_image_url = default_placeholder
     if not banner_image_url:
         banner_image_url = profile_image_url
     """Create a complete KLIQ webstore.
@@ -157,6 +154,7 @@ async def build_store(
 
     # 3. Create ApplicationSetting (raw SQL — production has many NOT NULL columns with defaults)
     from datetime import datetime as dt
+
     from sqlalchemy import text
 
     web_url = f"https://{store_slug}.joinkliq.io" if store_slug else None

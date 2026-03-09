@@ -64,9 +64,10 @@ def batch_pipeline_task(status_filter: str = "DISCOVERED"):
     Dispatches individual scrape_and_pipeline chains for each prospect.
     Processes sequentially to avoid overwhelming APIs.
     """
-    from app.db.session import async_session, engine, cms_engine
-    from app.db.models import Prospect, ProspectStatus
     from sqlalchemy import select
+
+    from app.db.models import Prospect
+    from app.db.session import async_session, cms_engine, engine
 
     loop = asyncio.new_event_loop()
     try:

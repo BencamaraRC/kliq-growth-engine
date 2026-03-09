@@ -7,9 +7,7 @@ These test the critical section 5b logic that was added to _create_store():
 - Enables features (AMA, programs, courses, etc.)
 """
 
-from unittest.mock import AsyncMock, MagicMock, call, patch
-
-import pytest
+from unittest.mock import AsyncMock, patch
 
 
 class TestMediaRecordCreation:
@@ -97,7 +95,6 @@ class TestFKWriteback:
 
     async def test_update_sql_contains_fk_fields(self):
         """The UPDATE should set profile_id, hero_id, default_image_id."""
-        from sqlalchemy import text
 
         sql = (
             "UPDATE application_settings SET "

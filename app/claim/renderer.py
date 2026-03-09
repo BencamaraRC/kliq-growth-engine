@@ -198,7 +198,7 @@ def render_welcome_page(
     )
     store_name = prospect.get("name", "Your Store")
     store_url = prospect.get("kliq_store_url", "")
-    token = prospect.get("claim_token", "")
+    prospect.get("claim_token", "")
     app_id = prospect.get("kliq_application_id")
 
     # Link to CMS dashboard — auto-login if available, otherwise login page

@@ -50,7 +50,7 @@ def render_app_preview(
         elif ct == "seo":
             _seo_data = parsed
         elif ct == "colors":
-            color_data = parsed
+            color_data = parsed  # noqa: F841
         elif ct == "product":
             parsed["title"] = r.get("title", "")
             products.append(parsed)
@@ -78,17 +78,12 @@ def render_app_preview(
     text_tertiary = "#667085"
     border_color = "#F3F4F6"
     surface_primary = "#F9FAFB"
-    creator_primary = color_data.get("primary", kliq_green)
-
-    shadow_sm = "0 1px 3px rgba(16,24,40,0.1), 0 1px 2px rgba(16,24,40,0.06)"
-    shadow_md = "0 4px 8px -2px rgba(16,24,40,0.1), 0 2px 4px -2px rgba(16,24,40,0.06)"
-    shadow_lg = "0 12px 16px -4px rgba(16,24,40,0.08), 0 4px 6px -2px rgba(16,24,40,0.03)"
 
     coach_name = prospect.get("name", "Coach")
     coach_first = coach_name.split()[0] if coach_name else "Coach"
     store_name = bio_data.get("store_name", coach_name)
     short_bio = bio_data.get("short_bio", prospect.get("bio", ""))
-    long_bio = bio_data.get("long_bio", short_bio)
+    long_bio = bio_data.get("long_bio", short_bio)  # noqa: F841
     profile_img = prospect.get("profile_image_url", "")
 
     # Niche tags
@@ -99,18 +94,16 @@ def render_app_preview(
         except (json.JSONDecodeError, TypeError):
             niche_tags = []
     else:
-        niche_tags = raw_niche_tags or []
+        niche_tags = raw_niche_tags or []  # noqa: F841
 
     # Avatar HTML
     profile_b64 = _fetch_image_b64(profile_img) if profile_img else ""
     initial = coach_name[0] if coach_name else "K"
     if profile_b64:
         greeting_avatar = f'<img src="{profile_b64}" style="width:48px;height:48px;border-radius:50%;object-fit:cover;display:block;flex-shrink:0;" />'
-        small_avatar = f'<img src="{profile_b64}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;" />'
         ama_avatar = f'<img src="{profile_b64}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;" />'
     else:
         greeting_avatar = f'<div style="width:48px;height:48px;border-radius:50%;background:{kliq_green};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#fff;font-weight:600;font-size:18px;line-height:1;">{initial}</span></div>'
-        small_avatar = f'<div style="width:36px;height:36px;border-radius:50%;background:{kliq_green};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#fff;font-weight:600;font-size:14px;">{initial}</span></div>'
         ama_avatar = f'<div style="width:32px;height:32px;border-radius:50%;background:{kliq_green};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="color:#fff;font-weight:600;font-size:12px;">{initial}</span></div>'
 
     # --- Build image pool (variety across sections) ---

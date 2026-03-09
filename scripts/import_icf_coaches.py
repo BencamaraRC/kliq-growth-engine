@@ -19,7 +19,6 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-
 # --- Name parsing ---
 
 # Credential patterns to strip from name field
@@ -111,7 +110,7 @@ def extract_platform_id(profile_url: str) -> str:
 async def import_coaches(csv_path: str, db_url: str):
     """Read CSV and insert prospects."""
     engine = create_async_engine(db_url)
-    Session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+    session_factory = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
     # Read CSV
     with open(csv_path, newline="", encoding="utf-8-sig") as f:
@@ -120,7 +119,7 @@ async def import_coaches(csv_path: str, db_url: str):
 
     print(f"Read {len(rows)} coaches from CSV")
 
-    async with Session() as session:
+    async with session_factory() as session:
         # Get existing emails to skip duplicates
         result = await session.execute(text("SELECT email FROM prospects WHERE email IS NOT NULL"))
         existing_emails = {r[0].lower() for r in result.fetchall()}
@@ -242,7 +241,7 @@ async def import_coaches(csv_path: str, db_url: str):
 
     await engine.dispose()
 
-    print(f"\nDone!")
+    print("\nDone!")
     print(f"  Inserted:       {inserted}")
     print(f"  Skipped (dup):  {skipped_dup}")
     print(f"  Skipped (no email): {skipped_no_email}")

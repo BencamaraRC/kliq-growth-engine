@@ -17,7 +17,6 @@ Requires: the Growth Engine venv with all dependencies installed.
 """
 
 import asyncio
-import json
 import logging
 import sys
 from dataclasses import dataclass
@@ -26,7 +25,7 @@ from pathlib import Path
 # Ensure project root is on path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Session
 
@@ -41,7 +40,6 @@ from app.cms.models import (
     CMSUser,
     EmailTemplate,
     EmailTemplateType,
-    Media,
     Page,
     PermissionGroup,
     PermissionModule,
@@ -560,7 +558,7 @@ async def test_claim_activation(async_engine, store_result):
     app_id = store_result.application_id
     user_id = store_result.user_id
 
-    STATUS_ACTIVE = 2
+    status_active = 2
     new_password = "TestPassword123!"
     hashed = bcrypt_lib.hashpw(new_password.encode(), bcrypt_lib.gensalt()).decode()
 
@@ -571,7 +569,7 @@ async def test_claim_activation(async_engine, store_result):
             .where(CMSUser.id == user_id)
             .values(
                 password=hashed,
-                status_id=STATUS_ACTIVE,
+                status_id=status_active,
                 is_email_verified=True,
                 auto_login_token="test_token_abc123",
             )
@@ -579,17 +577,17 @@ async def test_claim_activation(async_engine, store_result):
 
         # Activate application
         await session.execute(
-            update(Application).where(Application.id == app_id).values(status_id=STATUS_ACTIVE)
+            update(Application).where(Application.id == app_id).values(status_id=status_active)
         )
 
         # Activate all pages
         await session.execute(
-            update(Page).where(Page.application_id == app_id).values(status_id=STATUS_ACTIVE)
+            update(Page).where(Page.application_id == app_id).values(status_id=status_active)
         )
 
         # Activate all products
         await session.execute(
-            update(Product).where(Product.application_id == app_id).values(status_id=STATUS_ACTIVE)
+            update(Product).where(Product.application_id == app_id).values(status_id=status_active)
         )
 
         await session.commit()

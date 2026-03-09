@@ -7,7 +7,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.claim.queries import (
-    complete_onboarding_step,
     get_auto_login_token,
     get_content_counts,
     get_onboarding_dict,
