@@ -117,7 +117,11 @@ class DiscoveryOrchestrator:
             List of deduplicated, enriched prospects sorted by quality.
         """
         target_adapters = (
-            {k: v for k, v in self.adapters.items() if k.value.upper() in [p.upper() for p in platforms]}
+            {
+                k: v
+                for k, v in self.adapters.items()
+                if k.value.upper() in [p.upper() for p in platforms]
+            }
             if platforms
             else self.adapters
         )

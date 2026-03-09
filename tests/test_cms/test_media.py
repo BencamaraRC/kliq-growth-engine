@@ -21,7 +21,10 @@ class TestCreateMediaRecord:
     async def test_returns_media_id(self, mock_session):
         """Should return the auto-increment ID from the INSERT."""
         media_id = await create_media_record(
-            mock_session, application_id=100, url="https://s3.example.com/profile.jpg", name="profile"
+            mock_session,
+            application_id=100,
+            url="https://s3.example.com/profile.jpg",
+            name="profile",
         )
         assert media_id == 42
 
@@ -39,25 +42,19 @@ class TestCreateMediaRecord:
 
     async def test_default_name_is_image(self, mock_session):
         """When no name provided, defaults to 'image'."""
-        await create_media_record(
-            mock_session, application_id=1, url="https://example.com/x.jpg"
-        )
+        await create_media_record(mock_session, application_id=1, url="https://example.com/x.jpg")
         params = mock_session.execute.call_args[0][1]
         assert params["name"] == "image"
 
     async def test_sql_contains_medias_table(self, mock_session):
         """The SQL statement should target the medias table."""
-        await create_media_record(
-            mock_session, application_id=1, url="https://example.com/x.jpg"
-        )
+        await create_media_record(mock_session, application_id=1, url="https://example.com/x.jpg")
         sql_text = str(mock_session.execute.call_args[0][0])
         assert "INSERT INTO medias" in sql_text
 
     async def test_thumbnail_url_same_as_url(self, mock_session):
         """thumbnail_url should be set to the same value as url."""
-        await create_media_record(
-            mock_session, application_id=1, url="https://example.com/x.jpg"
-        )
+        await create_media_record(mock_session, application_id=1, url="https://example.com/x.jpg")
         sql_text = str(mock_session.execute.call_args[0][0])
         # The SQL uses :url for both url and thumbnail_url columns
         assert "thumbnail_url" in sql_text

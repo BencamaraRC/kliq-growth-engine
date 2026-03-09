@@ -23,11 +23,27 @@ from sqlalchemy.orm import sessionmaker
 
 # Credential patterns to strip from name field
 CREDENTIAL_PATTERNS = [
-    r"\bACC\b", r"\bPCC\b", r"\bMCC\b", r"\bBCC\b",
-    r"\bMBA\b", r"\bPhD\b", r"\bEdD\b", r"\bPsyD\b",
-    r"\bJD\b", r"\bMD\b", r"\bRN\b", r"\bLPC\b",
-    r"\bCPCC\b", r"\bCPC\b", r"\bCTPC\b", r"\bACTP\b",
-    r"\bRev\.", r"\bDr\.", r"\bMr\.", r"\bMrs\.", r"\bMs\.",
+    r"\bACC\b",
+    r"\bPCC\b",
+    r"\bMCC\b",
+    r"\bBCC\b",
+    r"\bMBA\b",
+    r"\bPhD\b",
+    r"\bEdD\b",
+    r"\bPsyD\b",
+    r"\bJD\b",
+    r"\bMD\b",
+    r"\bRN\b",
+    r"\bLPC\b",
+    r"\bCPCC\b",
+    r"\bCPC\b",
+    r"\bCTPC\b",
+    r"\bACTP\b",
+    r"\bRev\.",
+    r"\bDr\.",
+    r"\bMr\.",
+    r"\bMrs\.",
+    r"\bMs\.",
     r"Certified Co Active Professional Coach",
     r"Certified Professional Co-Active Coach",
 ]
@@ -233,7 +249,7 @@ async def import_coaches(csv_path: str, db_url: str):
             except Exception as e:
                 errors += 1
                 if errors <= 5:
-                    print(f"  Error on row {i+1} ({display_name}): {e}")
+                    print(f"  Error on row {i + 1} ({display_name}): {e}")
                 await session.rollback()
 
         # Final commit
@@ -260,6 +276,7 @@ if __name__ == "__main__":
 
     # Use env var or default
     import os
+
     db_url = os.environ.get(
         "DATABASE_URL",
         "postgresql+asyncpg://postgres:postgres@10.124.0.3:5432/kliq_growth_engine",

@@ -77,9 +77,9 @@ def batch_pipeline_task(status_filter: str = "DISCOVERED"):
         async def get_prospect_ids():
             async with async_session() as session:
                 result = await session.execute(
-                    select(Prospect.id).where(
-                        Prospect.status == status_filter
-                    ).order_by(Prospect.id)
+                    select(Prospect.id)
+                    .where(Prospect.status == status_filter)
+                    .order_by(Prospect.id)
                 )
                 return [row[0] for row in result.fetchall()]
 

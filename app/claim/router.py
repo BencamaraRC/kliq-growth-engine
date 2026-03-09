@@ -154,6 +154,3 @@ async def welcome_page(
             prospect, content_counts, auto_login_token=auto_login_token, onboarding=onboarding
         )
     )
-
-
-

@@ -53,7 +53,7 @@ STEPS = {
     # --- Pre-claim outreach sequence ---
     1: {
         "template": None,  # Selected by platform via PLATFORM_INITIAL_TEMPLATES
-        "subject": None,   # Selected by platform via PLATFORM_INITIAL_SUBJECTS
+        "subject": None,  # Selected by platform via PLATFORM_INITIAL_SUBJECTS
         "delay_days": 0,
         "name": "initial_outreach",
     },
@@ -238,6 +238,7 @@ def build_outreach_email(
     # View count fallback (for follow-up 4 "Preview Activity")
     if not view_count or view_count < 3:
         import random
+
         view_count = random.randint(8, 24)
 
     context = {

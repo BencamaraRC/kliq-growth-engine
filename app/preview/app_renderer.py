@@ -112,7 +112,7 @@ def render_app_preview(
 
     # Fetch scraped thumbnails as b64
     thumb_b64s: list[str] = []
-    for url in (scraped_thumbnails or []):
+    for url in scraped_thumbnails or []:
         b64 = _fetch_image_b64(url)
         if b64:
             thumb_b64s.append(b64)
@@ -190,7 +190,7 @@ def render_app_preview(
                 <div style="width:100%;height:100%;background:{_live_bg};"></div>
                 <div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,0.65) 100%);"></div>
                 <div style="position:absolute;top:12px;left:12px;">
-                    <span style="background:{'#FFECE7' if i == 0 else 'rgba(0,0,0,0.5)'};color:{tangerine if i == 0 else '#fff'};font-size:11px;font-weight:600;padding:5px 12px;border-radius:10px;">{time_pill}</span>
+                    <span style="background:{"#FFECE7" if i == 0 else "rgba(0,0,0,0.5)"};color:{tangerine if i == 0 else "#fff"};font-size:11px;font-weight:600;padding:5px 12px;border-radius:10px;">{time_pill}</span>
                 </div>
                 <div style="position:absolute;bottom:14px;left:14px;right:14px;">
                     <h4 style="font-weight:600;font-size:15px;color:#fff;margin:0 0 4px;line-height:130%;text-shadow:0 1px 3px rgba(0,0,0,0.3);">{stitle[:40]}</h4>
@@ -370,36 +370,60 @@ def render_app_preview(
 
             <!-- iOS STATUS BAR (black text on ivory) -->
             <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px 0;">
-                <span style="font-weight:600;font-size:15px;color:{text_primary};letter-spacing:-0.02em;">9:41</span>
+                <span style="font-weight:600;font-size:15px;color:{
+        text_primary
+    };letter-spacing:-0.02em;">9:41</span>
                 <div style="display:flex;align-items:center;gap:5px;">
-                    <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M1 8.5h2v3H1zM5 6h2v5.5H5zM9 3.5h2V12H9zM13 1h2v10.5h-2z" fill="{text_primary}"/></svg>
-                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3.58c1.95 0 3.72.8 5 2.08l1.42-1.42A9.01 9.01 0 008 .58c-2.8 0-5.34 1.19-7.12 3.08L2.3 5.08A7.01 7.01 0 018 3.58z" fill="{text_primary}"/><path d="M8 6.58c1.18 0 2.25.48 3.03 1.26L12.46 6.4A6.01 6.01 0 008 4.58c-1.88 0-3.57.86-4.68 2.2l1.42 1.42A4.01 4.01 0 018 6.58z" fill="{text_primary}"/><circle cx="8" cy="10.58" r="2" fill="{text_primary}"/></svg>
-                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="2" stroke="rgba(0,0,0,0.25)"/><rect x="2" y="2" width="18" height="8" rx="1" fill="{text_primary}"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="rgba(0,0,0,0.25)"/></svg>
+                    <svg width="17" height="12" viewBox="0 0 17 12" fill="none"><path d="M1 8.5h2v3H1zM5 6h2v5.5H5zM9 3.5h2V12H9zM13 1h2v10.5h-2z" fill="{
+        text_primary
+    }"/></svg>
+                    <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3.58c1.95 0 3.72.8 5 2.08l1.42-1.42A9.01 9.01 0 008 .58c-2.8 0-5.34 1.19-7.12 3.08L2.3 5.08A7.01 7.01 0 018 3.58z" fill="{
+        text_primary
+    }"/><path d="M8 6.58c1.18 0 2.25.48 3.03 1.26L12.46 6.4A6.01 6.01 0 008 4.58c-1.88 0-3.57.86-4.68 2.2l1.42 1.42A4.01 4.01 0 018 6.58z" fill="{
+        text_primary
+    }"/><circle cx="8" cy="10.58" r="2" fill="{text_primary}"/></svg>
+                    <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="2" stroke="rgba(0,0,0,0.25)"/><rect x="2" y="2" width="18" height="8" rx="1" fill="{
+        text_primary
+    }"/><path d="M23 4.5v3a1.5 1.5 0 000-3z" fill="rgba(0,0,0,0.25)"/></svg>
                 </div>
             </div>
 
             <!-- GREETING HEADER -->
             <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 8px;">
                 <div>
-                    <h1 style="font-size:22px;font-weight:600;color:{text_primary};margin:0;line-height:130%;">Hello, {coach_first}</h1>
-                    <p style="font-size:14px;color:{text_tertiary};margin:4px 0 0;">{day_name}, {date_str}</p>
+                    <h1 style="font-size:22px;font-weight:600;color:{
+        text_primary
+    };margin:0;line-height:130%;">Hello, {coach_first}</h1>
+                    <p style="font-size:14px;color:{text_tertiary};margin:4px 0 0;">{day_name}, {
+        date_str
+    }</p>
                 </div>
                 {greeting_avatar}
             </div>
 
             <!-- BIO ANNOUNCEMENT CARD -->
-            {"" if not short_bio else f'''
+            {
+        ""
+        if not short_bio
+        else f'''
             <div style="margin:12px 20px 0;padding:16px;border-radius:12px;background:linear-gradient(135deg,{kliq_green} 0%,#2a5555 100%);">
                 <p style="font-size:11px;color:{tangerine};font-weight:600;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.5px;">New post by {coach_first}</p>
                 <p style="font-size:14px;color:#fff;line-height:160%;margin:0;">{short_bio[:180]}</p>
             </div>
-            '''}
+            '''
+    }
 
             <!-- ASK ME ANYTHING BAR -->
-            <div style="display:flex;align-items:center;gap:10px;margin:16px 20px 4px;padding:10px 14px;border-radius:24px;background:#fff;border:1px solid {border_color};">
+            <div style="display:flex;align-items:center;gap:10px;margin:16px 20px 4px;padding:10px 14px;border-radius:24px;background:#fff;border:1px solid {
+        border_color
+    };">
                 {ama_avatar}
-                <span style="flex:1;font-size:14px;color:{text_tertiary};">Ask {coach_first} anything</span>
-                <div style="width:32px;height:32px;border-radius:50%;background:{kliq_green};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <span style="flex:1;font-size:14px;color:{text_tertiary};">Ask {
+        coach_first
+    } anything</span>
+                <div style="width:32px;height:32px;border-radius:50%;background:{
+        kliq_green
+    };display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2" fill="none"/></svg>
                 </div>
             </div>
@@ -408,7 +432,10 @@ def render_app_preview(
             <div class="content-feed" style="padding-top:20px;">
 
                 <!-- LIVE STREAM -->
-                {"" if not stream_titles else f'''
+                {
+        ""
+        if not stream_titles
+        else f'''
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">Live stream</h2>
@@ -420,10 +447,14 @@ def render_app_preview(
                         {live_cards_html}
                     </div>
                 </section>
-                '''}
+                '''
+    }
 
                 <!-- COURSES -->
-                {"" if not products else f'''
+                {
+        ""
+        if not products
+        else f'''
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">Courses</h2>
@@ -433,10 +464,14 @@ def render_app_preview(
                         {course_cards_html}
                     </div>
                 </section>
-                '''}
+                '''
+    }
 
                 <!-- RECENT POSTS -->
-                {"" if not recent_post_html else f'''
+                {
+        ""
+        if not recent_post_html
+        else f'''
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">{coach_first} post</h2>
@@ -446,10 +481,14 @@ def render_app_preview(
                     </div>
                     {recent_post_html}
                 </section>
-                '''}
+                '''
+    }
 
                 <!-- RECENT BLOG -->
-                {"" if not blogs else f'''
+                {
+        ""
+        if not blogs
+        else f'''
                 <section>
                     <div class="section-header">
                         <h2 class="section-title">Recent blog</h2>
@@ -459,7 +498,8 @@ def render_app_preview(
                         {blog_cards_html}
                     </div>
                 </section>
-                '''}
+                '''
+    }
 
             </div><!-- end content-feed -->
 
@@ -474,7 +514,8 @@ def render_app_preview(
         </div><!-- end device-screen -->
     </div><!-- end device-frame -->
 
-{f'''
+{
+        f'''
     <!-- FLOATING CLAIM BANNER -->
     <div id="claim-banner" style="
         position:fixed;bottom:0;left:0;right:0;z-index:1000;
@@ -518,7 +559,10 @@ def render_app_preview(
             to {{ transform:translateY(0); }}
         }}
     </style>
-''' if claim_url else ''}
+'''
+        if claim_url
+        else ""
+    }
 
 <script>
 (function(){{

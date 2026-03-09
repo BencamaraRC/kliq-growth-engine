@@ -63,9 +63,7 @@ async def backfill():
         async with cms_session() as cms_db:
             # Set enable_new_home on Application
             await cms_db.execute(
-                update(Application)
-                .where(Application.id == app_id)
-                .values(enable_new_home=True)
+                update(Application).where(Application.id == app_id).values(enable_new_home=True)
             )
 
             # Update ApplicationSetting
@@ -90,7 +88,9 @@ async def backfill():
                 if not app_settings.dark_login_logo:
                     app_settings.dark_login_logo = profile_url
                 if not app_settings.copyright_text:
-                    app_settings.copyright_text = f"\u00a9 {datetime.now().year} {prospect.name}. All rights reserved."
+                    app_settings.copyright_text = (
+                        f"\u00a9 {datetime.now().year} {prospect.name}. All rights reserved."
+                    )
                 if not app_settings.favicon:
                     app_settings.favicon = profile_url
                 app_settings.enable_shop = True

@@ -78,11 +78,21 @@ class ApplicationSetting(CMSBase):
     copyright_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
     cookie_privacy: Mapped[str | None] = mapped_column(String(255), nullable=True)
     terms_and_condtion_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    feedback_interval_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
-    first_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
-    second_engagement_email_days: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
-    monthly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
-    quarterly_discount_percentage: Mapped[int] = mapped_column(Integer, default=0, server_default=text("0"))
+    feedback_interval_days: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0")
+    )
+    first_engagement_email_days: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0")
+    )
+    second_engagement_email_days: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0")
+    )
+    monthly_discount_percentage: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0")
+    )
+    quarterly_discount_percentage: Mapped[int] = mapped_column(
+        Integer, default=0, server_default=text("0")
+    )
     referral_point: Mapped[int | None] = mapped_column(Integer, nullable=True)
     google_analytics_code: Mapped[str | None] = mapped_column(String(255), nullable=True)
     live_api: Mapped[str | None] = mapped_column(String(255), nullable=True)
@@ -183,8 +193,12 @@ class ApplicationFeatureSetup(CMSBase):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     application_id: Mapped[int] = mapped_column(Integer, index=True)
-    enable_google_signin: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
-    enable_apple_login: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_google_signin: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("0")
+    )
+    enable_apple_login: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("0")
+    )
     enable_fb_login: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     unsub_nutrition_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     unsub_wellness_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -198,13 +212,21 @@ class ApplicationFeatureSetup(CMSBase):
     sub_home_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sub_library_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
     sub_shop_order: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    enable_switch_theme: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_switch_theme: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("0")
+    )
     enable_referral: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     hide_signup: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     has_one_to_one: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
-    enable_in_app_purchase: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
-    enable_engagement_email: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("1"))
-    show_nutrition_filter: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
+    enable_in_app_purchase: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("0")
+    )
+    enable_engagement_email: Mapped[bool] = mapped_column(
+        Boolean, default=True, server_default=text("1")
+    )
+    show_nutrition_filter: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("0")
+    )
     has_light_bg: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     has_program: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("0"))
     created_by: Mapped[int] = mapped_column(Integer, default=1, server_default=text("1"))

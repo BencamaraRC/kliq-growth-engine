@@ -26,13 +26,9 @@ class TestMediaRecordCreation:
         profile_media_id = None
         banner_media_id = None
         if media.get("profile"):
-            profile_media_id = await mock_create_media(
-                cms_db, app_id, media["profile"], "profile"
-            )
+            profile_media_id = await mock_create_media(cms_db, app_id, media["profile"], "profile")
         if media.get("banner"):
-            banner_media_id = await mock_create_media(
-                cms_db, app_id, media["banner"], "banner"
-            )
+            banner_media_id = await mock_create_media(cms_db, app_id, media["banner"], "banner")
 
         assert profile_media_id == 10
         assert banner_media_id is None
@@ -55,13 +51,9 @@ class TestMediaRecordCreation:
         profile_media_id = None
         banner_media_id = None
         if media.get("profile"):
-            profile_media_id = await mock_create_media(
-                cms_db, app_id, media["profile"], "profile"
-            )
+            profile_media_id = await mock_create_media(cms_db, app_id, media["profile"], "profile")
         if media.get("banner"):
-            banner_media_id = await mock_create_media(
-                cms_db, app_id, media["banner"], "banner"
-            )
+            banner_media_id = await mock_create_media(cms_db, app_id, media["banner"], "banner")
 
         assert profile_media_id == 10
         assert banner_media_id == 20
@@ -77,13 +69,9 @@ class TestMediaRecordCreation:
         profile_media_id = None
         banner_media_id = None
         if media.get("profile"):
-            profile_media_id = await mock_create_media(
-                cms_db, app_id, media["profile"], "profile"
-            )
+            profile_media_id = await mock_create_media(cms_db, app_id, media["profile"], "profile")
         if media.get("banner"):
-            banner_media_id = await mock_create_media(
-                cms_db, app_id, media["banner"], "banner"
-            )
+            banner_media_id = await mock_create_media(cms_db, app_id, media["banner"], "banner")
 
         assert profile_media_id is None
         assert banner_media_id is None

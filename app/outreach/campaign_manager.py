@@ -42,12 +42,12 @@ logger = logging.getLogger(__name__)
 # Step 1 is sent at Day 0; subsequent steps fire at absolute day offsets from Step 1
 FOLLOW_UP_SCHEDULE = [
     # (step, days_after_initial)
-    (2, 3),    # Gentle Nudge
-    (3, 6),    # Value Add
-    (4, 10),   # Social Proof
-    (5, 14),   # Preview Activity
-    (6, 21),   # New Angle
-    (7, 28),   # Breakup
+    (2, 3),  # Gentle Nudge
+    (3, 6),  # Value Add
+    (4, 10),  # Social Proof
+    (5, 14),  # Preview Activity
+    (6, 21),  # New Angle
+    (7, 28),  # Breakup
 ]
 
 
@@ -228,8 +228,7 @@ async def _send_step(
                     return False
         except Exception as e:
             logger.error(
-                f"Preview URL unreachable for prospect {prospect.id}: {e}, "
-                f"skipping step {step}"
+                f"Preview URL unreachable for prospect {prospect.id}: {e}, skipping step {step}"
             )
             return False
 
@@ -358,9 +357,7 @@ async def _find_due_for_followup(
             select(CampaignEvent).where(
                 and_(
                     CampaignEvent.prospect_id == prospect.id,
-                    CampaignEvent.email_status.in_(
-                        [EmailStatus.BOUNCED, EmailStatus.UNSUBSCRIBED]
-                    ),
+                    CampaignEvent.email_status.in_([EmailStatus.BOUNCED, EmailStatus.UNSUBSCRIBED]),
                 )
             )
         )

@@ -217,12 +217,16 @@ async def _scrape_existing_prospect(prospect_id: int):
         # Update existing prospect with scraped data
         prospect.bio = scraped.bio or prospect.bio
         prospect.profile_image_url = scraped.profile_image_url or prospect.profile_image_url
-        prospect.banner_image_url = scraped.primary_profile.banner_image_url or prospect.banner_image_url
+        prospect.banner_image_url = (
+            scraped.primary_profile.banner_image_url or prospect.banner_image_url
+        )
         prospect.website_url = scraped.primary_profile.website_url or prospect.website_url
         prospect.social_links = scraped.social_links or prospect.social_links
         prospect.niche_tags = scraped.primary_profile.niche_tags or prospect.niche_tags
         prospect.follower_count = scraped.primary_profile.follower_count or prospect.follower_count
-        prospect.subscriber_count = scraped.primary_profile.subscriber_count or prospect.subscriber_count
+        prospect.subscriber_count = (
+            scraped.primary_profile.subscriber_count or prospect.subscriber_count
+        )
         prospect.content_count = len(scraped.all_content)
         prospect.brand_colors = scraped.brand_colors or prospect.brand_colors
         prospect.first_name = scraped.first_name or prospect.first_name

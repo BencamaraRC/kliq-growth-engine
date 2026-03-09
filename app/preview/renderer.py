@@ -532,10 +532,16 @@ def render_store_preview(
     <div class="phone-frame">
 
     <!-- TOP NAV BAR -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;border-bottom:1px solid {border_color};">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff;border-bottom:1px solid {
+        border_color
+    };">
         <div style="display:flex;align-items:center;gap:8px;">
             {nav_avatar}
-            <span style="font-weight:600;font-size:14px;color:{text_primary};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">{store_name}</span>
+            <span style="font-weight:600;font-size:14px;color:{
+        text_primary
+    };white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:120px;">{
+        store_name
+    }</span>
         </div>
         <div style="display:flex;align-items:center;gap:12px;">
             <span style="font-size:12px;color:{text_tertiary};cursor:pointer;">Home</span>
@@ -546,22 +552,46 @@ def render_store_preview(
 
     <!-- HERO BANNER (full-width, edge-to-edge) -->
     <div class="hero-banner">
-        {f'<img src="{banner_b64}" />' if has_banner else f'<div style="width:100%;height:100%;background:linear-gradient(135deg,{kliq_green} 0%,#2a5555 50%,{kliq_green} 100%);"></div>'}
+        {
+        f'<img src="{banner_b64}" />'
+        if has_banner
+        else f'<div style="width:100%;height:100%;background:linear-gradient(135deg,{kliq_green} 0%,#2a5555 50%,{kliq_green} 100%);"></div>'
+    }
         <div class="hero-gradient"></div>
-        {"" if not niche_pills_html else f'<div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:2;">{niche_pills_html}</div>'}
+        {
+        ""
+        if not niche_pills_html
+        else f'<div style="position:absolute;bottom:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:2;">{niche_pills_html}</div>'
+    }
     </div>
 
     <!-- PROFILE (avatar overlaps banner bottom-left) -->
     <div class="profile-section">
-        {f'<img class="profile-avatar" src="{profile_b64}" />' if profile_b64 else f'<div class="profile-avatar-placeholder"><span style="font-size:28px;font-weight:600;color:#fff;line-height:1;">{initial}</span></div>'}
+        {
+        f'<img class="profile-avatar" src="{profile_b64}" />'
+        if profile_b64
+        else f'<div class="profile-avatar-placeholder"><span style="font-size:28px;font-weight:600;color:#fff;line-height:1;">{initial}</span></div>'
+    }
         <div style="display:flex;align-items:center;justify-content:space-between;">
             <div class="profile-name">
-                <h1 style="font-size:18px;font-weight:600;color:{text_primary};margin:0;line-height:130%;letter-spacing:-0.02em;">{store_name}</h1>
-                {"" if not niche_subtitle else f'<p style="font-size:13px;color:{text_tertiary};margin:0;">{niche_subtitle}</p>'}
+                <h1 style="font-size:18px;font-weight:600;color:{
+        text_primary
+    };margin:0;line-height:130%;letter-spacing:-0.02em;">{store_name}</h1>
+                {
+        ""
+        if not niche_subtitle
+        else f'<p style="font-size:13px;color:{text_tertiary};margin:0;">{niche_subtitle}</p>'
+    }
             </div>
             <div style="display:flex;gap:8px;">
-                <button style="border:1px solid {border_color};background:transparent;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:{text_primary};cursor:pointer;font-family:'Sora',sans-serif;">Log in</button>
-                <button style="background:{tangerine};color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">Sign up</button>
+                <button style="border:1px solid {
+        border_color
+    };background:transparent;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:500;color:{
+        text_primary
+    };cursor:pointer;font-family:'Sora',sans-serif;">Log in</button>
+                <button style="background:{
+        tangerine
+    };color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;">Sign up</button>
             </div>
         </div>
     </div>
@@ -575,14 +605,21 @@ def render_store_preview(
                 <h2 class="section-title">Ask me anything</h2>
                 <span style="font-weight:600;font-size:16px;color:{text_primary};">$15</span>
             </div>
-            <div id="ama-section" style="border-radius:8px;border:1px solid {border_color};background:#fff;padding:12px;">
-                <p style="color:{text_tertiary};font-size:13px;margin:0 0 12px;line-height:160%;">Ask a question and get a personal response.</p>
+            <div id="ama-section" style="border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;padding:12px;">
+                <p style="color:{
+        text_tertiary
+    };font-size:13px;margin:0 0 12px;line-height:160%;">Ask a question and get a personal response.</p>
                 {ama_chat_html}
             </div>
         </section>
 
         <!-- PINNED POST -->
-        {"" if not pinned_post_html else f'''
+        {
+        ""
+        if not pinned_post_html
+        else f'''
         <section>
             <div class="section-header">
                 <h2 class="section-title">Pinned post</h2>
@@ -590,7 +627,8 @@ def render_store_preview(
             </div>
             {pinned_post_html}
         </section>
-        '''}
+        '''
+    }
 
         <!-- LIVE STREAMS -->
         <section>
@@ -605,7 +643,10 @@ def render_store_preview(
         </section>
 
         <!-- EDUCATION -->
-        {"" if not blogs else f'''
+        {
+        ""
+        if not blogs
+        else f'''
         <section id="education">
             <div class="section-header">
                 <h2 class="section-title">Education</h2>
@@ -615,10 +656,14 @@ def render_store_preview(
                 {blog_cards_html}
             </div>
         </section>
-        '''}
+        '''
+    }
 
         <!-- PROGRAMS -->
-        {"" if not products else f'''
+        {
+        ""
+        if not products
+        else f'''
         <section id="programs">
             <div class="section-header">
                 <h2 class="section-title">Programs</h2>
@@ -628,28 +673,49 @@ def render_store_preview(
                 {product_cards_html}
             </div>
         </section>
-        '''}
+        '''
+    }
 
         <!-- ABOUT + STATS -->
         <section>
             <div class="section-header">
                 <h2 class="section-title">About {coach_first}</h2>
             </div>
-            <div style="background:{card_bg};border-radius:8px;border:1px solid {border_color};padding:12px;margin-bottom:12px;">
-                <p style="font-size:14px;color:{text_secondary};line-height:180%;margin:0;">{long_bio[:400] if long_bio else short_bio[:400] if short_bio else "Passionate coach helping you achieve your fitness and wellness goals."}</p>
+            <div style="background:{card_bg};border-radius:8px;border:1px solid {
+        border_color
+    };padding:12px;margin-bottom:12px;">
+                <p style="font-size:14px;color:{text_secondary};line-height:180%;margin:0;">{
+        long_bio[:400]
+        if long_bio
+        else short_bio[:400]
+        if short_bio
+        else "Passionate coach helping you achieve your fitness and wellness goals."
+    }</p>
             </div>
             <div style="display:flex;gap:12px;">
-                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {border_color};background:#fff;">
-                    <span style="font-weight:700;font-size:24px;color:{text_primary};line-height:120%;letter-spacing:-0.02em;">500+</span>
+                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;">
+                    <span style="font-weight:700;font-size:24px;color:{
+        text_primary
+    };line-height:120%;letter-spacing:-0.02em;">500+</span>
                     <span style="font-size:12px;color:{text_tertiary};">Members</span>
                 </div>
-                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {border_color};background:#fff;">
-                    <span style="font-weight:700;font-size:24px;color:{text_primary};line-height:120%;letter-spacing:-0.02em;">50+</span>
+                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;">
+                    <span style="font-weight:700;font-size:24px;color:{
+        text_primary
+    };line-height:120%;letter-spacing:-0.02em;">50+</span>
                     <span style="font-size:12px;color:{text_tertiary};">Programs</span>
                 </div>
-                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {border_color};background:#fff;">
+                <div style="flex:1 0 0;display:flex;padding:12px;flex-direction:column;gap:6px;border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;">
                     <div style="display:flex;align-items:center;gap:4px;">
-                        <span style="font-weight:700;font-size:24px;color:{text_primary};line-height:120%;">4.9</span>
+                        <span style="font-weight:700;font-size:24px;color:{
+        text_primary
+    };line-height:120%;">4.9</span>
                         {star_svg}
                     </div>
                     <span style="font-size:12px;color:{text_tertiary};">Rating</span>
@@ -664,25 +730,39 @@ def render_store_preview(
                 <a class="see-all" href="#">See all</a>
             </div>
             <div class="hscroll">
-                <div style="display:flex;padding:12px;flex-direction:column;gap:16px;border-radius:8px;border:1px solid {border_color};background:#fff;">
+                <div style="display:flex;padding:12px;flex-direction:column;gap:16px;border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;">
                     <div style="display:flex;align-items:center;gap:10px;">
-                        <div style="width:40px;height:40px;border-radius:50%;background:#FFECE7;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;font-weight:600;color:{tangerine};">S</span></div>
+                        <div style="width:40px;height:40px;border-radius:50%;background:#FFECE7;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;font-weight:600;color:{
+        tangerine
+    };">S</span></div>
                         <div>
-                            <span style="font-weight:600;font-size:14px;color:{text_primary};">Sarah M.</span>
+                            <span style="font-weight:600;font-size:14px;color:{
+        text_primary
+    };">Sarah M.</span>
                             <div style="display:flex;gap:2px;margin-top:2px;">{five_stars}</div>
                         </div>
                     </div>
-                    <p style="font-size:14px;color:{text_secondary};line-height:170%;margin:0;">"This program completely changed my routine. I'm stronger and more confident."</p>
+                    <p style="font-size:14px;color:{
+        text_secondary
+    };line-height:170%;margin:0;">"This program completely changed my routine. I'm stronger and more confident."</p>
                 </div>
-                <div style="display:flex;padding:12px;flex-direction:column;gap:16px;border-radius:8px;border:1px solid {border_color};background:#fff;">
+                <div style="display:flex;padding:12px;flex-direction:column;gap:16px;border-radius:8px;border:1px solid {
+        border_color
+    };background:#fff;">
                     <div style="display:flex;align-items:center;gap:10px;">
                         <div style="width:40px;height:40px;border-radius:50%;background:#EBFCFF;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="font-size:14px;font-weight:600;color:#1C3838;">J</span></div>
                         <div>
-                            <span style="font-weight:600;font-size:14px;color:{text_primary};">James T.</span>
+                            <span style="font-weight:600;font-size:14px;color:{
+        text_primary
+    };">James T.</span>
                             <div style="display:flex;gap:2px;margin-top:2px;">{five_stars}</div>
                         </div>
                     </div>
-                    <p style="font-size:14px;color:{text_secondary};line-height:170%;margin:0;">"The nutrition plans alone are worth it. Lost 8kg in 3 months."</p>
+                    <p style="font-size:14px;color:{
+        text_secondary
+    };line-height:170%;margin:0;">"The nutrition plans alone are worth it. Lost 8kg in 3 months."</p>
                 </div>
             </div>
         </section>
@@ -690,19 +770,30 @@ def render_store_preview(
     </div>
 
     <!-- FOOTER -->
-    <footer style="border-top:1px solid {border_color};padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;">
+    <footer style="border-top:1px solid {
+        border_color
+    };padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px;">
         <div style="display:flex;align-items:center;gap:16px;">
-            <a href="#" style="color:{text_tertiary};"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
-            <a href="#" style="color:{text_tertiary};"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
-            <a href="#" style="color:{text_tertiary};"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg></a>
+            <a href="#" style="color:{
+        text_tertiary
+    };"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+            <a href="#" style="color:{
+        text_tertiary
+    };"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+            <a href="#" style="color:{
+        text_tertiary
+    };"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 3.993L9 16z"/></svg></a>
         </div>
-        <p style="font-size:12px;color:{text_tertiary};">Powered by <span style="font-weight:600;color:{kliq_green};">KLIQ</span></p>
+        <p style="font-size:12px;color:{
+        text_tertiary
+    };">Powered by <span style="font-weight:600;color:{kliq_green};">KLIQ</span></p>
     </footer>
 
     </div><!-- end phone-frame -->
     </div><!-- end figma-canvas -->
 
-{f'''
+{
+        f'''
     <!-- FLOATING CLAIM BANNER -->
     <div id="claim-banner" style="
         position:fixed;bottom:0;left:0;right:0;z-index:1000;
@@ -746,7 +837,10 @@ def render_store_preview(
             to {{ transform:translateY(0); }}
         }}
     </style>
-''' if claim_url else ''}
+'''
+        if claim_url
+        else ""
+    }
 
 <script>
 (function(){{

@@ -318,7 +318,13 @@ async def build_store(
             "INSERT INTO referral_points (application_id, referral_point, is_default, status_id, created_by, updated_by) "
             "VALUES (:app_id, :points, 1, :status, :cb, :ub)"
         ),
-        {"app_id": app_id, "points": DEFAULT_REFERRAL_POINTS, "status": STATUS_ACTIVE, "cb": SUPER_ADMIN_ID, "ub": SUPER_ADMIN_ID},
+        {
+            "app_id": app_id,
+            "points": DEFAULT_REFERRAL_POINTS,
+            "status": STATUS_ACTIVE,
+            "cb": SUPER_ADMIN_ID,
+            "ub": SUPER_ADMIN_ID,
+        },
     )
 
     await session.flush()
@@ -450,7 +456,9 @@ async def _create_permission_groups(session: AsyncSession, role_id: int):
 
     for module in modules:
         refs_result = await session.execute(
-            select(PermissionReference).where(PermissionReference.permission_modules_id == module.id)
+            select(PermissionReference).where(
+                PermissionReference.permission_modules_id == module.id
+            )
         )
         references = refs_result.scalars().all()
 

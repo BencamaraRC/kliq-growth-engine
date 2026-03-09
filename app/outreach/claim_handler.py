@@ -125,9 +125,7 @@ async def activate_store(
     if prospect.email:
         user_updates["email"] = prospect.email
     await cms_db.execute(
-        update(CMSUser)
-        .where(CMSUser.application_id == app_id)
-        .values(**user_updates)
+        update(CMSUser).where(CMSUser.application_id == app_id).values(**user_updates)
     )
 
     # 2. Activate the application

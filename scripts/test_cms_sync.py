@@ -94,7 +94,13 @@ SEED_PERMISSION_MODULES = [
     {"id": 3, "name": "Admin", "order": 3, "user_types": '["1","2"]', "status": 1},
     {"id": 4, "name": "Coach", "order": 4, "user_types": '["1","2"]', "status": 1},
     {"id": 5, "name": "Application", "order": 5, "user_types": '["1","2"]', "status": 1},
-    {"id": 6, "name": "Application Settings", "order": 6, "user_types": '["1","2","3","4"]', "status": 1},
+    {
+        "id": 6,
+        "name": "Application Settings",
+        "order": 6,
+        "user_types": '["1","2","3","4"]',
+        "status": 1,
+    },
     {"id": 7, "name": "Nutrition", "order": 7, "user_types": '["1","2","3","4"]', "status": 1},
     {"id": 8, "name": "Wellness", "order": 8, "user_types": '["1","2","3","4"]', "status": 1},
     {"id": 9, "name": "Category", "order": 9, "user_types": '["1","2","3","4"]', "status": 1},
@@ -102,7 +108,13 @@ SEED_PERMISSION_MODULES = [
     {"id": 11, "name": "Pages", "order": 11, "user_types": '["1","2","3","4"]', "status": 1},
     {"id": 12, "name": "Links", "order": 12, "user_types": '["1","2","3","4"]', "status": 1},
     {"id": 13, "name": "Questions", "order": 13, "user_types": '["1","2","3","4"]', "status": 1},
-    {"id": 14, "name": "Fitness Level", "order": 14, "user_types": '["1","2","3","4"]', "status": 1},
+    {
+        "id": 14,
+        "name": "Fitness Level",
+        "order": 14,
+        "user_types": '["1","2","3","4"]',
+        "status": 1,
+    },
     {"id": 15, "name": "Products", "order": 15, "user_types": '["1","2","3","4"]', "status": 1},
 ]
 
@@ -189,7 +201,9 @@ class FakeBrandColors:
 @dataclass
 class FakeBlog:
     blog_title: str = "10 Minute Morning Stretch Routine"
-    body_html: str = "<h2>Start Your Day Right</h2><p>This 10-minute routine will wake up your body.</p>"
+    body_html: str = (
+        "<h2>Start Your Day Right</h2><p>This 10-minute routine will wake up your body.</p>"
+    )
     seo_title: str = "10 Minute Morning Stretch | Coach Test"
     seo_description: str = "A quick morning stretch routine for beginners."
 
@@ -328,7 +342,9 @@ async def test_verify_records(async_engine, store_result):
 
     async with async_session() as session:
         # Application
-        app = (await session.execute(select(Application).where(Application.id == app_id))).scalar_one_or_none()
+        app = (
+            await session.execute(select(Application).where(Application.id == app_id))
+        ).scalar_one_or_none()
         check("Application exists", app is not None)
         check("Application status=1 (Inactive)", app.status_id == 1 if app else False)
         check("Application name correct", app.name == "FitCoach Test Store" if app else False)
@@ -342,11 +358,22 @@ async def test_verify_records(async_engine, store_result):
             )
         ).scalar_one_or_none()
         check("ApplicationSetting exists", setting is not None)
-        check("App name in settings", setting.app_name == "FitCoach Test Store" if setting else False)
+        check(
+            "App name in settings", setting.app_name == "FitCoach Test Store" if setting else False
+        )
         check("Coach name in settings", setting.coach_name == "Coach Test" if setting else False)
-        check("SEO title set", setting.meta_title == "FitCoach Test — Fitness Programs" if setting else False)
-        check("Web URL set", setting.web_url == "https://fitcoach-test.joinkliq.io" if setting else False)
-        check("Support email set", setting.support_email == "support@fitcoach-test.com" if setting else False)
+        check(
+            "SEO title set",
+            setting.meta_title == "FitCoach Test — Fitness Programs" if setting else False,
+        )
+        check(
+            "Web URL set",
+            setting.web_url == "https://fitcoach-test.joinkliq.io" if setting else False,
+        )
+        check(
+            "Support email set",
+            setting.support_email == "support@fitcoach-test.com" if setting else False,
+        )
         check("Tab labels set", setting.tab_home_text == "Home" if setting else False)
 
         # ApplicationColor
@@ -356,30 +383,40 @@ async def test_verify_records(async_engine, store_result):
             )
         ).scalar_one_or_none()
         check("ApplicationColor exists", color is not None)
-        check("Primary color set", color.button_primary == "1C3838" if color else False, f"got {color.button_primary if color else 'None'}")
+        check(
+            "Primary color set",
+            color.button_primary == "1C3838" if color else False,
+            f"got {color.button_primary if color else 'None'}",
+        )
         check("Secondary color set", color.button_secondary == "FF9F88" if color else False)
         check("Background set", color.background == "FFFFFF" if color else False)
-        check("on_button auto-calculated", color.on_button == "FFFFFF" if color else False, "dark primary should get white text")
+        check(
+            "on_button auto-calculated",
+            color.on_button == "FFFFFF" if color else False,
+            "dark primary should get white text",
+        )
 
         # ApplicationFeatureSetup
         feature = (
             await session.execute(
-                select(ApplicationFeatureSetup).where(ApplicationFeatureSetup.application_id == app_id)
+                select(ApplicationFeatureSetup).where(
+                    ApplicationFeatureSetup.application_id == app_id
+                )
             )
         ).scalar_one_or_none()
         check("ApplicationFeatureSetup exists", feature is not None)
 
         # AudioSetting
         audio = (
-            await session.execute(
-                select(AudioSetting).where(AudioSetting.application_id == app_id)
-            )
+            await session.execute(select(AudioSetting).where(AudioSetting.application_id == app_id))
         ).scalar_one_or_none()
         check("AudioSetting exists", audio is not None)
         check("Audio defaults correct", audio.audio_mixing_publish_volume == 90 if audio else False)
 
         # Role
-        role = (await session.execute(select(Role).where(Role.id == store_result.role_id))).scalar_one_or_none()
+        role = (
+            await session.execute(select(Role).where(Role.id == store_result.role_id))
+        ).scalar_one_or_none()
         check("Role exists", role is not None)
         check("Role is Coach Admin", role.name == "Coach Admin" if role else False)
         check("Role user_type=3", role.user_type == 3 if role else False)
@@ -394,13 +431,18 @@ async def test_verify_records(async_engine, store_result):
         check("ApplicationRole pivot exists", app_role is not None)
 
         # CMSUser (coach)
-        user = (await session.execute(select(CMSUser).where(CMSUser.id == store_result.user_id))).scalar_one_or_none()
+        user = (
+            await session.execute(select(CMSUser).where(CMSUser.id == store_result.user_id))
+        ).scalar_one_or_none()
         check("Coach user exists", user is not None)
         check("User email correct", user.email == "testcoach@example.com" if user else False)
         check("User status=1 (Inactive)", user.status_id == 1 if user else False)
         check("User type=3 (Coach Admin)", user.user_type == 3 if user else False)
         check("Password is bcrypt hash", user.password.startswith("$2") if user else False)
-        check("Profile image stored", user.photo_url == "https://example.com/profile.jpg" if user else False)
+        check(
+            "Profile image stored",
+            user.photo_url == "https://example.com/profile.jpg" if user else False,
+        )
 
         # UserDetail
         detail = (
@@ -412,38 +454,55 @@ async def test_verify_records(async_engine, store_result):
 
         # UserApplication (should be 2: super admin + coach)
         user_apps = (
-            await session.execute(
-                select(UserApplication).where(UserApplication.application_id == app_id)
+            (
+                await session.execute(
+                    select(UserApplication).where(UserApplication.application_id == app_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         check("UserApplication count=2", len(user_apps) == 2, f"got {len(user_apps)}")
 
         # UserRole
         user_role = (
-            await session.execute(
-                select(UserRole).where(UserRole.user_id == store_result.user_id)
-            )
+            await session.execute(select(UserRole).where(UserRole.user_id == store_result.user_id))
         ).scalar_one_or_none()
         check("UserRole exists", user_role is not None)
-        check("UserRole links to correct role", user_role.role_id == store_result.role_id if user_role else False)
+        check(
+            "UserRole links to correct role",
+            user_role.role_id == store_result.role_id if user_role else False,
+        )
 
         # PermissionGroups
         perm_groups = (
-            await session.execute(
-                select(PermissionGroup).where(PermissionGroup.role_id == store_result.role_id)
+            (
+                await session.execute(
+                    select(PermissionGroup).where(PermissionGroup.role_id == store_result.role_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         # Modules with user_type "3": modules 6-15 = 10 modules, each with refs
         # Module 6: 2 refs, Modules 7-15: 3 refs each = 2 + 9*3 = 29
         check("PermissionGroups created", len(perm_groups) > 0, f"got {len(perm_groups)}")
-        check("PermissionGroups count=29 (Coach Admin)", len(perm_groups) == 29, f"got {len(perm_groups)}")
+        check(
+            "PermissionGroups count=29 (Coach Admin)",
+            len(perm_groups) == 29,
+            f"got {len(perm_groups)}",
+        )
 
         # EmailTemplates
         templates = (
-            await session.execute(
-                select(EmailTemplate).where(EmailTemplate.application_id == app_id)
+            (
+                await session.execute(
+                    select(EmailTemplate).where(EmailTemplate.application_id == app_id)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         check("EmailTemplates created", len(templates) == 8, f"got {len(templates)}")
 
         # ReferralPoint
@@ -504,8 +563,15 @@ async def test_content_creation(async_engine, app_id: int):
 
         # Create Products
         products = [
-            FakeProduct(name="Monthly Coaching", description="Full monthly access.", price_cents=2999),
-            FakeProduct(name="Annual Plan", description="Best value - full year.", price_cents=24999, interval="year"),
+            FakeProduct(
+                name="Monthly Coaching", description="Full monthly access.", price_cents=2999
+            ),
+            FakeProduct(
+                name="Annual Plan",
+                description="Best value - full year.",
+                price_cents=24999,
+                interval="year",
+            ),
             FakeProduct(
                 name="Starter Guide",
                 description="One-time beginner's guide.",
@@ -513,7 +579,9 @@ async def test_content_creation(async_engine, app_id: int):
                 type="one_time",
             ),
         ]
-        product_ids = await create_products(session=session, application_id=app_id, products=products)
+        product_ids = await create_products(
+            session=session, application_id=app_id, products=products
+        )
 
         await session.commit()
 
@@ -524,19 +592,35 @@ async def test_content_creation(async_engine, app_id: int):
     # Verify records
     async with async_session() as session:
         pages = (
-            await session.execute(select(Page).where(Page.application_id == app_id).order_by(Page.order))
-        ).scalars().all()
+            (
+                await session.execute(
+                    select(Page).where(Page.application_id == app_id).order_by(Page.order)
+                )
+            )
+            .scalars()
+            .all()
+        )
         check("Total pages = 4 (1 about + 3 blog)", len(pages) == 4, f"got {len(pages)}")
         check("About page type=1", pages[0].page_type_id == 1 if pages else False)
-        check("Blog pages type=2", all(p.page_type_id == 2 for p in pages[1:]) if len(pages) > 1 else False)
+        check(
+            "Blog pages type=2",
+            all(p.page_type_id == 2 for p in pages[1:]) if len(pages) > 1 else False,
+        )
         check("All pages status=1 (Draft)", all(p.status_id == 1 for p in pages))
-        check("Blog titles stored", pages[1].title == "10 Minute Morning Stretch" if len(pages) > 1 else False)
+        check(
+            "Blog titles stored",
+            pages[1].title == "10 Minute Morning Stretch" if len(pages) > 1 else False,
+        )
 
         prods = (
-            await session.execute(
-                select(Product).where(Product.application_id == app_id).order_by(Product.order)
+            (
+                await session.execute(
+                    select(Product).where(Product.application_id == app_id).order_by(Product.order)
+                )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         check("Products stored correctly", len(prods) == 3, f"got {len(prods)}")
         check("Monthly price = 2999 cents", prods[0].unit_amount == 2999 if prods else False)
         check("Annual interval = year", prods[1].interval == "year" if len(prods) > 1 else False)
@@ -594,7 +678,9 @@ async def test_claim_activation(async_engine, store_result):
 
     # Verify activation
     async with async_session() as session:
-        app = (await session.execute(select(Application).where(Application.id == app_id))).scalar_one()
+        app = (
+            await session.execute(select(Application).where(Application.id == app_id))
+        ).scalar_one()
         check("Application activated (status=2)", app.status_id == 2)
 
         user = (await session.execute(select(CMSUser).where(CMSUser.id == user_id))).scalar_one()
@@ -605,14 +691,26 @@ async def test_claim_activation(async_engine, store_result):
         check("Password changed from temp", user.password != store_result.temp_password)
 
         pages = (
-            await session.execute(select(Page).where(Page.application_id == app_id))
-        ).scalars().all()
-        check("All pages activated", all(p.status_id == 2 for p in pages), f"{[p.status_id for p in pages]}")
+            (await session.execute(select(Page).where(Page.application_id == app_id)))
+            .scalars()
+            .all()
+        )
+        check(
+            "All pages activated",
+            all(p.status_id == 2 for p in pages),
+            f"{[p.status_id for p in pages]}",
+        )
 
         prods = (
-            await session.execute(select(Product).where(Product.application_id == app_id))
-        ).scalars().all()
-        check("All products activated", all(p.status_id == 2 for p in prods), f"{[p.status_id for p in prods]}")
+            (await session.execute(select(Product).where(Product.application_id == app_id)))
+            .scalars()
+            .all()
+        )
+        check(
+            "All products activated",
+            all(p.status_id == 2 for p in prods),
+            f"{[p.status_id for p in prods]}",
+        )
 
 
 async def test_schema_compatibility():
@@ -646,14 +744,25 @@ async def test_schema_compatibility():
 
     # Check model has all critical columns
     app_setting_cols = set(ApplicationSetting.__table__.columns.keys())
-    required_settings = {"app_name", "coach_name", "meta_title", "meta_description", "web_url", "support_email"}
+    required_settings = {
+        "app_name",
+        "coach_name",
+        "meta_title",
+        "meta_description",
+        "web_url",
+        "support_email",
+    }
     missing = required_settings - app_setting_cols
     check("ApplicationSetting has all required columns", len(missing) == 0, f"missing: {missing}")
 
     color_cols = set(ApplicationColor.__table__.columns.keys())
     required_colors = {"button_primary", "button_secondary", "background", "on_button", "appbar"}
     missing_colors = required_colors - color_cols
-    check("ApplicationColor has all required columns", len(missing_colors) == 0, f"missing: {missing_colors}")
+    check(
+        "ApplicationColor has all required columns",
+        len(missing_colors) == 0,
+        f"missing: {missing_colors}",
+    )
 
 
 # ---------------------------------------------------------------------------

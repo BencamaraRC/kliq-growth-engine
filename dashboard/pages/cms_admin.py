@@ -54,7 +54,13 @@ try:
             prospect = p
             break
 
-    p_id, p_name, p_email, p_platform, p_status = prospect[0], prospect[1], prospect[2], prospect[3], prospect[4]
+    p_id, p_name, p_email, p_platform, p_status = (
+        prospect[0],
+        prospect[1],
+        prospect[2],
+        prospect[3],
+        prospect[4],
+    )
     p_image, p_first, p_last = prospect[5], prospect[6], prospect[7]
     p_niche = prospect[8]
     p_brand_colors = prospect[9]
@@ -65,7 +71,9 @@ try:
     last_name = p_last or (p_name.split()[1] if p_name and len(p_name.split()) > 1 else "")
     coach_name = p_name or f"{first_name} {last_name}"
     email = p_email or f"unclaimed-{p_id}@joinkliq.io"
-    store_slug = p_name.lower().replace(" ", "-").replace(".", "")[:30] if p_name else f"coach-{p_id}"
+    store_slug = (
+        p_name.lower().replace(" ", "-").replace(".", "")[:30] if p_name else f"coach-{p_id}"
+    )
 
     # Load generated content
     with engine.connect() as conn:
@@ -132,20 +140,24 @@ try:
     # TABS
     # ═══════════════════════════════════════════════════════════════════════════
 
-    tabs = st.tabs([
-        "Application",
-        "Settings",
-        "Brand Colors",
-        "Coach User",
-        "Products",
-        "Pages",
-        "Features",
-    ])
+    tabs = st.tabs(
+        [
+            "Application",
+            "Settings",
+            "Brand Colors",
+            "Coach User",
+            "Products",
+            "Pages",
+            "Features",
+        ]
+    )
 
     # ── Tab: Application ──────────────────────────────────────────────────────
     with tabs[0]:
         st.markdown("##### `applications` table")
-        st.caption("The core store record. Created with status=1 (Draft), activated to status=2 on claim.")
+        st.caption(
+            "The core store record. Created with status=1 (Draft), activated to status=2 on claim."
+        )
 
         col1, col2 = st.columns(2)
         with col1:
@@ -291,7 +303,9 @@ try:
     # ── Tab: Coach User ───────────────────────────────────────────────────────
     with tabs[3]:
         st.markdown("##### `users` table")
-        st.caption("Coach admin account. Created as Draft, activated on claim when password is set.")
+        st.caption(
+            "Coach admin account. Created as Draft, activated on claim when password is set."
+        )
 
         if p_image:
             st.image(p_image, width=80)
@@ -337,7 +351,7 @@ try:
                 except json.JSONDecodeError:
                     continue
 
-                name = pr.get("title") or p_data.get("name", f"Product {i+1}")
+                name = pr.get("title") or p_data.get("name", f"Product {i + 1}")
                 desc = p_data.get("description", "")
                 price_cents = p_data.get("price_cents", 0)
                 currency = p_data.get("currency", "USD")
@@ -345,7 +359,11 @@ try:
                 features = p_data.get("features", [])
                 recommended = p_data.get("recommended", False)
 
-                price_display = f"${price_cents / 100:.2f}" if currency == "USD" else f"{price_cents / 100:.2f} {currency}"
+                price_display = (
+                    f"${price_cents / 100:.2f}"
+                    if currency == "USD"
+                    else f"{price_cents / 100:.2f} {currency}"
+                )
 
                 with st.expander(
                     f"{'⭐ ' if recommended else ''}{name} — {price_display}/{interval}",
@@ -405,7 +423,7 @@ try:
                 except json.JSONDecodeError:
                     continue
 
-                title = br.get("title") or b_data.get("blog_title", f"Blog Post {i+1}")
+                title = br.get("title") or b_data.get("blog_title", f"Blog Post {i + 1}")
                 excerpt = b_data.get("excerpt", "")
 
                 with st.expander(f"Blog: {title}", expanded=i == 0):
@@ -463,14 +481,12 @@ try:
 
         st.markdown("---")
         st.markdown("**Section Order (subscribed / unsubscribed)**")
-        order_fields = [
-            "nutrition", "wellness", "community", "home", "library", "shop"
-        ]
+        order_fields = ["nutrition", "wellness", "community", "home", "library", "shop"]
         cols = st.columns(6)
         for i, section in enumerate(order_fields):
             with cols[i]:
                 st.caption(section.title())
-                st.markdown(f"sub: `{i+1}`  \nunsub: `{i+1}`")
+                st.markdown(f"sub: `{i + 1}`  \nunsub: `{i + 1}`")
 
     # ── Summary bar ───────────────────────────────────────────────────────────
     st.markdown("---")

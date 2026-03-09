@@ -73,7 +73,9 @@ async def _create_store(prospect_id: int) -> dict:
 
         # Skip if store already exists (idempotency guard)
         if prospect.kliq_application_id:
-            logger.info(f"Prospect {prospect_id} already has store {prospect.kliq_application_id}, skipping")
+            logger.info(
+                f"Prospect {prospect_id} already has store {prospect.kliq_application_id}, skipping"
+            )
             return {
                 "prospect_id": prospect_id,
                 "application_id": prospect.kliq_application_id,
