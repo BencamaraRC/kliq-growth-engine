@@ -170,7 +170,7 @@ async def backfill_linkedin(x_scheduler_secret: str = Header(...)):
         ))
         real_updated = real_result.rowcount
 
-        # Second: fallback to search URL for remaining prospects without linkedin_url
+        # Second: fallback to Google search for remaining prospects without linkedin_url
         result = await session.execute(text(
             "SELECT id, first_name, last_name FROM prospects "
             "WHERE (linkedin_url IS NULL OR linkedin_url LIKE '%/search/%') "
@@ -182,7 +182,8 @@ async def backfill_linkedin(x_scheduler_secret: str = Header(...)):
         search_updated = 0
         for row in rows:
             pid, first, last = row[0], row[1], row[2]
-            url = f"https://www.linkedin.com/search/results/people/?keywords={quote_plus(first + ' ' + last)}"
+            query = quote_plus(f'site:linkedin.com/in "{first} {last}"')
+            url = f"https://www.google.com/search?q={query}"
             await session.execute(
                 text("UPDATE prospects SET linkedin_url = :url, linkedin_found = TRUE WHERE id = :id"),
                 {"url": url, "id": pid},

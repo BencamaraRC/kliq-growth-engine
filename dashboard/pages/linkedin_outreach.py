@@ -74,13 +74,13 @@ if st.session_state.linkedin_open_url:
 
 if st.session_state.linkedin_note:
     li_url = st.session_state.linkedin_note_url
-    is_search_url = "/search/" in (li_url or "")
+    is_search_url = "linkedin.com/in/" not in (li_url or "")
     pid = st.session_state.linkedin_note_pid
 
     if is_search_url:
         st.warning(
             f"**{st.session_state.linkedin_note_name}** — No direct profile URL. "
-            "LinkedIn search opened. Paste the real profile URL below to save it."
+            "Google search opened — click their LinkedIn profile, then paste the URL below to save it."
         )
     else:
         st.success(
@@ -158,7 +158,7 @@ else:
         email = row["email"] or ""
         linkedin_url = row["linkedin_url"] or ""
         status = row["outreach_status"] or "QUEUED"
-        is_direct = "/in/" in linkedin_url
+        is_direct = "linkedin.com/in/" in linkedin_url
 
         niches = row.get("niches")
         niche_str = ""
@@ -178,7 +178,7 @@ else:
         row_cols = st.columns([2.5, 2.5, 1.5, 1, 1, 1, 1])
 
         # Name + LinkedIn indicator
-        link_icon = "Profile" if is_direct else "Search"
+        link_icon = "Profile" if is_direct else "Find"
         link_color = "#039855" if is_direct else "#B54708"
         if linkedin_url:
             row_cols[0].markdown(
