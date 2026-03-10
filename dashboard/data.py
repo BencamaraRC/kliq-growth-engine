@@ -440,7 +440,7 @@ def get_linkedin_queue(
         if status.upper() == "QUEUED":
             conditions.append("lo.id IS NULL")
         else:
-            conditions.append("lo.status = :status")
+            conditions.append("lo.status::text = :status")
             params["status"] = status.upper()
     if search:
         conditions.append("(p.name ILIKE :search OR p.email ILIKE :search)")
@@ -454,7 +454,7 @@ def get_linkedin_queue(
                 SELECT
                     p.id, p.name, p.email, p.niche_tags, p.linkedin_url,
                     p.follower_count,
-                    COALESCE(lo.status, 'QUEUED') as outreach_status,
+                    COALESCE(lo.status::text, 'QUEUED') as outreach_status,
                     lo.connection_note, lo.sent_at, lo.accepted_at
                 FROM prospects p
                 LEFT JOIN linkedin_outreach lo ON lo.prospect_id = p.id
@@ -493,10 +493,10 @@ def get_linkedin_stats() -> dict:
         )
 
         status_rows = conn.execute(
-            text("SELECT status, COUNT(*) FROM linkedin_outreach GROUP BY status")
+            text("SELECT status::text, COUNT(*) FROM linkedin_outreach GROUP BY status")
         ).fetchall()
 
-    status_counts = {row[0]: row[1] for row in status_rows}
+    status_counts = {str(row[0]): row[1] for row in status_rows}
     outreach_total = sum(status_counts.values())
 
     sent = (
