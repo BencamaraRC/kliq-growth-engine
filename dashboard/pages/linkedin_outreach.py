@@ -4,6 +4,7 @@ import os
 
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="LinkedIn Outreach | KLIQ", layout="wide")
 
@@ -51,7 +52,7 @@ status_val = None if status_filter == "All" else status_filter
 search_val = search if search else None
 df = get_linkedin_queue(status=status_val, search=search_val, limit=page_size)
 
-# ── Connection note display (shown when a note is generated) ──────────────────
+# ── Auto-open LinkedIn profile when note is generated ─────────────────────────
 
 if "linkedin_note" not in st.session_state:
     st.session_state.linkedin_note = ""
@@ -59,21 +60,45 @@ if "linkedin_note_name" not in st.session_state:
     st.session_state.linkedin_note_name = ""
 if "linkedin_note_url" not in st.session_state:
     st.session_state.linkedin_note_url = ""
+if "linkedin_open_url" not in st.session_state:
+    st.session_state.linkedin_open_url = ""
+
+# Auto-open LinkedIn in new tab via JS injection
+if st.session_state.linkedin_open_url:
+    url_to_open = st.session_state.linkedin_open_url
+    st.session_state.linkedin_open_url = ""  # Clear so it doesn't re-open on rerun
+    components.html(
+        f'<script>window.open("{url_to_open}", "_blank");</script>',
+        height=0,
+    )
 
 if st.session_state.linkedin_note:
-    st.success(f"Note generated for **{st.session_state.linkedin_note_name}**")
+    st.success(f"Note generated for **{st.session_state.linkedin_note_name}** — LinkedIn profile opened in new tab")
+    st.caption("Copy the note below and paste it into the LinkedIn connection request:")
     st.code(st.session_state.linkedin_note, language=None)
-    note_cols = st.columns(3)
+    note_cols = st.columns(4)
     with note_cols[0]:
         li_url = st.session_state.linkedin_note_url
         if li_url:
             st.markdown(
                 f'<a href="{li_url}" target="_blank" style="display:inline-block;'
                 f"padding:6px 16px;background:#0A66C2;color:#fff;border-radius:8px;"
-                f'font-weight:600;font-size:14px;text-decoration:none;">Open LinkedIn</a>',
+                f'font-weight:600;font-size:14px;text-decoration:none;">Re-open LinkedIn</a>',
                 unsafe_allow_html=True,
             )
     with note_cols[1]:
+        if st.button("Mark as Sent", key="mark_sent_top"):
+            try:
+                pid = st.session_state.get("linkedin_note_pid")
+                if pid:
+                    requests.patch(f"{API_BASE}/{pid}/status", json={"status": "SENT"}, timeout=10)
+                st.session_state.linkedin_note = ""
+                st.session_state.linkedin_note_name = ""
+                st.session_state.linkedin_note_url = ""
+                st.rerun()
+            except requests.ConnectionError:
+                st.error("API offline")
+    with note_cols[2]:
         if st.button("Clear", key="clear_note"):
             st.session_state.linkedin_note = ""
             st.session_state.linkedin_note_name = ""
@@ -131,7 +156,7 @@ else:
             unsafe_allow_html=True,
         )
 
-        # Copy Note button
+        # Copy Note button — generates note AND opens LinkedIn in new tab
         with row_cols[4]:
             if st.button("Copy Note", key=f"copy_{pid}"):
                 try:
@@ -141,6 +166,8 @@ else:
                         st.session_state.linkedin_note = data["connection_note"]
                         st.session_state.linkedin_note_name = data["prospect_name"]
                         st.session_state.linkedin_note_url = data["linkedin_url"]
+                        st.session_state.linkedin_note_pid = pid
+                        st.session_state.linkedin_open_url = data["linkedin_url"]
                         st.rerun()
                     else:
                         st.error(resp.json().get("detail", "Error"))
