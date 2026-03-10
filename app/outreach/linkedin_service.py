@@ -22,47 +22,22 @@ logger = logging.getLogger(__name__)
 # Max LinkedIn connection note length
 MAX_NOTE_LENGTH = 300
 
+# The approved connection note template — do not change without approval
+CONNECTION_NOTE_TEMPLATE = (
+    "Hey {first_name}, I have sent an email over. "
+    "Hope you're having a great day. "
+    "I'd love to connect and share more details. "
+    "Would you mind having a quick skim read and "
+    "giving me a Y/N if there is any interest? "
+    "Thanks Ben"
+)
+
 
 def _build_connection_note(prospect: Prospect) -> str:
-    """Generate a personalized LinkedIn connection note (max 300 chars).
-
-    Uses the prospect's name, niche, and coaching context to create
-    a concise, personal note that doesn't feel automated.
-    """
+    """Generate the personalised LinkedIn connection note (max 300 chars)."""
     first_name = prospect.first_name or prospect.name.split()[0]
-    niche = ""
-    if prospect.niche_tags:
-        tags = prospect.niche_tags
-        if isinstance(tags, list) and tags:
-            niche = tags[0]
+    note = CONNECTION_NOTE_TEMPLATE.format(first_name=first_name)
 
-    # Check for ICF credentials
-    icf_cred = ""
-    if prospect.social_links and isinstance(prospect.social_links, dict):
-        icf_cred = prospect.social_links.get("icf_credentials", "")
-
-    if icf_cred:
-        note = (
-            f"Hi {first_name}, I came across your coaching profile and noticed "
-            f"your {icf_cred} certification — really impressive. I'm working with "
-            f"certified coaches who want their own branded app to grow their practice. "
-            f"Would love to connect and share what we're building at KLIQ."
-        )
-    elif niche:
-        note = (
-            f"Hi {first_name}, I came across your {niche} coaching work and was "
-            f"really impressed. I'm reaching out from KLIQ — we help coaches launch "
-            f"their own branded app. Would love to connect and share how it could "
-            f"work for your practice."
-        )
-    else:
-        note = (
-            f"Hi {first_name}, I came across your coaching profile and was really "
-            f"impressed by what you've built. I'm reaching out from KLIQ — we help "
-            f"coaches launch their own branded app. Would love to connect."
-        )
-
-    # Truncate to LinkedIn's 300-char limit
     if len(note) > MAX_NOTE_LENGTH:
         note = note[: MAX_NOTE_LENGTH - 3] + "..."
 

@@ -157,18 +157,29 @@ async def debug_linkedin(x_scheduler_secret: str = Header(...)):
 
 @router.post("/backfill-linkedin")
 async def backfill_linkedin(x_scheduler_secret: str = Header(...)):
-    """Backfill linkedin_url for ICF coaches using name-based LinkedIn search URLs."""
+    """Backfill linkedin_url for prospects. Uses real profile URL from website_url if available."""
     _verify_secret(x_scheduler_secret)
     from urllib.parse import quote_plus
 
     async for session in get_db():
+        # First: update prospects that have a real LinkedIn profile URL in website_url
+        real_result = await session.execute(text(
+            "UPDATE prospects SET linkedin_url = website_url, linkedin_found = TRUE "
+            "WHERE website_url LIKE '%linkedin.com/in/%' "
+            "AND (linkedin_url IS NULL OR linkedin_url LIKE '%/search/%')"
+        ))
+        real_updated = real_result.rowcount
+
+        # Second: fallback to search URL for remaining prospects without linkedin_url
         result = await session.execute(text(
             "SELECT id, first_name, last_name FROM prospects "
-            "WHERE linkedin_url IS NULL AND first_name IS NOT NULL AND last_name IS NOT NULL "
-            "AND first_name != '' AND last_name != ''"
+            "WHERE (linkedin_url IS NULL OR linkedin_url LIKE '%/search/%') "
+            "AND first_name IS NOT NULL AND last_name IS NOT NULL "
+            "AND first_name != '' AND last_name != '' "
+            "AND (website_url IS NULL OR website_url NOT LIKE '%linkedin.com/in/%')"
         ))
         rows = result.fetchall()
-        updated = 0
+        search_updated = 0
         for row in rows:
             pid, first, last = row[0], row[1], row[2]
             url = f"https://www.linkedin.com/search/results/people/?keywords={quote_plus(first + ' ' + last)}"
@@ -176,9 +187,13 @@ async def backfill_linkedin(x_scheduler_secret: str = Header(...)):
                 text("UPDATE prospects SET linkedin_url = :url, linkedin_found = TRUE WHERE id = :id"),
                 {"url": url, "id": pid},
             )
-            updated += 1
+            search_updated += 1
         await session.commit()
-        return {"backfilled": updated, "total_scanned": len(rows)}
+        return {
+            "real_profile_urls": real_updated,
+            "search_fallback_urls": search_updated,
+            "total": real_updated + search_updated,
+        }
 
 
 @router.get("/iap-health")
