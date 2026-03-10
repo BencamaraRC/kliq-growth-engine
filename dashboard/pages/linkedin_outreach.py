@@ -52,44 +52,85 @@ status_val = None if status_filter == "All" else status_filter
 search_val = search if search else None
 df = get_linkedin_queue(status=status_val, search=search_val, limit=page_size)
 
-# ── Auto-open LinkedIn profile when note is generated ─────────────────────────
+# ── Session state init ───────────────────────────────────────────────────────
 
-if "linkedin_note" not in st.session_state:
-    st.session_state.linkedin_note = ""
-if "linkedin_note_name" not in st.session_state:
-    st.session_state.linkedin_note_name = ""
-if "linkedin_note_url" not in st.session_state:
-    st.session_state.linkedin_note_url = ""
-if "linkedin_open_url" not in st.session_state:
-    st.session_state.linkedin_open_url = ""
+for key in ("linkedin_note", "linkedin_note_name", "linkedin_note_url", "linkedin_open_url"):
+    if key not in st.session_state:
+        st.session_state[key] = ""
+if "linkedin_note_pid" not in st.session_state:
+    st.session_state.linkedin_note_pid = None
 
-# Auto-open LinkedIn in new tab via JS injection
+# ── Auto-open LinkedIn in new tab via JS ──────────────────────────────────────
+
 if st.session_state.linkedin_open_url:
     url_to_open = st.session_state.linkedin_open_url
-    st.session_state.linkedin_open_url = ""  # Clear so it doesn't re-open on rerun
+    st.session_state.linkedin_open_url = ""
     components.html(
         f'<script>window.open("{url_to_open}", "_blank");</script>',
         height=0,
     )
 
+# ── Active note panel ────────────────────────────────────────────────────────
+
 if st.session_state.linkedin_note:
-    st.success(f"Note generated for **{st.session_state.linkedin_note_name}** — LinkedIn profile opened in new tab")
+    li_url = st.session_state.linkedin_note_url
+    is_search_url = "/search/" in (li_url or "")
+    pid = st.session_state.linkedin_note_pid
+
+    if is_search_url:
+        st.warning(
+            f"**{st.session_state.linkedin_note_name}** — No direct profile URL. "
+            "LinkedIn search opened. Paste the real profile URL below to save it."
+        )
+    else:
+        st.success(
+            f"Note generated for **{st.session_state.linkedin_note_name}** — "
+            "LinkedIn profile opened in new tab"
+        )
+
     st.caption("Copy the note below and paste it into the LinkedIn connection request:")
     st.code(st.session_state.linkedin_note, language=None)
-    note_cols = st.columns(4)
-    with note_cols[0]:
-        li_url = st.session_state.linkedin_note_url
+
+    # If search URL, show field to paste the real profile URL
+    if is_search_url and pid:
+        url_col1, url_col2 = st.columns([3, 1])
+        with url_col1:
+            new_url = st.text_input(
+                "Paste real LinkedIn profile URL (linkedin.com/in/...)",
+                key="new_linkedin_url",
+                placeholder="https://www.linkedin.com/in/their-profile",
+            )
+        with url_col2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Save URL", key="save_url"):
+                if new_url and "linkedin.com/in/" in new_url:
+                    try:
+                        resp = requests.patch(
+                            f"{API_BASE}/{pid}/url",
+                            json={"linkedin_url": new_url},
+                            timeout=10,
+                        )
+                        if resp.status_code == 200:
+                            st.session_state.linkedin_note_url = new_url
+                            st.session_state.linkedin_open_url = new_url
+                            st.rerun()
+                    except requests.ConnectionError:
+                        st.error("API offline")
+                else:
+                    st.error("Please paste a valid linkedin.com/in/ URL")
+
+    action_cols = st.columns(4)
+    with action_cols[0]:
         if li_url:
             st.markdown(
                 f'<a href="{li_url}" target="_blank" style="display:inline-block;'
                 f"padding:6px 16px;background:#0A66C2;color:#fff;border-radius:8px;"
-                f'font-weight:600;font-size:14px;text-decoration:none;">Re-open LinkedIn</a>',
+                f'font-weight:600;font-size:14px;text-decoration:none;">Open LinkedIn</a>',
                 unsafe_allow_html=True,
             )
-    with note_cols[1]:
+    with action_cols[1]:
         if st.button("Mark as Sent", key="mark_sent_top"):
             try:
-                pid = st.session_state.get("linkedin_note_pid")
                 if pid:
                     requests.patch(f"{API_BASE}/{pid}/status", json={"status": "SENT"}, timeout=10)
                 st.session_state.linkedin_note = ""
@@ -98,7 +139,7 @@ if st.session_state.linkedin_note:
                 st.rerun()
             except requests.ConnectionError:
                 st.error("API offline")
-    with note_cols[2]:
+    with action_cols[2]:
         if st.button("Clear", key="clear_note"):
             st.session_state.linkedin_note = ""
             st.session_state.linkedin_note_name = ""
@@ -106,7 +147,7 @@ if st.session_state.linkedin_note:
             st.rerun()
     st.markdown("---")
 
-# ── Prospect rows with inline actions ─────────────────────────────────────────
+# ── Prospect rows ─────────────────────────────────────────────────────────────
 
 if df.empty:
     st.info("No prospects with LinkedIn URLs found.")
@@ -117,14 +158,13 @@ else:
         email = row["email"] or ""
         linkedin_url = row["linkedin_url"] or ""
         status = row["outreach_status"] or "QUEUED"
+        is_direct = "/in/" in linkedin_url
 
-        # Parse niches
         niches = row.get("niches")
         niche_str = ""
         if niches and isinstance(niches, list):
             niche_str = ", ".join(niches[:2])
 
-        # Status badge
         status_colors = {
             "QUEUED": ("#344054", "#F2F4F7"),
             "COPIED": ("#B54708", "#FFFAEB"),
@@ -135,14 +175,15 @@ else:
         }
         text_c, bg_c = status_colors.get(status, ("#344054", "#F2F4F7"))
 
-        # Row layout
         row_cols = st.columns([2.5, 2.5, 1.5, 1, 1, 1, 1])
 
-        # Name + LinkedIn link
+        # Name + LinkedIn indicator
+        link_icon = "Profile" if is_direct else "Search"
+        link_color = "#039855" if is_direct else "#B54708"
         if linkedin_url:
             row_cols[0].markdown(
                 f'**{name}** &nbsp; <a href="{linkedin_url}" target="_blank" '
-                f'style="font-size:12px;color:#0A66C2;">LinkedIn</a>',
+                f'style="font-size:11px;color:{link_color};">{link_icon}</a>',
                 unsafe_allow_html=True,
             )
         else:
@@ -156,7 +197,6 @@ else:
             unsafe_allow_html=True,
         )
 
-        # Copy Note button — generates note AND opens LinkedIn in new tab
         with row_cols[4]:
             if st.button("Copy Note", key=f"copy_{pid}"):
                 try:
@@ -174,33 +214,21 @@ else:
                 except requests.ConnectionError:
                     st.error("API offline")
 
-        # Mark Sent button
         with row_cols[5]:
             if status in ("QUEUED", "COPIED"):
                 if st.button("Sent", key=f"sent_{pid}"):
                     try:
-                        resp = requests.patch(
-                            f"{API_BASE}/{pid}/status",
-                            json={"status": "SENT"},
-                            timeout=10,
-                        )
-                        if resp.status_code == 200:
-                            st.rerun()
+                        requests.patch(f"{API_BASE}/{pid}/status", json={"status": "SENT"}, timeout=10)
+                        st.rerun()
                     except requests.ConnectionError:
                         st.error("API offline")
 
-        # Accept button
         with row_cols[6]:
             if status == "SENT":
                 if st.button("Accepted", key=f"acc_{pid}"):
                     try:
-                        resp = requests.patch(
-                            f"{API_BASE}/{pid}/status",
-                            json={"status": "ACCEPTED"},
-                            timeout=10,
-                        )
-                        if resp.status_code == 200:
-                            st.rerun()
+                        requests.patch(f"{API_BASE}/{pid}/status", json={"status": "ACCEPTED"}, timeout=10)
+                        st.rerun()
                     except requests.ConnectionError:
                         st.error("API offline")
 

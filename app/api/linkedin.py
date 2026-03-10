@@ -2,8 +2,10 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.models import Prospect
 from app.db.session import get_db
 from app.outreach.linkedin_service import (
     generate_connection_note,
@@ -25,6 +27,10 @@ class ConnectionNoteResponse(BaseModel):
 
 class StatusUpdateRequest(BaseModel):
     status: str  # SENT, ACCEPTED, DECLINED, NO_RESPONSE
+
+
+class LinkedInUrlUpdateRequest(BaseModel):
+    linkedin_url: str
 
 
 class StatusUpdateResponse(BaseModel):
@@ -79,6 +85,23 @@ async def update_status(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return StatusUpdateResponse(**result)
+
+
+@router.patch("/{prospect_id}/url")
+async def update_linkedin_url(
+    prospect_id: int,
+    body: LinkedInUrlUpdateRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """Update a prospect's LinkedIn URL (e.g. after finding their real profile)."""
+    result = await db.execute(select(Prospect).where(Prospect.id == prospect_id))
+    prospect = result.scalar_one_or_none()
+    if not prospect:
+        raise HTTPException(status_code=404, detail="Prospect not found")
+    prospect.linkedin_url = body.linkedin_url
+    prospect.linkedin_found = True
+    await db.commit()
+    return {"prospect_id": prospect_id, "linkedin_url": body.linkedin_url}
 
 
 @router.get("/stats", response_model=LinkedInStatsResponse)
