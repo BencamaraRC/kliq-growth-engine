@@ -435,7 +435,7 @@ def render_review_content_page(prospect: dict, pages: list[dict], products: list
     token = prospect.get("claim_token", "")
     app_id = prospect.get("kliq_application_id")
     store_name = prospect.get("name", "Your Store")
-    dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else "#"
+    dashboard_url = f"{settings.cms_admin_url}/admin/applications" if app_id else "#"
 
     # Build pages list
     pages_html = ""
@@ -532,7 +532,7 @@ def render_already_claimed_page(prospect: dict) -> str:
 
     app_id = prospect.get("kliq_application_id")
     store_url = prospect.get("kliq_store_url", "")
-    dashboard_url = f"{settings.cms_admin_url}/app/{app_id}" if app_id else store_url
+    dashboard_url = f"{settings.cms_admin_url}/admin/applications" if app_id else store_url
     first_name = prospect.get("first_name") or (
         prospect.get("name", "").split()[0] if prospect.get("name") else "Coach"
     )

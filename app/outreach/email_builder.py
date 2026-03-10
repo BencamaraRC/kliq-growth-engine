@@ -226,7 +226,7 @@ def build_outreach_email(
     preview_url = store_url or f"{settings.app_base_url}/preview?token={claim_token}"
     unsubscribe_url = f"{settings.claim_base_url}/unsubscribe?email={email}"
     dashboard_url = (
-        f"{settings.cms_admin_url}/app/{application_id}" if application_id else store_url
+        f"{settings.cms_admin_url}/admin/applications" if application_id else store_url
     )
     booking_link = settings.booking_link
 

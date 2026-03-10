@@ -6,8 +6,11 @@ corresponding Celery task.
 """
 
 from fastapi import APIRouter, Header, HTTPException
+from sqlalchemy import select
 
 from app.config import settings
+from app.db.models import Prospect
+from app.db.session import get_db
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
@@ -65,3 +68,57 @@ async def trigger_onboarding(x_scheduler_secret: str = Header(...)):
 
     task = process_onboarding_emails_task.delay()
     return {"status": "enqueued", "task_id": task.id}
+
+
+@router.post("/test-send/{prospect_id}")
+async def test_send_email(prospect_id: int, step: int = 1, x_scheduler_secret: str = Header(...)):
+    """Send a test email directly (bypasses Celery). For testing only."""
+    _verify_secret(x_scheduler_secret)
+
+    from app.outreach.brevo_client import BrevoClient
+    from app.outreach.campaign_manager import _send_step
+
+    async for session in get_db():
+        result = await session.execute(
+            select(Prospect).where(Prospect.id == prospect_id)
+        )
+        prospect = result.scalar_one_or_none()
+        if not prospect:
+            raise HTTPException(status_code=404, detail=f"Prospect {prospect_id} not found")
+        if not prospect.email:
+            raise HTTPException(status_code=400, detail="Prospect has no email")
+
+        success = await _send_step(session, BrevoClient(), prospect, step=step)
+        return {
+            "status": "sent" if success else "failed",
+            "prospect_id": prospect_id,
+            "email": prospect.email,
+            "step": step,
+        }
+
+
+@router.get("/debug/{prospect_id}")
+async def debug_prospect(prospect_id: int, x_scheduler_secret: str = Header(...)):
+    """Get full prospect details including claim_token. For testing only."""
+    _verify_secret(x_scheduler_secret)
+
+    async for session in get_db():
+        result = await session.execute(
+            select(Prospect).where(Prospect.id == prospect_id)
+        )
+        prospect = result.scalar_one_or_none()
+        if not prospect:
+            raise HTTPException(status_code=404, detail=f"Prospect {prospect_id} not found")
+
+        return {
+            "id": prospect.id,
+            "name": prospect.name,
+            "email": prospect.email,
+            "status": prospect.status.value if prospect.status else None,
+            "claim_token": prospect.claim_token,
+            "kliq_application_id": prospect.kliq_application_id,
+            "kliq_store_url": prospect.kliq_store_url,
+            "primary_platform": prospect.primary_platform.value if prospect.primary_platform else None,
+            "niche_tags": prospect.niche_tags,
+            "first_name": prospect.first_name,
+        }
