@@ -31,7 +31,9 @@ async def claim_page(
     token: str = Query(...),
     session: AsyncSession = Depends(get_db),
 ):
-    """Serve the claim page with the password form."""
+    """Validate token and redirect to CMS signup page with prospect ID."""
+    from app.config import settings
+
     prospect = await get_prospect_by_token(session, token)
 
     if not prospect:
@@ -48,8 +50,9 @@ async def claim_page(
     if prospect["status"] == "CLAIMED":
         return HTMLResponse(content=render_already_claimed_page(prospect))
 
-    content_counts = await get_content_counts(session, prospect["id"])
-    return HTMLResponse(content=render_claim_page(prospect, content_counts))
+    # Redirect to CMS signup page with prospect ID
+    signup_url = f"{settings.cms_admin_url}/signup?id={prospect['id']}"
+    return RedirectResponse(url=signup_url, status_code=302)
 
 
 @router.post("/claim", response_class=HTMLResponse)

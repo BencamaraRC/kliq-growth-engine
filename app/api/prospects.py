@@ -98,3 +98,41 @@ async def get_prospect(prospect_id: int, db: AsyncSession = Depends(get_db)):
     if not prospect:
         raise HTTPException(status_code=404, detail="Prospect not found")
     return ProspectResponse.model_validate(prospect)
+
+
+class SignupDetailsResponse(BaseModel):
+    id: int
+    name: str
+    email: str | None
+    coach_type: str
+    profile_image: str | None
+    banner_image: str | None
+
+
+@router.get("/{prospect_id}/signup", response_model=SignupDetailsResponse)
+async def get_signup_details(prospect_id: int, db: AsyncSession = Depends(get_db)):
+    """Get prospect details for the CMS signup page.
+
+    Called by the CMS when a coach is redirected to the signup page
+    with ?id={prospect_id}. Returns pre-filled details for account creation.
+    """
+    result = await db.execute(select(Prospect).where(Prospect.id == prospect_id))
+    prospect = result.scalar_one_or_none()
+    if not prospect:
+        raise HTTPException(status_code=404, detail="Prospect not found")
+
+    # Derive coach_type from niche_tags or platform
+    coach_type = ""
+    if prospect.niche_tags and isinstance(prospect.niche_tags, list) and prospect.niche_tags:
+        coach_type = prospect.niche_tags[0]
+    elif prospect.primary_platform:
+        coach_type = prospect.primary_platform.value.lower() + " coach"
+
+    return SignupDetailsResponse(
+        id=prospect.id,
+        name=prospect.name,
+        email=prospect.email,
+        coach_type=coach_type,
+        profile_image=prospect.profile_image_url,
+        banner_image=prospect.banner_image_url,
+    )
