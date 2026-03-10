@@ -5,12 +5,13 @@ to these endpoints on a cron schedule, and each endpoint enqueues the
 corresponding Celery task.
 """
 
-from fastapi import APIRouter, Header, HTTPException
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy import select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db.models import Prospect
-from app.db.session import get_db
+from app.db.session import get_cms_db, get_db
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
 
@@ -122,3 +123,167 @@ async def debug_prospect(prospect_id: int, x_scheduler_secret: str = Header(...)
             "niche_tags": prospect.niche_tags,
             "first_name": prospect.first_name,
         }
+
+
+@router.get("/debug-linkedin")
+async def debug_linkedin(x_scheduler_secret: str = Header(...)):
+    """Debug LinkedIn data in prospects table."""
+    _verify_secret(x_scheduler_secret)
+
+    async for session in get_db():
+        from sqlalchemy import text as t
+
+        total = (await session.execute(t("SELECT COUNT(*) FROM prospects"))).scalar()
+        with_url = (await session.execute(t("SELECT COUNT(*) FROM prospects WHERE linkedin_url IS NOT NULL"))).scalar()
+        with_found = (await session.execute(t("SELECT COUNT(*) FROM prospects WHERE linkedin_found = TRUE"))).scalar()
+        platforms = (await session.execute(t("SELECT primary_platform::text, COUNT(*) FROM prospects GROUP BY primary_platform"))).fetchall()
+        sample = (await session.execute(t(
+            "SELECT id, name, first_name, last_name, linkedin_url, linkedin_found, primary_platform::text "
+            "FROM prospects WHERE primary_platform::text = 'WEBSITE' LIMIT 5"
+        ))).fetchall()
+        sample_all = (await session.execute(t(
+            "SELECT id, name, first_name, last_name, linkedin_url, linkedin_found, primary_platform::text "
+            "FROM prospects ORDER BY id DESC LIMIT 5"
+        ))).fetchall()
+        return {
+            "total_prospects": total,
+            "with_linkedin_url": with_url,
+            "with_linkedin_found": with_found,
+            "platforms": {str(r[0]): r[1] for r in platforms},
+            "sample_website": [dict(r._mapping) for r in sample],
+            "sample_recent": [dict(r._mapping) for r in sample_all],
+        }
+
+
+@router.post("/backfill-linkedin")
+async def backfill_linkedin(x_scheduler_secret: str = Header(...)):
+    """Backfill linkedin_url for ICF coaches using name-based LinkedIn search URLs."""
+    _verify_secret(x_scheduler_secret)
+    from urllib.parse import quote_plus
+
+    async for session in get_db():
+        result = await session.execute(text(
+            "SELECT id, first_name, last_name FROM prospects "
+            "WHERE linkedin_url IS NULL AND first_name IS NOT NULL AND last_name IS NOT NULL "
+            "AND first_name != '' AND last_name != ''"
+        ))
+        rows = result.fetchall()
+        updated = 0
+        for row in rows:
+            pid, first, last = row[0], row[1], row[2]
+            url = f"https://www.linkedin.com/search/results/people/?keywords={quote_plus(first + ' ' + last)}"
+            await session.execute(
+                text("UPDATE prospects SET linkedin_url = :url, linkedin_found = TRUE WHERE id = :id"),
+                {"url": url, "id": pid},
+            )
+            updated += 1
+        await session.commit()
+        return {"backfilled": updated, "total_scanned": len(rows)}
+
+
+@router.get("/iap-health")
+async def iap_health_check(
+    x_scheduler_secret: str = Header(...),
+    cms_db: AsyncSession = Depends(get_cms_db),
+):
+    """IAP health check — queries CMS MySQL for subscription/receipt data."""
+    _verify_secret(x_scheduler_secret)
+
+    results = {}
+
+    # 1. Apps with IAP enabled
+    r = await cms_db.execute(text(
+        "SELECT COUNT(*) as cnt FROM application_feature_setups WHERE enable_in_app_purchase = 1"
+    ))
+    results["iap_enabled_apps"] = r.scalar()
+
+    # 2. Products with in_app_product_id set
+    r = await cms_db.execute(text(
+        "SELECT COUNT(*) as cnt FROM products WHERE in_app_product_id IS NOT NULL AND in_app_product_id != ''"
+    ))
+    results["products_with_iap_id"] = r.scalar()
+
+    # 3. Sample products with IAP IDs
+    r = await cms_db.execute(text(
+        "SELECT p.id, p.application_id, p.name, p.in_app_product_id, p.unit_amount, p.interval, p.status_id "
+        "FROM products p WHERE p.in_app_product_id IS NOT NULL AND p.in_app_product_id != '' "
+        "ORDER BY p.created_at DESC LIMIT 20"
+    ))
+    results["sample_iap_products"] = [dict(row._mapping) for row in r.fetchall()]
+
+    # 4. user_subscriptions table stats
+    try:
+        r = await cms_db.execute(text("SELECT COUNT(*) FROM user_subscriptions"))
+        total_subs = r.scalar()
+        r = await cms_db.execute(text(
+            "SELECT status, COUNT(*) as cnt FROM user_subscriptions GROUP BY status"
+        ))
+        sub_statuses = {str(row[0]): row[1] for row in r.fetchall()}
+        results["user_subscriptions"] = {"total": total_subs, "by_status": sub_statuses}
+    except Exception as e:
+        results["user_subscriptions"] = {"error": str(e)}
+
+    # 5. application_subscriptions (subscription plans) — discover columns first
+    try:
+        r = await cms_db.execute(text("SELECT COUNT(*) FROM application_subscriptions"))
+        total_app_subs = r.scalar()
+        r = await cms_db.execute(text(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'application_subscriptions'"
+        ))
+        app_sub_cols = [row[0] for row in r.fetchall()]
+        r = await cms_db.execute(text(
+            "SELECT * FROM application_subscriptions ORDER BY created_at DESC LIMIT 10"
+        ))
+        results["application_subscriptions"] = {
+            "total": total_app_subs,
+            "columns": app_sub_cols,
+            "recent": [dict(row._mapping) for row in r.fetchall()],
+        }
+    except Exception as e:
+        results["application_subscriptions"] = {"error": str(e)}
+
+    # 6. app_store_revenues (Apple IAP receipts/revenue) — discover columns first
+    try:
+        r = await cms_db.execute(text("SELECT COUNT(*) FROM app_store_revenues"))
+        total_revenues = r.scalar()
+        r = await cms_db.execute(text(
+            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'app_store_revenues'"
+        ))
+        revenue_cols = [row[0] for row in r.fetchall()]
+        r = await cms_db.execute(text(
+            "SELECT * FROM app_store_revenues ORDER BY created_at DESC LIMIT 20"
+        ))
+        results["app_store_revenues"] = {
+            "total": total_revenues,
+            "columns": revenue_cols,
+            "recent": [dict(row._mapping) for row in r.fetchall()],
+        }
+    except Exception as e:
+        results["app_store_revenues"] = {"error": str(e)}
+
+    # 7. user_subscription_invoices
+    try:
+        r = await cms_db.execute(text("SELECT COUNT(*) FROM user_subscription_invoices"))
+        total_invoices = r.scalar()
+        r = await cms_db.execute(text(
+            "SELECT * FROM user_subscription_invoices ORDER BY created_at DESC LIMIT 10"
+        ))
+        results["user_subscription_invoices"] = {
+            "total": total_invoices,
+            "recent": [dict(row._mapping) for row in r.fetchall()],
+        }
+    except Exception as e:
+        results["user_subscription_invoices"] = {"error": str(e)}
+
+    # 8. Stripe-connected coaches (users with stripe_id)
+    try:
+        r = await cms_db.execute(text(
+            "SELECT COUNT(*) FROM users WHERE stripe_id IS NOT NULL AND stripe_id != ''"
+        ))
+        results["users_with_stripe"] = r.scalar()
+    except Exception as e:
+        results["users_with_stripe"] = {"error": str(e)}
+
+    return results

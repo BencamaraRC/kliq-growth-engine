@@ -1,5 +1,7 @@
 """LinkedIn Outreach — semi-automated LinkedIn connection + ICF email trigger."""
 
+import os
+
 import requests
 import streamlit as st
 
@@ -11,7 +13,8 @@ from theme import inject_kliq_theme, sidebar_nav  # noqa: E402
 inject_kliq_theme()
 sidebar_nav()
 
-API_BASE = "http://localhost:8000/api/linkedin"
+_app_base = os.getenv("APP_BASE_URL", "http://localhost:8000")
+API_BASE = f"{_app_base}/api/linkedin"
 
 st.title("LinkedIn Outreach")
 st.caption("Semi-automated LinkedIn connection + ICF email trigger")
