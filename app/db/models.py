@@ -75,6 +75,13 @@ class LinkedInOutreachStatus(str, enum.Enum):
     ACCEPTED = "ACCEPTED"
     DECLINED = "DECLINED"
     NO_RESPONSE = "NO_RESPONSE"
+    BOOKED_DEMO = "BOOKED_DEMO"
+
+
+class CalendlyBookingStatus(str, enum.Enum):
+    SCHEDULED = "SCHEDULED"
+    CANCELED = "CANCELED"
+    COMPLETED = "COMPLETED"
 
 
 # --- Models ---
@@ -145,6 +152,9 @@ class Prospect(Base):
     )
     linkedin_outreach: Mapped["LinkedInOutreach | None"] = relationship(
         back_populates="prospect", uselist=False
+    )
+    calendly_bookings: Mapped[list["CalendlyBooking"]] = relationship(
+        back_populates="prospect"
     )
 
 
@@ -326,3 +336,27 @@ class LinkedInOutreach(Base):
     )
 
     prospect: Mapped["Prospect"] = relationship(back_populates="linkedin_outreach")
+
+
+class CalendlyBooking(Base):
+    """Tracks Calendly demo bookings linked to prospects."""
+
+    __tablename__ = "calendly_bookings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    prospect_id: Mapped[int] = mapped_column(ForeignKey("prospects.id"))
+    calendly_event_id: Mapped[str] = mapped_column(String(255), unique=True)
+    invitee_email: Mapped[str] = mapped_column(String(255))
+    event_type: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    scheduled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    booked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    canceled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    status: Mapped[CalendlyBookingStatus] = mapped_column(
+        Enum(CalendlyBookingStatus), default=CalendlyBookingStatus.SCHEDULED
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+    prospect: Mapped["Prospect"] = relationship(back_populates="calendly_bookings")

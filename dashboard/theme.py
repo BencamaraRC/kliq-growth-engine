@@ -364,6 +364,16 @@ def sidebar_nav():
         label="LinkedIn Outreach",
         icon=":material/share:",
     )
+    st.sidebar.page_link(
+        "pages/leads_and_sales.py",
+        label="Leads & Sales",
+        icon=":material/payments:",
+    )
+    st.sidebar.page_link(
+        "pages/company.py",
+        label="Company",
+        icon=":material/business:",
+    )
     st.sidebar.markdown("---")
     st.sidebar.caption("v0.2.0 | Growth Engine")
 

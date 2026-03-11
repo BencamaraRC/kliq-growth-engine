@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="LinkedIn Outreach | KLIQ", layout="wide")
 
-from data import get_linkedin_queue, get_linkedin_stats  # noqa: E402
+from data import get_calendly_stats, get_linkedin_queue, get_linkedin_stats  # noqa: E402
 from theme import inject_kliq_theme, sidebar_nav  # noqa: E402
 
 inject_kliq_theme()
@@ -23,7 +23,8 @@ st.caption("Semi-automated LinkedIn connection + ICF email trigger")
 # ── Stats bar ──────────────────────────────────────────────────────────────────
 
 stats = get_linkedin_stats()
-cols = st.columns(7)
+cal_stats = get_calendly_stats()
+cols = st.columns(9)
 cols[0].metric("Queued", stats["queued"])
 cols[1].metric("Copied", stats["copied"])
 cols[2].metric("Sent", stats["sent"])
@@ -31,6 +32,8 @@ cols[3].metric("Accepted", stats["accepted"])
 cols[4].metric("Declined", stats["declined"])
 cols[5].metric("No Response", stats["no_response"])
 cols[6].metric("Accept Rate", f"{stats['accept_rate']}%")
+cols[7].metric("Booked Demo", cal_stats["booked_demo"])
+cols[8].metric("Conversion Rate", f"{cal_stats['conversion_rate']}%")
 
 st.markdown("---")
 
@@ -40,7 +43,7 @@ filter_col1, filter_col2, filter_col3 = st.columns([1, 2, 1])
 with filter_col1:
     status_filter = st.selectbox(
         "Status",
-        ["All", "QUEUED", "COPIED", "SENT", "ACCEPTED", "DECLINED", "NO_RESPONSE"],
+        ["All", "QUEUED", "COPIED", "SENT", "ACCEPTED", "DECLINED", "NO_RESPONSE", "BOOKED_DEMO"],
         index=0,
     )
 with filter_col2:
@@ -172,6 +175,7 @@ else:
             "ACCEPTED": ("#039855", "#ECFDF3"),
             "DECLINED": ("#D92D20", "#FEE4E2"),
             "NO_RESPONSE": ("#344054", "#F2F4F7"),
+            "BOOKED_DEMO": ("#7C3AED", "#F3E8FF"),
         }
         text_c, bg_c = status_colors.get(status, ("#344054", "#F2F4F7"))
 

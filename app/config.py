@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     brevo_sender_name: str = "KLIQ Growth Team"
     booking_link: str = "https://calendly.com/bencamara/kliq"
 
+    # Calendly
+    calendly_api_token: str = ""
+    calendly_webhook_secret: str = ""
+
     # AWS S3
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""

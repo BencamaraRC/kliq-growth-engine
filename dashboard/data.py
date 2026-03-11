@@ -19,6 +19,14 @@ _async_url = os.getenv(
 _sync_url = _async_url.replace("+asyncpg", "")
 engine = create_engine(_sync_url, pool_pre_ping=True)
 
+# CMS MySQL (sync) — for revenue queries against user_subscription_invoices etc.
+_cms_url = os.getenv(
+    "CMS_DATABASE_URL",
+    "mysql+aiomysql://root:password@localhost:3306/rcwlcmsweb2022",
+)
+_cms_sync_url = _cms_url.replace("+aiomysql", "+pymysql")
+cms_engine = create_engine(_cms_sync_url, pool_pre_ping=True)
+
 
 def get_kpi_summary() -> dict:
     """Top-level KPI metrics for the dashboard home."""
@@ -535,6 +543,154 @@ def get_linkedin_outreach_detail(prospect_id: int) -> dict | None:
     if not row:
         return None
     return dict(row._mapping)
+
+
+def get_calendly_stats() -> dict:
+    """Calendly booking stats for the LinkedIn outreach page."""
+    with engine.connect() as conn:
+        total_bookings = (
+            conn.execute(
+                text("SELECT COUNT(*) FROM calendly_bookings WHERE status = 'SCHEDULED'")
+            ).scalar()
+            or 0
+        )
+
+        total_booked_demo = (
+            conn.execute(
+                text("SELECT COUNT(*) FROM linkedin_outreach WHERE status = 'BOOKED_DEMO'")
+            ).scalar()
+            or 0
+        )
+
+        # Conversion rate: booked demos / (accepted + booked_demo)
+        accepted_or_booked = (
+            conn.execute(
+                text(
+                    "SELECT COUNT(*) FROM linkedin_outreach "
+                    "WHERE status IN ('ACCEPTED', 'BOOKED_DEMO')"
+                )
+            ).scalar()
+            or 0
+        )
+
+    return {
+        "booked_demo": total_booked_demo,
+        "total_bookings": total_bookings,
+        "conversion_rate": round(
+            total_booked_demo / accepted_or_booked * 100, 1
+        )
+        if accepted_or_booked > 0
+        else 0.0,
+    }
+
+
+def get_monthly_kliq_fees(year: int, month: int) -> dict:
+    """Query CMS for KLIQ platform fees (application_fee from user_subscription_invoices)."""
+    try:
+        with cms_engine.connect() as conn:
+            row = conn.execute(
+                text("""
+                    SELECT
+                        COALESCE(SUM(application_fee), 0) / 100.0 as kliq_fees,
+                        COALESCE(SUM(amount_paid), 0) / 100.0 as gmv,
+                        COUNT(DISTINCT application_id) as active_coaches
+                    FROM user_subscription_invoices
+                    WHERE status IN ('paid', 'open')
+                      AND YEAR(created_at) = :year
+                      AND MONTH(created_at) = :month
+                """),
+                {"year": year, "month": month},
+            ).fetchone()
+
+        return {
+            "kliq_fees": float(row[0]) if row else 0.0,
+            "gmv": float(row[1]) if row else 0.0,
+            "active_coaches": int(row[2]) if row else 0,
+        }
+    except Exception:
+        return {"kliq_fees": 0.0, "gmv": 0.0, "active_coaches": 0}
+
+
+def get_monthly_hosting_fees(year: int, month: int) -> dict:
+    """Query CMS for hosting fees (monthly coach SaaS subscriptions)."""
+    try:
+        with cms_engine.connect() as conn:
+            row = conn.execute(
+                text("""
+                    SELECT
+                        COALESCE(SUM(amount), 0) / 100.0 as hosting_fees,
+                        COUNT(*) as active_subscriptions
+                    FROM application_subscriptions
+                    WHERE status = 'active'
+                      AND YEAR(created_at) <= :year
+                      AND (YEAR(created_at) < :year OR MONTH(created_at) <= :month)
+                """),
+                {"year": year, "month": month},
+            ).fetchone()
+
+        return {
+            "hosting_fees": float(row[0]) if row else 0.0,
+            "active_subscriptions": int(row[1]) if row else 0,
+        }
+    except Exception:
+        return {"hosting_fees": 0.0, "active_subscriptions": 0}
+
+
+def get_mrr_trend(months: int = 12) -> pd.DataFrame:
+    """Monthly MRR trend (KLIQ fees + hosting fees) over the last N months."""
+    today = datetime.utcnow()
+    records = []
+
+    for i in range(months - 1, -1, -1):
+        # Walk backwards from current month
+        dt = today - timedelta(days=i * 30)
+        y, m = dt.year, dt.month
+
+        kliq = get_monthly_kliq_fees(y, m)
+        hosting = get_monthly_hosting_fees(y, m)
+
+        records.append({
+            "month": f"{y}-{m:02d}",
+            "kliq_fees": kliq["kliq_fees"],
+            "hosting_fees": hosting["hosting_fees"],
+            "mrr": kliq["kliq_fees"] + hosting["hosting_fees"],
+            "gmv": kliq["gmv"],
+        })
+
+    return pd.DataFrame(records)
+
+
+def get_revenue_by_coach(year: int, month: int) -> pd.DataFrame:
+    """Per-coach revenue breakdown for a given month."""
+    try:
+        with cms_engine.connect() as conn:
+            result = conn.execute(
+                text("""
+                    SELECT
+                        a.id as app_id,
+                        a.name as coach_name,
+                        COALESCE(SUM(usi.application_fee), 0) / 100.0 as kliq_fees,
+                        COALESCE(SUM(usi.amount_paid), 0) / 100.0 as gmv,
+                        COUNT(usi.id) as invoice_count
+                    FROM applications a
+                    LEFT JOIN user_subscription_invoices usi
+                        ON usi.application_id = a.id
+                        AND usi.status IN ('paid', 'open')
+                        AND YEAR(usi.created_at) = :year
+                        AND MONTH(usi.created_at) = :month
+                    GROUP BY a.id, a.name
+                    HAVING COALESCE(SUM(usi.amount_paid), 0) > 0
+                    ORDER BY gmv DESC
+                """),
+                {"year": year, "month": month},
+            ).fetchall()
+
+        return pd.DataFrame(
+            result,
+            columns=["app_id", "coach_name", "kliq_fees", "gmv", "invoice_count"],
+        )
+    except Exception:
+        return pd.DataFrame(columns=["app_id", "coach_name", "kliq_fees", "gmv", "invoice_count"])
 
 
 def get_prospect_detail(prospect_id: int) -> dict | None:

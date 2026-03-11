@@ -1,5 +1,7 @@
-"""Webhook routes — handles claim actions and email events from Brevo."""
+"""Webhook routes — handles claim actions, email events from Brevo, and Calendly bookings."""
 
+import hashlib
+import hmac
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -8,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.db.session import get_cms_db, get_db
+from app.outreach.calendly_processor import process_calendly_event
 from app.outreach.campaign_manager import send_claim_confirmation
 from app.outreach.claim_handler import ClaimError, activate_store, validate_claim_token
 from app.outreach.tracking import process_brevo_event
@@ -78,3 +81,57 @@ async def brevo_webhook(request: Request, db: AsyncSession = Depends(get_db)):
     payload = await request.json()
     status = await process_brevo_event(db, payload)
     return {"status": status}
+
+
+@router.post("/calendly")
+async def calendly_webhook(request: Request, db: AsyncSession = Depends(get_db)):
+    """Handle Calendly webhook events (invitee.created, invitee.canceled).
+
+    Validates the webhook signature if a secret is configured, then
+    creates/updates booking records and links them to prospects.
+    """
+    body = await request.body()
+
+    # Validate webhook signature if secret is configured
+    if settings.calendly_webhook_secret:
+        signature = request.headers.get("Calendly-Webhook-Signature", "")
+        if not _verify_calendly_signature(body, signature, settings.calendly_webhook_secret):
+            raise HTTPException(status_code=401, detail="Invalid webhook signature")
+
+    payload = await request.json()
+    status = await process_calendly_event(db, payload)
+    return {"status": status}
+
+
+def _verify_calendly_signature(body: bytes, signature_header: str, secret: str) -> bool:
+    """Verify Calendly webhook signature.
+
+    Calendly sends a signature header in the format:
+    t=<timestamp>,v1=<signature>
+    """
+    if not signature_header:
+        return False
+
+    try:
+        parts = {}
+        for item in signature_header.split(","):
+            key, value = item.split("=", 1)
+            parts[key.strip()] = value.strip()
+
+        timestamp = parts.get("t", "")
+        expected_sig = parts.get("v1", "")
+
+        if not timestamp or not expected_sig:
+            return False
+
+        # Calendly signs: timestamp.body
+        signed_payload = f"{timestamp}.{body.decode('utf-8')}"
+        computed = hmac.new(
+            secret.encode("utf-8"),
+            signed_payload.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return hmac.compare_digest(computed, expected_sig)
+    except (ValueError, KeyError):
+        return False
