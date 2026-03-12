@@ -44,6 +44,8 @@ dependencies = [
 
     # Auth
     "bcrypt>=4.1.2",
+    "PyJWT>=2.8.0",
+    "PyYAML>=6.0.1",
 
     # Dashboard
     "streamlit>=1.31.0",

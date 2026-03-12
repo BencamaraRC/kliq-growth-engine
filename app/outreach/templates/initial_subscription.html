@@ -3,53 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#FFFDF9; color:#333; }
-    .container { max-width:600px; margin:0 auto; background:#fff; padding:32px 24px; }
-    p { line-height:1.7; font-size:15px; color:#333; margin:0 0 16px; }
-    a { color:#1C3838; }
-    .preview-link { display:block; color:#FF9F88; font-weight:600; font-size:15px; text-decoration:none; margin:20px 0; }
-    .sig { margin-top:24px; font-size:14px; color:#555; line-height:1.6; }
-    .sig strong { color:#1C3838; }
-    .footer { max-width:600px; margin:0 auto; padding:16px 24px; text-align:center; font-size:12px; color:#999; border-top:1px solid #f0f0f0; }
-    .footer a { color:#999; }
-  </style>
 </head>
-<body>
-  <div class="container">
-    <p>Hi {{ first_name }},</p>
+<body style="margin:0; padding:0; font-family:Arial, sans-serif; font-size:14px; color:#222; background:#fff;">
+  <div style="max-width:600px; padding:20px 0;">
+    <p style="margin:0 0 14px;">Hi {{ first_name }},</p>
 
-    <p>Good afternoon. Hope this email finds you well, and more importantly sparks enough interest that we can jump on a quick call.</p>
+    <p style="margin:0 0 14px;">I came across your {{ niche }} content on {{ source_platform }} and was really impressed by what you've built. The engagement you're getting shows you've created something people genuinely value.</p>
 
-    <p>{{ ai_niche_hook }}</p>
+    <p style="margin:0 0 14px;">I hope the following will be of interest, as we continue to support more coaches and creators building their businesses.</p>
 
-    <p>I'd love to connect about a potential partnership with you and your business. I'm the founder of KLIQ, a platform that gives coaches and creators their own branded mobile app to house content, courses, community, live streaming, and more.</p>
+    <p style="margin:0 0 14px;">I'm reaching out because we're working with creators like yourself who want to take their business to the next level. At KLIQ, we build coaches their own branded mobile app — your name, your branding, in the App Store. It includes everything you need: content hosting, courses, community, live streaming, payments, and push notifications to keep your audience engaged.</p>
 
-    <p>You've clearly built a real audience around {{ niche }}, and the engagement you're getting shows people genuinely value what you're creating. But right now, you're building that audience on a platform that takes a significant cut of your earnings, doesn't give you a mobile app, and keeps the subscriber relationship for themselves.</p>
+    <p style="margin:0 0 14px;">We've actually gone ahead and put together a preview of what your app could look like — <a href="{{ app_preview_url }}" style="color:#1a73e8;">see your app preview here</a>.</p>
 
-    <p>What if your audience could download YOUR app? Your name, your brand, your icon on their home screen. Push notifications that bring them back every time you post. A professional platform that's entirely yours.</p>
+    <p style="margin:0 0 14px;">We're selectively partnering with creators where we sponsor part or all of the app build. In return, we'd love your feedback and the opportunity to feature the project as a case study.</p>
 
-    <p>We've actually gone ahead and built a preview of what that could look like for you:</p>
+    <p style="margin:0 0 14px;">If you're curious to see more or want to chat about how it could work for you, feel free to <a href="{{ booking_link }}" style="color:#1a73e8;">book a quick call</a>.</p>
 
-    <p class="preview-link">&rarr; <a href="{{ preview_url }}">{{ preview_url }}</a></p>
+    <p style="margin:0 0 4px;">Many thanks,</p>
 
-    <p>Your brand colours, your content style, subscription tiers based on what you're currently offering. Blog posts, a content library, community features, and live streaming. All in a branded app and webstore at {{ store_name }}.joinkliq.io.</p>
-
-    <p>With KLIQ, you keep significantly more of what you earn, you own your subscriber list, and you get a platform that opens doors to brand partnerships and professional opportunities that aren't possible where you are now.</p>
-
-    <p>We're looking for creators who fit a specific profile, where we sponsor part or all of the app build. In return, we'd love feedback and the opportunity to use the project as a case study.</p>
-
-    <p>Would this be of interest? If yes, you can go ahead and claim your store, that's absolutely free to do so, and we can also jump on a quick call to discuss the app build and sponsorship.</p>
-
-    <div class="sig">
-      Many thanks,<br>
-      <strong>Ben Camara</strong><br>
-      Founder, KLIQ
-    </div>
+    <!-- Email Signature -->
+    <table cellpadding="0" cellspacing="0" border="0" style="margin-top:20px; border-top:1px solid #e5e5e5; padding-top:16px;">
+      <tr>
+        <td style="vertical-align:top; padding-right:16px;">
+          <img src="https://rcwl-dev.s3.eu-west-2.amazonaws.com/files/email-assets/ben-camara-headshot.jpeg" alt="Ben Camara" width="80" height="80" style="border-radius:50%; display:block; object-fit:cover;" />
+        </td>
+        <td style="vertical-align:top; font-family:Arial, sans-serif;">
+          <p style="margin:0 0 2px; font-size:15px; font-weight:bold; color:#222;">Ben Camara</p>
+          <p style="margin:0 0 8px; font-size:13px; color:#555;">Coach Success Team</p>
+          <p style="margin:0 0 8px; font-size:13px;">
+            <a href="https://www.joinkliq.io" style="color:#1a73e8; text-decoration:none;">joinkliq.io</a>
+          </p>
+          <p style="margin:0 0 10px;">
+            <a href="https://www.facebook.com/joinkliq" style="text-decoration:none; margin-right:8px; font-size:16px; color:#222;">f</a>
+            <a href="https://www.instagram.com/join_kliq/" style="text-decoration:none; margin-right:8px; font-size:16px; color:#222;">&#9675;</a>
+            <a href="https://twitter.com/joinkliq" style="text-decoration:none; margin-right:8px; font-size:16px; color:#222;">&#120143;</a>
+            <a href="https://www.linkedin.com/company/joinkliq" style="text-decoration:none; font-size:16px; color:#222;">in</a>
+          </p>
+          <table cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="padding-right:10px; vertical-align:middle;">
+                <span style="font-family:Arial Black, Arial, sans-serif; font-size:20px; font-weight:900; color:#1C3838; letter-spacing:-0.5px;">KLIQ</span>
+              </td>
+              <td style="vertical-align:middle;">
+                <span style="display:inline-block; background:#DEFE9C; color:#1C3838; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px; margin-right:4px;">Create</span>
+                <span style="display:inline-block; background:#9CF0FF; color:#1C3838; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px; margin-right:4px;">Connect</span>
+                <span style="display:inline-block; background:#FF9F88; color:#1C3838; font-size:10px; font-weight:bold; padding:3px 8px; border-radius:3px;">Thrive</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </div>
 
-  <div class="footer">
-    <a href="{{ unsubscribe_url }}">Unsubscribe</a>
+  <div style="padding:12px 0; font-size:11px; color:#999;">
+    <a href="{{ unsubscribe_url }}" style="color:#999;">Unsubscribe</a>
   </div>
 </body>
 </html>

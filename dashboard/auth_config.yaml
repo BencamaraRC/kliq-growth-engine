@@ -2,10 +2,13 @@ credentials:
   usernames:
     ben:
       name: Ben Camara
-      password: "$2b$12$Kvh/6m83nWX0l.8.k/AV3OO.2awNT8BvgS3mo8vF4NJdqc/mjDB4q"
+      password: "$2b$12$8a5uZueQc70qEWZGAP9zEu.7SkO.X9f8FAzaQi16deKc46uPZ.GQ."
     team:
       name: KLIQ Team
-      password: "$2b$12$Kvh/6m83nWX0l.8.k/AV3OO.2awNT8BvgS3mo8vF4NJdqc/mjDB4q"
+      password: "$2b$12$8a5uZueQc70qEWZGAP9zEu.7SkO.X9f8FAzaQi16deKc46uPZ.GQ."
+    test:
+      name: Test User
+      password: "$2b$12$QuKFICE5PiwuftGkM7/us.KvSKLZn5U36JEHd/8EVSR9MA8Xxau1i"
 
 cookie:
   expiry_days: 30

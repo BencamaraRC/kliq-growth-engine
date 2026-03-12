@@ -29,3 +29,4 @@ service-account.json
 output/
 test_cms.db
 .mcp.json
+frontend/node_modules/

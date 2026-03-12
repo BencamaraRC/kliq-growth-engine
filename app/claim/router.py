@@ -29,11 +29,10 @@ router = APIRouter()
 @router.get("/claim", response_class=HTMLResponse)
 async def claim_page(
     token: str = Query(...),
+    preview: int = Query(0),
     session: AsyncSession = Depends(get_db),
 ):
-    """Validate token and redirect to CMS signup page with prospect ID."""
-    from app.config import settings
-
+    """Validate token and serve the claim/password page."""
     prospect = await get_prospect_by_token(session, token)
 
     if not prospect:
@@ -47,12 +46,13 @@ async def claim_page(
             status_code=404,
         )
 
-    if prospect["status"] == "CLAIMED":
+    # In preview mode, always show the claim form regardless of status
+    if prospect["status"] == "CLAIMED" and not preview:
         return HTMLResponse(content=render_already_claimed_page(prospect))
 
-    # Redirect to CMS signup page with prospect ID
-    signup_url = f"{settings.cms_admin_url}/signup?id={prospect['id']}"
-    return RedirectResponse(url=signup_url, status_code=302)
+    # Serve the claim/password page
+    content_counts = await get_content_counts(session, prospect["id"])
+    return HTMLResponse(content=render_claim_page(prospect, content_counts, preview=preview))
 
 
 @router.post("/claim", response_class=HTMLResponse)
@@ -66,6 +66,11 @@ async def claim_submit(
     token = form.get("token", "")
     password = form.get("password", "")
     password_confirm = form.get("password_confirm", "")
+    preview = form.get("preview", "0")
+
+    # Preview mode — skip actual claim, just show the welcome page
+    if str(preview) == "1":
+        return RedirectResponse(url=f"/welcome?token={token}&preview=1", status_code=303)
 
     # Server-side validation
     errors = []
@@ -126,6 +131,7 @@ async def claim_submit(
 @router.get("/welcome", response_class=HTMLResponse)
 async def welcome_page(
     token: str = Query(...),
+    preview: int = Query(0),
     session: AsyncSession = Depends(get_db),
     cms_db: AsyncSession = Depends(get_cms_db),
 ):
@@ -143,12 +149,10 @@ async def welcome_page(
             status_code=404,
         )
 
-    # If not yet claimed, redirect to claim page
-    if prospect["status"] != "CLAIMED":
-        return RedirectResponse(url=f"/claim?token={token}")
-
     # Fetch auto-login token from CMS for seamless dashboard access
-    auto_login_token = await get_auto_login_token(cms_db, prospect)
+    auto_login_token = None
+    if prospect["status"] == "CLAIMED" and not preview:
+        auto_login_token = await get_auto_login_token(cms_db, prospect)
 
     content_counts = await get_content_counts(session, prospect["id"])
     onboarding = await get_onboarding_dict(session, prospect["id"])

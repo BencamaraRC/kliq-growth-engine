@@ -26,3 +26,5 @@ QA Database/
 *.sql
 # scripts/ — included for import jobs
 test_cms.db
+frontend/node_modules
+frontend/.cache

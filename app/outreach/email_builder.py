@@ -43,7 +43,7 @@ PLATFORM_INITIAL_SUBJECTS = {
     "YOUTUBE": "Your YouTube content is worth more than ad revenue, {{ first_name }}",
     "KAJABI": "Same features, plus a branded app, for a fraction of the cost, {{ first_name }}",
     # ICF-certified coaches (LinkedIn outreach)
-    "ICF": "Great connecting on LinkedIn, {{ first_name }} — your coaching deserves its own app",
+    "ICF": "Exploring partnerships, empowering more coaches",
     # Subscription platforms — niche-driven subject
     "ONLYFANS": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
     "STAN": "Your {{ niche }} content deserves its own platform, {{ first_name }}",
@@ -246,12 +246,15 @@ def build_outreach_email(
 
         view_count = random.randint(8, 24)
 
+    app_preview_url = f"{settings.app_base_url}/app-preview?token={claim_token}"
+
     context = {
         "first_name": first_name,
         "store_name": store_name,
         "platform": platform,
         "claim_url": claim_url,
         "preview_url": preview_url,
+        "app_preview_url": app_preview_url,
         "unsubscribe_url": unsubscribe_url,
         "dashboard_url": dashboard_url,
         "booking_link": booking_link,

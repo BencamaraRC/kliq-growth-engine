@@ -1,4 +1,13 @@
-# Stage 1: Builder
+# Stage 1: Build React frontend
+FROM node:20-slim AS frontend-builder
+
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+
+# Stage 2: Python dependencies
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
@@ -10,7 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml .
 RUN pip install --no-cache-dir --prefix=/install .
 
-# Stage 2: Runtime
+# Stage 3: Runtime
 FROM python:3.11-slim
 
 ARG INSTALL_PLAYWRIGHT=false
@@ -29,6 +38,9 @@ RUN if [ "$INSTALL_PLAYWRIGHT" = "true" ]; then \
 RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin appuser
 
 COPY . .
+
+# Copy frontend build output
+COPY --from=frontend-builder /frontend/dist ./frontend/dist
 
 RUN chown -R appuser:appuser /app
 USER appuser

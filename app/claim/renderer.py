@@ -58,6 +58,7 @@ def render_claim_page(
     prospect: dict,
     content_counts: dict,
     errors: list[str] | None = None,
+    preview: int = 0,
 ) -> str:
     """Render the claim page with password form.
 
@@ -65,6 +66,7 @@ def render_claim_page(
         prospect: Prospect dict with name, email, profile_image_url, etc.
         content_counts: Dict with blog_count and product_count.
         errors: Optional list of validation error messages to display.
+        preview: If 1, form submits in preview mode (no real claim).
     """
     first_name = prospect.get("first_name") or (
         prospect.get("name", "").split()[0] if prospect.get("name") else "Coach"
@@ -126,6 +128,7 @@ def render_claim_page(
     {error_html}
     <form method="POST" action="/claim" id="claim-form">
         <input type="hidden" name="token" value="{token}" />
+        <input type="hidden" name="preview" value="{preview}" />
 
         <div class="field">
             <label>Email</label>

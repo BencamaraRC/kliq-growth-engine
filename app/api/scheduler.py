@@ -5,12 +5,14 @@ to these endpoints on a cron schedule, and each endpoint enqueues the
 corresponding Celery task.
 """
 
+import secrets
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
-from app.db.models import Prospect
+from app.db.models import OnboardingProgress, Prospect, ProspectStatus
 from app.db.session import get_cms_db, get_db
 
 router = APIRouter(prefix="/api/scheduler", tags=["scheduler"])
@@ -303,3 +305,48 @@ async def iap_health_check(
         results["users_with_stripe"] = {"error": str(e)}
 
     return results
+
+
+@router.post("/refresh-token/{prospect_id}")
+async def refresh_claim_token(prospect_id: int, x_scheduler_secret: str = Header(...)):
+    """Reset a prospect's claim status and generate a fresh claim token. For testing/demo."""
+    _verify_secret(x_scheduler_secret)
+
+    async for session in get_db():
+        result = await session.execute(
+            select(Prospect).where(Prospect.id == prospect_id)
+        )
+        prospect = result.scalar_one_or_none()
+        if not prospect:
+            raise HTTPException(status_code=404, detail=f"Prospect {prospect_id} not found")
+
+        # Generate new token
+        new_token = secrets.token_urlsafe(32)
+        prospect.claim_token = new_token
+        prospect.status = ProspectStatus.STORE_CREATED
+        prospect.claimed_at = None
+
+        # Reset onboarding progress
+        onboarding = await session.execute(
+            select(OnboardingProgress).where(OnboardingProgress.prospect_id == prospect_id)
+        )
+        progress = onboarding.scalar_one_or_none()
+        if progress:
+            progress.password_set = False
+            progress.store_explored = False
+            progress.content_reviewed = False
+            progress.first_share = False
+            progress.progress_pct = 0
+            progress.completed_at = None
+
+        await session.commit()
+
+        base_url = settings.app_base_url
+        return {
+            "status": "refreshed",
+            "prospect_id": prospect.id,
+            "name": prospect.name,
+            "new_token": new_token,
+            "claim_url": f"{base_url}/claim?token={new_token}",
+            "welcome_url": f"{base_url}/welcome?token={new_token}",
+        }

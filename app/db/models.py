@@ -338,6 +338,21 @@ class LinkedInOutreach(Base):
     prospect: Mapped["Prospect"] = relationship(back_populates="linkedin_outreach")
 
 
+class User(Base):
+    """A registered user of the KLIQ Growth Engine website."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    prospect_id: Mapped[int | None] = mapped_column(
+        ForeignKey("prospects.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class CalendlyBooking(Base):
     """Tracks Calendly demo bookings linked to prospects."""
 
